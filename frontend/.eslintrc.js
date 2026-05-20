@@ -5,11 +5,9 @@ module.exports = {
   },
   extends: [
     'plugin:vue/vue3-essential',
-    'eslint:recommended',
-    '@vue/eslint-config-prettier'
+    'eslint:recommended'
   ],
   parserOptions: {
-    requireConfigFile: false,
     ecmaVersion: 2020
   },
   rules: {
