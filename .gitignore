@@ -12,3 +12,7 @@ dist/
 # Sistema operativo
 .DS_Store
 Thumbs.db
+
+# Configuración de IA
+.cursorrules
+.windsurfrules
