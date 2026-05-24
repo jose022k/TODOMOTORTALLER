@@ -13,6 +13,6 @@ dist/
 .DS_Store
 Thumbs.db
 
-# Configuración de IA
+# Configuración
 .cursorrules
 .windsurfrules
