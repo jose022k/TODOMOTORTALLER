@@ -1,8 +1,7 @@
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
-from app.modules.auth.models import User
-from app.modules.auth.dao import UserDAO
-from app.modules.auth.schemas import UserCreate, UserLogin, UserUpdate
+from app.modules.auth.dao import AdminDAO, ClienteDAO, MecanicoDAO
+from app.modules.auth.schemas import UserCreate, UserLogin, UserUpdate, ClienteCreate, MecanicoCreate
 from app.modules.auth.utils import (
     hash_password,
     verify_password,
@@ -11,42 +10,108 @@ from app.modules.auth.utils import (
     decode_token,
 )
 
-user_dao = UserDAO()
+admin_dao = AdminDAO()
+cliente_dao = ClienteDAO()
+mecanico_dao = MecanicoDAO()
 
 
-def register(db: Session, data: UserCreate) -> User:
-    existing = user_dao.get_by_email(db, data.email)
+def find_user_by_email(db: Session, email: str):
+    admin = admin_dao.get_by_email(db, email)
+    if admin: return admin, "admin", admin_dao
+    mecanico = mecanico_dao.get_by_email(db, email)
+    if mecanico: return mecanico, "mecanico", mecanico_dao
+    cliente = cliente_dao.get_by_email(db, email)
+    if cliente: return cliente, "cliente", cliente_dao
+    return None, None, None
+
+
+def find_user_by_nombre(db: Session, nombre: str):
+    admin = admin_dao.get_by_nombre(db, nombre)
+    if admin: return admin
+    mecanico = mecanico_dao.get_by_nombre(db, nombre)
+    if mecanico: return mecanico
+    cliente = cliente_dao.get_by_nombre(db, nombre)
+    if cliente: return cliente
+    return None
+
+
+def get_user_by_id_and_role(db: Session, user_id: str, role: str):
+    if role == "admin":
+        user = admin_dao.get_by_id(db, user_id)
+        dao = admin_dao
+    elif role == "mecanico":
+        user = mecanico_dao.get_by_id(db, user_id)
+        dao = mecanico_dao
+    elif role == "cliente":
+        user = cliente_dao.get_by_id(db, user_id)
+        dao = cliente_dao
+    else:
+        return None, None
+    
+    if user:
+        setattr(user, "rol", role)
+    return user, dao
+
+
+
+def register_cliente(db: Session, data: ClienteCreate):
+    existing, _, _ = find_user_by_email(db, data.email)
     if existing:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Email already registered",
         )
-    existing_username = user_dao.get_by_username(db, data.username)
-    if existing_username:
+    existing_nombre = find_user_by_nombre(db, data.nombre)
+    if existing_nombre:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Username already taken",
+            detail="Nombre already taken",
         )
-    user_data = data.model_dump()
-    user_data["hashed_password"] = hash_password(user_data.pop("password"))
-    user_data["is_active"] = True
-    return user_dao.create(db, user_data)
+    
+    user_data = data.model_dump(exclude={"rol"})
+    user_data["contraseña"] = hash_password(user_data.pop("password"))
+    
+    user = cliente_dao.create(db, user_data)
+    setattr(user, "rol", "cliente")
+    return user
+
+
+def register_mecanico(db: Session, data: MecanicoCreate):
+    existing, _, _ = find_user_by_email(db, data.email)
+    if existing:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email already registered",
+        )
+    existing_nombre = find_user_by_nombre(db, data.nombre)
+    if existing_nombre:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Nombre already taken",
+        )
+    
+    user_data = data.model_dump(exclude={"rol"})
+    user_data["contraseña"] = hash_password(user_data.pop("password"))
+    
+    user = mecanico_dao.create(db, user_data)
+    setattr(user, "rol", "mecanico")
+    return user
 
 
 def login(db: Session, data: UserLogin) -> dict:
-    user = user_dao.get_by_email(db, data.email)
-    if not user or not verify_password(data.password, user.hashed_password):
+    user, role, _ = find_user_by_email(db, data.email)
+    if not user or not verify_password(data.password, user.contraseña):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid email or password",
         )
-    if not user.is_active:
+    if data.rol and role != data.rol:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Account is inactive",
+            detail="Credenciales no válidas para este tipo de usuario",
         )
-    access_token = create_access_token({"sub": str(user.id), "role": user.role})
-    refresh_token = create_refresh_token({"sub": str(user.id), "role": user.role})
+    access_token = create_access_token({"sub": str(user.id), "role": role})
+    refresh_token = create_refresh_token({"sub": str(user.id), "role": role})
     return {
         "access_token": access_token,
         "refresh_token": refresh_token,
@@ -62,14 +127,16 @@ def refresh_token(db: Session, token: str) -> dict:
             detail="Invalid or expired refresh token",
         )
     user_id = payload.get("sub")
-    user = user_dao.get_by_id(db, user_id)
-    if not user or not user.is_active:
+    role = payload.get("role")
+    
+    user, _ = get_user_by_id_and_role(db, user_id, role)
+    if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User not found or inactive",
+            detail="User not found",
         )
-    access_token = create_access_token({"sub": str(user.id), "role": user.role})
-    refresh_token = create_refresh_token({"sub": str(user.id), "role": user.role})
+    access_token = create_access_token({"sub": str(user.id), "role": role})
+    refresh_token = create_refresh_token({"sub": str(user.id), "role": role})
     return {
         "access_token": access_token,
         "refresh_token": refresh_token,
@@ -77,8 +144,8 @@ def refresh_token(db: Session, token: str) -> dict:
     }
 
 
-def get_user_by_id(db: Session, user_id: str) -> User:
-    user = user_dao.get_by_id(db, user_id)
+def get_user_by_id(db: Session, user_id: str, role: str):
+    user, _ = get_user_by_id_and_role(db, user_id, role)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -87,9 +154,18 @@ def get_user_by_id(db: Session, user_id: str) -> User:
     return user
 
 
-def update_user(db: Session, user_id: str, data: UserUpdate) -> User:
-    user = get_user_by_id(db, user_id)
+def update_user(db: Session, user_id: str, role: str, data: UserUpdate):
+    user, dao = get_user_by_id_and_role(db, user_id, role)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
+        )
+        
     update_data = data.model_dump(exclude_unset=True)
     if "password" in update_data:
-        update_data["hashed_password"] = hash_password(update_data.pop("password"))
-    return user_dao.update(db, user, update_data)
+        update_data["contraseña"] = hash_password(update_data.pop("password"))
+        
+    updated_user = dao.update(db, user, update_data)
+    setattr(updated_user, "rol", role)
+    return updated_user

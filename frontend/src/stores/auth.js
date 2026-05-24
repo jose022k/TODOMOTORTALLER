@@ -9,25 +9,27 @@ export const useAuthStore = defineStore('auth', {
   }),
   getters: {
     isAuthenticated: (state) => !!state.accessToken,
-    isAdmin: (state) => state.user?.role === 'admin',
-    isMecanico: (state) => state.user?.role === 'mecanico',
-    isCliente: (state) => state.user?.role === 'cliente',
+    isAdmin: (state) => state.user?.rol === 'admin',
+    isMecanico: (state) => state.user?.rol === 'mecanico',
+    isCliente: (state) => state.user?.rol === 'cliente',
   },
   actions: {
-    async login(email, password) {
-      const { data } = await api.post('/auth/login', { email, password })
+    async login(email, password, rol = null) {
+      const payload = { email, password }
+      if (rol) payload.rol = rol
+      const { data } = await api.post('/auth/login', payload)
       this.accessToken = data.access_token
       this.refreshToken = data.refresh_token
       localStorage.setItem('access_token', data.access_token)
       localStorage.setItem('refresh_token', data.refresh_token)
       await this.fetchUser()
     },
-    async register(email, username, password) {
-      const { data } = await api.post('/auth/register', {
-        email,
-        username,
-        password,
-      })
+    async registerCliente(payload) {
+      const { data } = await api.post('/auth/register/cliente', payload)
+      return data
+    },
+    async registerMecanico(payload) {
+      const { data } = await api.post('/auth/register/mecanico', payload)
       return data
     },
     async fetchUser() {

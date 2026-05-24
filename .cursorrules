@@ -1,0 +1,114 @@
+# Reglas Generales y Guía del Proyecto (2026-T303-G03)
+
+Esta es la base de conocimiento o "skill" de la IA para trabajar en este proyecto. Todo asistente debe adherirse estrictamente a lo siguiente:
+
+## 1. Reglas Generales (Normas de Uso)
+- Mantener un lenguaje respetuoso y profesional ✨
+- Documentar claramente el código y cada avance en el repositorio 📝
+- ⚠️ Se debe escribir los nombres de las ramas, commits, PRs, métodos, variables, clases, interfaces, etc., todo en **INGLÉS**.
+- Usar ramas para nuevas funcionalidades o correcciones 🌿
+- Hacer commits frecuentes y descriptivos 🖊️
+- Respetar las fechas de entrega ⏰
+
+## 2. Guía de Inicio Rápido para Estudiantes
+
+### Paso 1: Ubica tu Repositorio
+Tu repositorio sigue el formato `[Año]-T[NúmeroTrayecto][NúmeroDeSeción]-G[NúmeroDeGrupo]`. Ejemplo: `2026-T303-G03`. Si eres miembro del grupo, ya tienes acceso de escritura.
+
+### Paso 2: Clonación Inicial
+Cada miembro debe clonar el repositorio a su máquina local:
+```bash
+# Cambia 'nombre-repo' por el nombre de tu proyecto
+git clone https://github.com/UPTAMCA/nombre-repo.git
+```
+
+### Paso 3: ¡Crea una Rama! (Branching)
+⚠️ **Regla de Oro: NUNCA trabajes directamente en `main` o `master`.**
+- Siempre crea una rama nueva para cada nueva funcionalidad o corrección.
+- No es una rama por commit. Puedes (y debes) hacer múltiples commits dentro de esa misma rama hasta terminar la funcionalidad.
+- Una vez terminada la tarea, se hace el Pull Request. Para la siguiente tarea diferente, crea una rama nueva desde `main`.
+```bash
+# Crea y cambia a tu nueva rama
+git checkout -b <tipo>/<descripcion-corta>
+```
+
+### Paso 4: Flujo de Trabajo (Pull Requests y Revisión)
+1. Haz `push` de tu rama a GitHub.
+2. Crea un **Pull Request (PR)** para fusionarla con la rama `main`.
+3. Etiqueta (Assign) a tu Líder de Grupo y/o al Profesor para revisión.
+4. Solo se fusionará el código que haya sido **aprobado por al menos un revisor**.
+
+## 3. Convenciones de Nombramiento en Git (Git Naming Conventions)
+### Ramas (Branches)
+Formato: `<categoria>/<descripcion-en-kebab-case>`
+Categorías:
+- `feature`: añadir, refactorizar o eliminar funcionalidad.
+- `bugfix`: arreglar un bug.
+- `hotfix`: cambiar código con solución temporal/emergencia.
+- `test`: experimentar fuera de un issue/ticket.
+
+### Commits
+Formato: `<categoria>: <descripcion corta>`
+Categorías principales:
+- `feat`: añadir nueva funcionalidad.
+- `fix`: arreglar un bug.
+- `refactor`: cambiar código por rendimiento o conveniencia (legibilidad).
+- `chore`: todo lo demás (documentación, formato, tests, limpiar código, etc.).
+Ejemplo: `git commit -m 'feat: do something; do some other things'`
+
+## 4. Documentación: CHANGELOG.md
+El archivo `CHANGELOG.md` debe seguir el formato de SemVer (https://semver.org/).
+Ejemplo del formato:
+```markdown
+# Changelog
+## Proyecto: Mi Aplicación Web
+Todas las modificaciones siguen el estándar de versión semántica (https://semver.org/).
+---
+## [1.2.0] - 2025-06-08
+### Added
+- Se implementó autenticación con OAuth 2.0.
+### Changed
+- Mejora en la eficiencia.
+### Fixed
+- Corrección de errores.
+```
+
+## 5. Documentación: Markdown (README.md y otros)
+Al escribir en Markdown, usar todas las capacidades soportadas:
+- Encabezados: `# Encabezado 1` hasta `###### Encabezado 6`
+- Formato: **negrita**, *cursiva*, ~~tachado~~
+- Citas: `> Cita de ejemplo` (se pueden anidar `>>`)
+- Listas: Desordenadas (`- Elemento 1`) y Ordenadas (`1. Elemento 1`).
+- Checkboxes: `- [x] Tarea hecha`, `- [ ] Tarea pendiente`
+- Tablas: Usar formato de tablas Markdown para organizar datos y alinear columnas.
+- Enlaces y Multimedia: `[enlace](http...)`, `![Texto alt](/ruta/img.jpg)`
+- Código: `` `código en línea` `` y bloques de código con `~~~` o ```` ` ````.
+- Estructura de carpetas representadas en texto para mostrar arquitectura.
+
+## 6. Contexto del Dominio del Negocio (Módulos)
+El proyecto es un Sistema Web PWA para un taller de motos ("Todomotortaller"). La arquitectura del backend en FastAPI se divide estrictamente en los siguientes 9 módulos en INGLÉS:
+1. `auth` (Autenticación y acceso)
+2. `clients` (Gestión de clientes)
+3. `motorcycles` (Motos e historial)
+4. `service_orders` (Órdenes de servicio/reparación)
+5. `notifications` (Alertas Web push)
+6. `reports` (Reportes y estadísticas)
+7. `mechanics` (Personal mecánico)
+8. `admin` (Panel global)
+9. `chat` (Submódulo de mensajería)
+
+## 7. Patrones de Diseño Arquitectónico (Design Patterns)
+Para garantizar la escalabilidad y mantenibilidad, el código debe seguir estrictamente estos patrones:
+- **Backend (Persistencia):** Patrón **DAO (Data Access Object)**. Toda consulta o escritura a la base de datos (Supabase/PostgreSQL) debe estar abstraída en clases DAO independientes.
+- **Backend (Lógica de Negocios):** Patrón **Domain Model (Modelo de Dominio)**. La lógica y reglas del negocio deben estar encapsuladas y separadas de la capa de persistencia y de las rutas HTTP.
+- **Frontend (Vue.js):** Patrón **Observer**. Uso de este patrón para manejar la reactividad en tiempo real (PWA), actualización de estados y sincronización de datos visuales sin recargar.
+
+## 8. Decisiones de Arquitectura (Autenticación y Usuarios)
+Para mantener la seguridad y modularidad en este proyecto, se aplican las siguientes reglas:
+- **Separación de Modelos de Usuario:** No existe una tabla única de `Usuario`. Se utilizan tres tablas y modelos independientes: `Admin`, `Cliente` y `Mecanico`.
+- **Campos Obligatorios:** En el modelo `Cliente`, los campos `cedula`, `telefono` y `direccion` son obligatorios (non-nullable en base de datos y validados en el frontend).
+- **Flujos de Login Separados:** El frontend Vue implementa tres vistas de login independientes: `/login` (Admin), `/loginMecanico` y `/loginCliente`.
+- **Verificación Estricta de Rol:** El backend exige y valida el rol durante el login, asegurando que un administrador no inicie sesión en la vista de cliente ni viceversa.
+- **Registro Segregado:**
+  - El registro de clientes (`/register/cliente`) es completamente **público**.
+  - El registro de mecánicos (`/register` en frontend, `/auth/register/mecanico` en backend) está **protegido** y requiere un token válido de Administrador.

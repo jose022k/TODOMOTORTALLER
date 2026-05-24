@@ -14,12 +14,35 @@ const routes = [
     component: () =>
       import(/* webpackChunkName: "about" */ "../views/AboutView.vue"),
   },
+  // Login Admin
   {
     path: "/login",
     name: "login",
     component: () =>
-      import(/* webpackChunkName: "login" */ "../views/LoginView.vue"),
+      import(/* webpackChunkName: "login-admin" */ "../views/AdminLoginView.vue"),
   },
+  // Login Mecánico
+  {
+    path: "/loginMecanico",
+    name: "login-mecanico",
+    component: () =>
+      import(/* webpackChunkName: "login-mecanico" */ "../views/MecanicoLoginView.vue"),
+  },
+  // Login Cliente
+  {
+    path: "/loginCliente",
+    name: "login-cliente",
+    component: () =>
+      import(/* webpackChunkName: "login-cliente" */ "../views/ClienteLoginView.vue"),
+  },
+  // Registro público de clientes
+  {
+    path: "/register/cliente",
+    name: "register-cliente",
+    component: () =>
+      import(/* webpackChunkName: "register-cliente" */ "../views/ClienteRegisterView.vue"),
+  },
+  // Registro de mecánicos (solo admin autenticado)
   {
     path: "/register",
     name: "register",
@@ -34,13 +57,19 @@ const router = createRouter({
 });
 
 router.beforeEach((to, from, next) => {
-  const publicPages = ["/login", "/register"];
+  const publicPages = ["/login", "/loginMecanico", "/loginCliente", "/register/cliente"];
   const authRequired = !publicPages.includes(to.path);
   const authStore = useAuthStore();
 
   if (authRequired && !authStore.isAuthenticated) {
     return next("/login");
   }
+
+  // /register (mecánicos) solo para admins autenticados
+  if (to.path === "/register" && authStore.isAuthenticated && !authStore.isAdmin) {
+    return next("/");
+  }
+
   next();
 });
 

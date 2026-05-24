@@ -6,30 +6,43 @@ from pydantic import BaseModel, EmailStr
 
 class UserCreate(BaseModel):
     email: EmailStr
-    username: str
+    nombre: str
     password: str
-    role: str = "cliente"
+    rol: str = "cliente"
+
+class AdminCreate(UserCreate):
+    pass
+
+class ClienteCreate(UserCreate):
+    cedula: str
+    telefono: str
+    direccion: str
+
+class MecanicoCreate(UserCreate):
+    pass
 
 
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
+    rol: Optional[str] = None
 
 
 class UserResponse(BaseModel):
-    id: UUID
+    id: int
     email: str
-    username: str
-    role: str
-    is_active: bool
-    created_at: datetime
+    nombre: str
+    rol: str
+    cedula: Optional[str] = None
+    telefono: Optional[str] = None
+    direccion: Optional[str] = None
 
     model_config = {"from_attributes": True}
 
 
 class UserUpdate(BaseModel):
     email: Optional[EmailStr] = None
-    username: Optional[str] = None
+    nombre: Optional[str] = None
     password: Optional[str] = None
 
 

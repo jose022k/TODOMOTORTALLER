@@ -6,12 +6,17 @@
         <router-link to="/">Home</router-link>
         <router-link to="/about">About</router-link>
         <template v-if="authStore.isAuthenticated">
-          <span class="user-info">{{ authStore.user?.username }}</span>
+          <router-link v-if="authStore.isAdmin" to="/register">Registrar Mecánico</router-link>
+          <span class="user-info">{{ authStore.user?.nombre }}</span>
           <button class="btn-logout" @click="handleLogout">Cerrar Sesión</button>
         </template>
         <template v-else>
-          <router-link to="/login">Iniciar Sesión</router-link>
-          <router-link to="/register">Registrarse</router-link>
+          <router-link 
+            v-if="!['/loginCliente', '/loginMecanico'].includes($route.path)"
+            :to="$route.path === '/register/cliente' ? '/loginCliente' : '/login'"
+          >
+            Iniciar Sesión
+          </router-link>
         </template>
       </nav>
     </header>
