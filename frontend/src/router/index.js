@@ -49,6 +49,13 @@ const routes = [
     component: () =>
       import(/* webpackChunkName: "register" */ "../views/RegisterView.vue"),
   },
+  // Gestión del catálogo de motos (solo admin autenticado)
+  {
+    path: "/admin/catalog",
+    name: "admin-catalog",
+    component: () =>
+      import(/* webpackChunkName: "admin-catalog" */ "../views/CatalogoMotosView.vue"),
+  },
 ];
 
 const router = createRouter({
@@ -65,8 +72,8 @@ router.beforeEach((to, from, next) => {
     return next("/login");
   }
 
-  // /register (mecánicos) solo para admins autenticados
-  if (to.path === "/register" && authStore.isAuthenticated && !authStore.isAdmin) {
+  // /register (mecánicos) y /admin/catalog solo para admins autenticados
+  if (["/register", "/admin/catalog"].includes(to.path) && authStore.isAuthenticated && !authStore.isAdmin) {
     return next("/");
   }
 
