@@ -18,4 +18,7 @@ uml/
 sql/
 
 # Configuración
-.cursorrulesscripts/
+.cursorrules
+
+# Scripts de una sola ejecución
+scripts/
