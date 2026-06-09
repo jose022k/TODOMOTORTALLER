@@ -19,3 +19,6 @@ sql/
 
 # Configuración
 .cursorrules
+
+# Scripts de una sola ejecución
+scripts/
