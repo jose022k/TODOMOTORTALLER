@@ -25,6 +25,7 @@ class Cliente(Base):
     contraseña = Column(String(255), nullable=False)
     telefono = Column(String(50), nullable=False)
     direccion = Column(Text, nullable=False)
+    activo = Column(Boolean, default=True, nullable=False)
 
 
 class Mecanico(Base):
@@ -34,3 +35,4 @@ class Mecanico(Base):
     nombre = Column(String(100), nullable=False)
     email = Column(String(255), unique=True, index=True, nullable=False)
     contraseña = Column(String(255), nullable=False)
+    activo = Column(Boolean, default=True, nullable=False)
