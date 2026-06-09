@@ -36,6 +36,7 @@ class UserResponse(BaseModel):
     cedula: Optional[str] = None
     telefono: Optional[str] = None
     direccion: Optional[str] = None
+    activo: Optional[bool] = True
 
     model_config = {"from_attributes": True}
 

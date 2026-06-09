@@ -13,5 +13,9 @@ dist/
 .DS_Store
 Thumbs.db
 
+# Documentación y SQL
+uml/
+sql/
+
 # Configuración
-.windsurfrules
+.cursorrules

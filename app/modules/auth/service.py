@@ -1,7 +1,7 @@
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 from app.modules.auth.dao import AdminDAO, ClienteDAO, MecanicoDAO
-from app.modules.auth.schemas import UserCreate, UserLogin, UserUpdate, ClienteCreate, MecanicoCreate
+from app.modules.auth.schemas import UserCreate, UserLogin, UserUpdate, ClienteCreate
 from app.modules.auth.utils import (
     hash_password,
     verify_password,
@@ -76,28 +76,6 @@ def register_cliente(db: Session, data: ClienteCreate):
     return user
 
 
-def register_mecanico(db: Session, data: MecanicoCreate):
-    existing, _, _ = find_user_by_email(db, data.email)
-    if existing:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email already registered",
-        )
-    existing_nombre = find_user_by_nombre(db, data.nombre)
-    if existing_nombre:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Nombre already taken",
-        )
-    
-    user_data = data.model_dump(exclude={"rol"})
-    user_data["contraseña"] = hash_password(user_data.pop("password"))
-    
-    user = mecanico_dao.create(db, user_data)
-    setattr(user, "rol", "mecanico")
-    return user
-
-
 def login(db: Session, data: UserLogin) -> dict:
     user, role, _ = find_user_by_email(db, data.email)
     if not user or not verify_password(data.password, user.contraseña):
@@ -109,6 +87,11 @@ def login(db: Session, data: UserLogin) -> dict:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Credenciales no válidas para este tipo de usuario",
+        )
+    if hasattr(user, "activo") and not user.activo:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Usuario desactivado. Contacte al administrador.",
         )
     access_token = create_access_token({"sub": str(user.id), "role": role})
     refresh_token = create_refresh_token({"sub": str(user.id), "role": role})

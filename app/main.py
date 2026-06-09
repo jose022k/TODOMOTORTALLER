@@ -1,19 +1,26 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.core.database import engine, Base
+from app.core.database import engine, Base, ensure_schema_updates
+
+# Import models so SQLAlchemy discovers them for create_all
+from app.modules.auth.models import Admin, Cliente, Mecanico
+from app.modules.motorcycles.models import CatalogoMoto, MotoCliente, HistorialMantenimiento
+from app.modules.service_orders.models import OrdenServicio, Evidencia
+from app.modules.notifications.models import Notificacion
+from app.modules.chat.models import Mensaje
 
 # Import routers
 from app.modules.auth.router import router as auth_router
-from app.modules.clients.router import router as clients_router
+from app.modules.users.router import router as users_router
 from app.modules.motorcycles.router import router as motorcycles_router
 from app.modules.service_orders.router import router as service_orders_router
 from app.modules.notifications.router import router as notifications_router
 from app.modules.reports.router import router as reports_router
-from app.modules.mechanics.router import router as mechanics_router
 from app.modules.admin.router import router as admin_router
 from app.modules.chat.router import router as chat_router
 
 Base.metadata.create_all(bind=engine)
+ensure_schema_updates()
 
 app = FastAPI(
     title="Todomotortaller API",
@@ -31,12 +38,11 @@ app.add_middleware(
 
 # Include routers
 app.include_router(auth_router)
-app.include_router(clients_router)
+app.include_router(users_router)
 app.include_router(motorcycles_router)
 app.include_router(service_orders_router)
 app.include_router(notifications_router)
 app.include_router(reports_router)
-app.include_router(mechanics_router)
 app.include_router(admin_router)
 app.include_router(chat_router)
 
