@@ -7,6 +7,7 @@ class CatalogoMotoBase(BaseModel):
     marca: str
     modelo: str
     gama_color: str
+    logo_url: Optional[str] = None
 
 
 class CatalogoMotoCreate(CatalogoMotoBase):
@@ -17,6 +18,7 @@ class CatalogoMotoUpdate(BaseModel):
     marca: Optional[str] = None
     modelo: Optional[str] = None
     gama_color: Optional[str] = None
+    logo_url: Optional[str] = None
 
 
 class CatalogoMotoResponse(CatalogoMotoBase):

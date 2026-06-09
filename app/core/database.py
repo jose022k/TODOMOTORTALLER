@@ -22,6 +22,7 @@ def get_db():
 _MIGRATIONS = [
     ("cliente", "ADD COLUMN IF NOT EXISTS activo BOOLEAN NOT NULL DEFAULT TRUE"),
     ("mecanico", "ADD COLUMN IF NOT EXISTS activo BOOLEAN NOT NULL DEFAULT TRUE"),
+    ("catalogo_moto", "ADD COLUMN IF NOT EXISTS logo_url TEXT"),
 ]
 
 

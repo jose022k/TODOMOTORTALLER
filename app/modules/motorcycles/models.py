@@ -10,6 +10,7 @@ class CatalogoMoto(Base):
     marca = Column(String(100), nullable=False)
     modelo = Column(String(100), nullable=False)
     gama_color = Column(String(100), nullable=False)
+    logo_url = Column(Text, nullable=True)
 
     motos_cliente = relationship("MotoCliente", back_populates="catalogo_moto")
 

@@ -249,22 +249,56 @@ Uso de reactividad (Pinia + Composition API) para manejar estados en tiempo real
 - `../2026-T303-G03-docs/use_cases_description.md` → descripciones por actor
 
 ### Casos de uso (numeración final)
-| ID | Caso de Uso | Módulo | Admin | Cliente | Mecánico |
-|---|---|---|---|---|---|
-| CU-01 | Iniciar sesión | Auth | ✅ | ✅ | ✅ |
-| CU-02 | Registrarse | Auth | — | ✅ | — |
-| CU-03 | Gestionar mecánicos | Users | ✅ | — | — |
-| CU-04 | Gestionar catálogo de motos | Motorcycles | ✅ | — | — |
-| CU-05 | Crear orden de servicio | Service Orders | ✅ | — | — |
-| CU-06 | Ver estado de orden | Service Orders | — | ✅ | ✅ |
-| CU-07 | Actualizar estado de orden | Service Orders | ✅ | — | ✅ |
-| CU-08 | Asignar mecánico a orden | Service Orders | ✅ | — | — |
-| CU-09 | Enviar/recibir mensajes | Chat | ✅ | ✅ | ✅ |
-| CU-10 | Enviar/recibir evidencias | Chat | ✅ | ✅ | ✅ |
-| CU-11 | Consultar historial de motos | Motorcycles | ✅ | — | — |
-| CU-12 | Consultar historial mantenimiento QR | Motorcycles | — | ✅ | — |
-| CU-13 | Descargar QR de moto | Motorcycles | — | ✅ | — |
-| CU-14 | Ver notificaciones | Notifications | ✅ | ✅ | ✅ |
-| CU-15 | Consultar reportes y estadísticas | Reports | ✅ | — | — |
-| CU-16 | Gestionar clientes | Users | ✅ | — | — |
-| CU-17 | Ver dashboard | Admin | ✅ | — | — |
+| ID | Caso de Uso | Módulo | Admin | Cliente | Mecánico | Estado |
+|---|---|---|---|---|---|---|
+| CU-01 | Iniciar sesión | Auth | ✅ | ✅ | ✅ | ✅ Implementado |
+| CU-02 | Registrarse | Auth | — | ✅ | — | ✅ Implementado |
+| CU-03 | Gestionar mecánicos | Users | ✅ | — | — | ✅ Implementado |
+| CU-04 | Gestionar catálogo de motos | Motorcycles | ✅ | — | — | ✅ Implementado |
+| CU-05 | Crear orden de servicio | Service Orders | ✅ | — | — | ⏳ Pendiente |
+| CU-06 | Ver estado de orden | Service Orders | — | ✅ | ✅ | ⏳ Pendiente |
+| CU-07 | Actualizar estado de orden | Service Orders | ✅ | — | ✅ | ⏳ Pendiente |
+| CU-08 | Asignar mecánico a orden | Service Orders | ✅ | — | — | ⏳ Pendiente |
+| CU-09 | Enviar/recibir mensajes | Chat | ✅ | ✅ | ✅ | ⏳ Pendiente |
+| CU-10 | Enviar/recibir evidencias | Chat | ✅ | ✅ | ✅ | ⏳ Pendiente |
+| CU-11 | Consultar historial de motos | Motorcycles | ✅ | — | — | ⏳ Pendiente |
+| CU-12 | Consultar historial mantenimiento QR | Motorcycles | — | ✅ | — | ⏳ Pendiente |
+| CU-13 | Descargar QR de moto | Motorcycles | — | ✅ | — | ⏳ Pendiente |
+| CU-14 | Ver notificaciones | Notifications | ✅ | ✅ | ✅ | ⏳ Pendiente |
+| CU-15 | Consultar reportes y estadísticas | Reports | ✅ | — | — | ⏳ Pendiente |
+| CU-16 | Gestionar clientes | Users | ✅ | — | — | ✅ Implementado |
+| CU-17 | Ver dashboard | Admin | ✅ | — | — | ✅ Implementado |
+
+## 10. Resumen de lo Construido (Sesión 2026-06-09)
+
+### Rama: `feature/motorcycles-module`
+
+### CU-04: Gestionar Catálogo de Motos — ✅ COMPLETADO
+
+#### Backend — `app/modules/motorcycles/`
+- **`dao.py`** [NUEVO]: `CatalogoMotoDAO(BaseDAO)` con método `get_by_marca_modelo_color` para detección de duplicados.
+- **`service.py`** [NUEVO]: Lógica de negocio completa:
+  - `get_catalog_items`, `get_catalog_item_by_id`, `create_catalog_item`, `update_catalog_item`, `delete_catalog_item`
+  - Validación de duplicados (marca + modelo + gama_color)
+  - Bloqueo de eliminación si `item.motos_cliente` no está vacío (integridad referencial)
+- **`router.py`** [MODIFICADO]: 5 endpoints REST:
+  - `GET /motorcycles/catalog` → todos los usuarios autenticados
+  - `GET /motorcycles/catalog/{id}` → todos los usuarios autenticados
+  - `POST /motorcycles/catalog` → solo `admin` (via `get_current_admin`)
+  - `PUT /motorcycles/catalog/{id}` → solo `admin`
+  - `DELETE /motorcycles/catalog/{id}` → solo `admin`, retorna HTTP 204
+
+#### Frontend — `frontend/src/`
+- **`views/CatalogoMotosView.vue`** [NUEVO]: Vista PWA premium con:
+  - Grid de tarjetas con micro-animaciones CSS (hover, translateY, box-shadow)
+  - Buscador reactivo en tiempo real (filtra por marca, modelo, gama_color)
+  - Modal flotante con `backdrop-filter: blur(8px)` para crear/editar
+  - Alertas temporales de éxito/error (auto-dismiss en 5s)
+  - Estado de carga con spinner animado y estado vacío ilustrado
+  - Confirmación de eliminación con `window.confirm`
+- **`router/index.js`** [MODIFICADO]: Ruta `/admin/catalog` (lazy-load) protegida para admins
+- **`App.vue`** [MODIFICADO]: Enlace "Catálogo de Motos" visible solo para `isAdmin`
+
+#### Verificación
+- ✅ Compilación Python sin errores (`py_compile`)
+- ✅ Build de producción Vue exitoso (chunk `admin-catalog.96f06587.js` generado)
