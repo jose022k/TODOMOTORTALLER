@@ -13,6 +13,14 @@ dist/
 .DS_Store
 Thumbs.db
 
+# Documentación y SQL
+uml/
+sql/
+docs/
+
 # Configuración
 .cursorrules
 .windsurfrules
+
+# Scripts de una sola ejecución
+scripts/
