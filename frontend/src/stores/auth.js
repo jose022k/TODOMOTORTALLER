@@ -29,7 +29,7 @@ export const useAuthStore = defineStore('auth', {
       return data
     },
     async registerMecanico(payload) {
-      const { data } = await api.post('/auth/register/mecanico', payload)
+      const { data } = await api.post('/users/mechanics', payload)
       return data
     },
     async fetchUser() {

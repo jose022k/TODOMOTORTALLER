@@ -3,11 +3,14 @@
     <header class="app-header">
       <router-link to="/" class="logo">Todomotortaller</router-link>
       <nav class="app-nav">
-        <router-link to="/">Home</router-link>
-        <router-link to="/about">About</router-link>
+        <template v-if="!authStore.isAuthenticated || !authStore.isAdmin">
+          <router-link to="/">Home</router-link>
+          <router-link to="/about">About</router-link>
+        </template>
         <template v-if="authStore.isAuthenticated">
+          <router-link v-if="authStore.isAdmin" to="/admin">Panel Admin</router-link>
+          <router-link v-if="authStore.isAdmin" to="/admin/users">Gestionar Usuarios</router-link>
           <router-link v-if="authStore.isAdmin" to="/admin/catalog">Catálogo de Motos</router-link>
-          <router-link v-if="authStore.isAdmin" to="/register">Registrar Mecánico</router-link>
           <span class="user-info">{{ authStore.user?.nombre }}</span>
           <button class="btn-logout" @click="handleLogout">Cerrar Sesión</button>
         </template>

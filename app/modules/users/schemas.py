@@ -32,6 +32,27 @@ class MotoAsociada(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class MecanicoResponse(BaseModel):
+    id: int
+    nombre: str
+    email: str
+    activo: bool = True
+
+    model_config = {"from_attributes": True}
+
+
+class ClienteResponse(BaseModel):
+    id: int
+    nombre: str
+    cedula: str
+    email: str
+    telefono: str
+    direccion: str
+    activo: bool = True
+
+    model_config = {"from_attributes": True}
+
+
 class ClienteDetailResponse(BaseModel):
     id: int
     nombre: str
