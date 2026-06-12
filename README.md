@@ -33,5 +33,4 @@ El sistema está compuesto por los siguientes módulos principales, orientados a
 - [ ] **5. Notificaciones y alertas:** Sistema de notificaciones Web Push para eventos del taller.
 - [ ] **6. Reportes:** Estadísticas e indicadores del taller (dashboard de administración).
 - [ ] **7. Admin:** Panel de administración global con dashboard de indicadores.
-- [ ] **8. Chat:** Mensajería entre cliente, mecánico y admin asociada a órdenes.
-- [ ] **9. Evidencias:** Subida y gestión de fotos (Cloudinary) asociadas a órdenes de servicio.
+- [ ] **8. Chat:** Mensajería entre cliente, mecánico y admin asociada a órdenes, con envío de fotos (evidencias).
