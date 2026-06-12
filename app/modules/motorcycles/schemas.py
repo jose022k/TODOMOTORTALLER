@@ -30,6 +30,7 @@ class CatalogoMotoResponse(CatalogoMotoBase):
 class MotoClienteBase(BaseModel):
     placa: str
     anio: int
+    color: Optional[str] = None
     catalogo_moto_id: int
     cliente_id: int
 
@@ -41,6 +42,7 @@ class MotoClienteCreate(MotoClienteBase):
 class MotoClienteUpdate(BaseModel):
     placa: Optional[str] = None
     anio: Optional[int] = None
+    color: Optional[str] = None
     catalogo_moto_id: Optional[int] = None
 
 

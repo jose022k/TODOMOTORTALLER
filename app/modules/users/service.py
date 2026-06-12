@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from app.modules.auth.dao import ClienteDAO, MecanicoDAO
 from app.modules.auth.schemas import UserUpdate
 from app.modules.auth.utils import hash_password
+from app.modules.users.schemas import ClienteDetailResponse, MotoAsociada
 
 cliente_dao = ClienteDAO()
 mecanico_dao = MecanicoDAO()
@@ -22,7 +23,30 @@ def get_client_by_id(db: Session, client_id: int):
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Cliente no encontrado",
         )
-    return cliente
+    # Construir motos con datos del catálogo a través de la relación
+    motos = [
+        MotoAsociada(
+            id=m.id,
+            placa=m.placa,
+            anio=m.anio,
+            color=m.color,
+            codigo_qr=m.codigo_qr,
+            marca=m.catalogo_moto.marca,
+            modelo=m.catalogo_moto.modelo,
+            gama_color=m.catalogo_moto.gama_color,
+        )
+        for m in cliente.motos_cliente
+    ]
+    return ClienteDetailResponse(
+        id=cliente.id,
+        nombre=cliente.nombre,
+        cedula=cliente.cedula,
+        email=cliente.email,
+        telefono=cliente.telefono,
+        direccion=cliente.direccion,
+        activo=cliente.activo,
+        motos=motos,
+    )
 
 
 def update_client(db: Session, client_id: int, data: dict):

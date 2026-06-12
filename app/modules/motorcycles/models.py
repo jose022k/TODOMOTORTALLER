@@ -21,6 +21,7 @@ class MotoCliente(Base):
     id = Column(Integer, primary_key=True, index=True)
     placa = Column(String(20), unique=True, index=True, nullable=False)
     anio = Column(Integer, nullable=False)
+    color = Column(String(50), nullable=True)
     codigo_qr = Column(Text, nullable=True)
 
     catalogo_moto_id = Column(Integer, ForeignKey("catalogo_moto.id"), nullable=False)
