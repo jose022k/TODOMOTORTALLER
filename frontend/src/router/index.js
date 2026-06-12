@@ -64,6 +64,29 @@ const routes = [
       import(/* webpackChunkName: "admin-catalog" */ "../views/CatalogoMotosView.vue"),
     meta: { requiresAuth: true, rol: "admin" },
   },
+  {
+    path: "/admin/service-orders",
+    name: "admin-service-orders",
+    component: () =>
+      import(/* webpackChunkName: "admin-service-orders" */ "../views/AdminServiceOrdersView.vue"),
+    meta: { requiresAuth: true, rol: "admin" },
+  },
+  // Mecánico
+  {
+    path: "/mecanico/orders",
+    name: "mecanico-orders",
+    component: () =>
+      import(/* webpackChunkName: "mecanico-orders" */ "../views/MecanicoOrdersView.vue"),
+    meta: { requiresAuth: true, rol: "mecanico" },
+  },
+  // Cliente
+  {
+    path: "/cliente/orders",
+    name: "cliente-orders",
+    component: () =>
+      import(/* webpackChunkName: "cliente-orders" */ "../views/ClienteOrdersView.vue"),
+    meta: { requiresAuth: true, rol: "cliente" },
+  },
 ];
 
 const router = createRouter({
@@ -82,6 +105,16 @@ router.beforeEach((to, from, next) => {
 
   // Page requires admin role
   if (to.meta.rol === "admin" && authStore.isAuthenticated && !authStore.isAdmin) {
+    return next("/");
+  }
+
+  // Page requires mecanico role
+  if (to.meta.rol === "mecanico" && authStore.isAuthenticated && !authStore.isMecanico) {
+    return next("/");
+  }
+
+  // Page requires cliente role
+  if (to.meta.rol === "cliente" && authStore.isAuthenticated && !authStore.isCliente) {
     return next("/");
   }
 

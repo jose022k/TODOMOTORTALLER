@@ -24,12 +24,11 @@ class MotoAsociada(BaseModel):
     id: int
     placa: str
     anio: int
+    color: Optional[str] = None
     marca: str
     modelo: str
     gama_color: str
     codigo_qr: Optional[str] = None
-
-    model_config = {"from_attributes": True}
 
 
 class MecanicoResponse(BaseModel):
