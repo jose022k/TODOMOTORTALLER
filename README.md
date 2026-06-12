@@ -2,7 +2,7 @@
 
 ## Descripción general
 
-Plataforma web PWA para el taller Todomotortaller. 1703, C.A. Permite gestionar órdenes de servicio, motos, clientes y mecánicos, con seguimiento en tiempo real y notificaciones automáticas por WhatsApp.
+Plataforma web PWA para el taller Todomotortaller. 1703, C.A. Permite gestionar órdenes de servicio, motos, clientes y mecánicos, con seguimiento en tiempo real y notificaciones Web Push.
 
 ## Stack Tecnológico
 
@@ -10,7 +10,7 @@ Plataforma web PWA para el taller Todomotortaller. 1703, C.A. Permite gestionar 
 - Frontend: Vue.js (PWA)
 - Base de datos: PostgreSQL (Supabase)
 - Archivos: Cloudinary
-- Notificaciones: Twilio WhatsApp
+- Notificaciones: Web Push
 
 ## Integrantes
 
@@ -26,12 +26,12 @@ Ver documentación técnica del proyecto.
 
 El sistema está compuesto por los siguientes módulos principales, orientados a la gestión completa del taller:
 
-- [ ] **1. Autenticación y acceso:** Inicio de sesión, registro y control de sesiones.
-- [ ] **2. Clientes:** Gestión de datos y perfiles de los dueños de las motos.
-- [ ] **3. Motos:** Registro e historial de motocicletas (marca, modelo, placa, etc.).
-- [ ] **4. Órdenes de servicio:** Creación, seguimiento y actualización del estado de las reparaciones.
-- [ ] **5. Notificaciones y alertas:** Envío de mensajes (ej. WhatsApp Twilio) sobre el estado de la moto.
-- [ ] **6. Reportes:** Generación de estadísticas, ingresos y desempeño del taller.
-- [ ] **7. Mecánicos:** Gestión del personal técnico y carga de trabajo asignada.
-- [ ] **8. Admin:** Panel de administración global (usuarios, permisos, configuración del taller).
-- [ ] **Submódulo de Chat:** Comunicación interna/externa integrada.
+- [ ] **1. Autenticación y acceso:** Inicio de sesión, registro y control de sesiones (Admin, Cliente, Mecánico).
+- [ ] **2. Usuarios:** Gestión unificada de clientes y mecánicos (CRUD, activar/desactivar).
+- [ ] **3. Motos:** Catálogo de modelos, motos de clientes e historial de mantenimiento.
+- [ ] **4. Órdenes de servicio:** Creación, asignación de mecánico, cambio de estado y generación de QR.
+- [ ] **5. Notificaciones y alertas:** Sistema de notificaciones Web Push para eventos del taller.
+- [ ] **6. Reportes:** Estadísticas e indicadores del taller (dashboard de administración).
+- [ ] **7. Admin:** Panel de administración global con dashboard de indicadores.
+- [ ] **8. Chat:** Mensajería entre cliente, mecánico y admin asociada a órdenes.
+- [ ] **9. Evidencias:** Subida y gestión de fotos (Cloudinary) asociadas a órdenes de servicio.
