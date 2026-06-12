@@ -42,19 +42,27 @@ const routes = [
     component: () =>
       import(/* webpackChunkName: "register-cliente" */ "../views/ClienteRegisterView.vue"),
   },
-  // Registro de mecánicos (solo admin autenticado)
+  // Admin
   {
-    path: "/register",
-    name: "register",
+    path: "/admin",
+    name: "admin",
     component: () =>
-      import(/* webpackChunkName: "register" */ "../views/RegisterView.vue"),
+      import(/* webpackChunkName: "admin" */ "../views/Admin.vue"),
+    meta: { requiresAuth: true, rol: "admin" },
   },
-  // Gestión del catálogo de motos (solo admin autenticado)
+  {
+    path: "/admin/users",
+    name: "admin-users",
+    component: () =>
+      import(/* webpackChunkName: "admin-users" */ "../views/AdminUsersView.vue"),
+    meta: { requiresAuth: true, rol: "admin" },
+  },
   {
     path: "/admin/catalog",
     name: "admin-catalog",
     component: () =>
       import(/* webpackChunkName: "admin-catalog" */ "../views/CatalogoMotosView.vue"),
+    meta: { requiresAuth: true, rol: "admin" },
   },
 ];
 
@@ -65,15 +73,20 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
   const publicPages = ["/login", "/loginMecanico", "/loginCliente", "/register/cliente"];
-  const authRequired = !publicPages.includes(to.path);
   const authStore = useAuthStore();
 
-  if (authRequired && !authStore.isAuthenticated) {
+  // Page requires auth
+  if (to.meta.requiresAuth && !authStore.isAuthenticated) {
     return next("/login");
   }
 
-  // /register (mecánicos) y /admin/catalog solo para admins autenticados
-  if (["/register", "/admin/catalog"].includes(to.path) && authStore.isAuthenticated && !authStore.isAdmin) {
+  // Page requires admin role
+  if (to.meta.rol === "admin" && authStore.isAuthenticated && !authStore.isAdmin) {
+    return next("/");
+  }
+
+  // Public pages only for non-authenticated
+  if (publicPages.includes(to.path) && authStore.isAuthenticated) {
     return next("/");
   }
 

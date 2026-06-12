@@ -44,7 +44,8 @@ def deactivate_client(db: Session, client_id: int):
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Cliente no encontrado",
         )
-    return cliente_dao.update(db, cliente, {"activo": False})
+    nuevo_estado = not cliente.activo
+    return cliente_dao.update(db, cliente, {"activo": nuevo_estado})
 
 
 def get_all_mechanics(db: Session, activo_only: bool = False):
@@ -83,7 +84,8 @@ def deactivate_mechanic(db: Session, mechanic_id: int):
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Mecánico no encontrado",
         )
-    return mecanico_dao.update(db, mecanico, {"activo": False})
+    nuevo_estado = not mecanico.activo
+    return mecanico_dao.update(db, mecanico, {"activo": nuevo_estado})
 
 
 def register_mecanico(db: Session, nombre: str, email: str, password: str):
