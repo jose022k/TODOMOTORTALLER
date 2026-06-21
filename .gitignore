@@ -24,3 +24,6 @@ docs/
 
 # Scripts de una sola ejecución
 scripts/
+
+# Uploads (migrado a Cloudinary)
+uploads/

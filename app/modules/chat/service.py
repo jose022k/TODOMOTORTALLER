@@ -1,12 +1,19 @@
-import aiofiles
+import cloudinary
+import cloudinary.uploader
 from datetime import datetime
 from fastapi import HTTPException, UploadFile, status
-from pathlib import Path
 from sqlalchemy.orm import Session
+from app.core.config import CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET
 from app.modules.chat.dao import MensajeDAO
 from app.modules.chat.schemas import MensajeResponse
 from app.modules.service_orders.dao import OrdenServicioDAO
 from app.modules.service_orders.models import Evidencia
+
+cloudinary.config(
+    cloud_name=CLOUDINARY_CLOUD_NAME,
+    api_key=CLOUDINARY_API_KEY,
+    api_secret=CLOUDINARY_API_SECRET,
+)
 
 mensaje_dao = MensajeDAO()
 orden_dao = OrdenServicioDAO()
@@ -184,20 +191,14 @@ async def create_evidencia(db: Session, orden_id: int, file: UploadFile, mensaje
             detail="Solo se pueden agregar evidencias en órdenes en proceso",
         )
 
-    ext = Path(file.filename).suffix if file.filename else ".jpg"
-    filename = f"evidencia_{orden_id}_{int(datetime.utcnow().timestamp())}{ext}"
-    upload_dir = Path("uploads") / "evidencias"
-    upload_dir.mkdir(parents=True, exist_ok=True)
-    filepath = upload_dir / filename
-
-    content = await file.read()
-    async with aiofiles.open(filepath, "wb") as f:
-        await f.write(content)
-
-    url = f"/uploads/evidencias/{filename}"
+    result = cloudinary.uploader.upload(
+        file.file,
+        folder="evidencias",
+        public_id=f"evidencia_{orden_id}_{int(datetime.utcnow().timestamp())}",
+    )
 
     evidencia = Evidencia(
-        url=url,
+        url=result["secure_url"],
         fecha=datetime.utcnow(),
         orden_servicio_id=orden_id,
         mensaje_id=mensaje_id,
@@ -228,9 +229,10 @@ def delete_evidencia(db: Session, orden_id: int, evidencia_id: int, current_user
             detail="Evidencia no encontrada",
         )
 
-    filepath = Path("uploads") / evidencia.url.lstrip("/")
-    if filepath.exists():
-        filepath.unlink()
+    if "cloudinary" in evidencia.url:
+        public_id = evidencia.url.split("/v")[1].split(".")[0]
+        full_public_id = f"evidencias/{public_id.split('/')[-1]}"
+        cloudinary.uploader.destroy(full_public_id)
 
     db.delete(evidencia)
     db.commit()
