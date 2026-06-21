@@ -1,7 +1,7 @@
 <template>
   <div id="app">
     <header class="app-header">
-      <router-link to="/" class="logo">Todomotortaller</router-link>
+      <router-link :to="homeRoute" class="logo">Todomotortaller</router-link>
       <nav class="app-nav">
         <template v-if="!authStore.isAuthenticated || !authStore.isAdmin">
           <router-link v-if="!authStore.isMecanico && !authStore.isCliente" to="/">Home</router-link>
@@ -44,6 +44,15 @@ export default {
       authStore.fetchUser();
     }
     return { authStore };
+  },
+  computed: {
+    homeRoute() {
+      if (!this.authStore.isAuthenticated) return "/";
+      if (this.authStore.isAdmin) return "/admin";
+      if (this.authStore.isMecanico) return "/mecanico/orders";
+      if (this.authStore.isCliente) return "/cliente/orders";
+      return "/";
+    },
   },
   methods: {
     handleLogout() {

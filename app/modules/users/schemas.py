@@ -48,6 +48,7 @@ class ClienteResponse(BaseModel):
     telefono: str
     direccion: str
     activo: bool = True
+    motos: list[MotoAsociada] = []
 
     model_config = {"from_attributes": True}
 

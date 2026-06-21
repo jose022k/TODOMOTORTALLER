@@ -251,3 +251,24 @@ def assign_mechanic(db: Session, order_id: int, mecanico_id: int, admin_user):
         )
 
     return orden_dao.update(db, order, {"mecanico_id": mecanico_id})
+
+
+def get_order_tracker(db: Session, order_id: int):
+    order = orden_dao.get_by_id(db, order_id)
+    if not order:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Orden de servicio no encontrada",
+        )
+    return {
+        "id": order.id,
+        "estado": order.estado,
+        "descripcion": order.descripcion,
+        "fecha_creacion": order.fecha_creacion,
+        "fecha_cierre": order.fecha_cierre,
+        "cliente_nombre": order.cliente.nombre if order.cliente else "—",
+        "mecanico_nombre": order.mecanico.nombre if order.mecanico else "—",
+        "moto_marca": order.moto_cliente.catalogo_moto.marca if order.moto_cliente and order.moto_cliente.catalogo_moto else "—",
+        "moto_modelo": order.moto_cliente.catalogo_moto.modelo if order.moto_cliente and order.moto_cliente.catalogo_moto else "—",
+        "moto_placa": order.moto_cliente.placa if order.moto_cliente else "—",
+    }

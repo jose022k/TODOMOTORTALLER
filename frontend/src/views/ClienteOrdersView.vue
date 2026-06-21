@@ -20,7 +20,7 @@
           <th>Descripción</th>
           <th>Estado</th>
           <th>Fecha Creación</th>
-          <th>Fecha Cierre</th>
+          <th>Acciones</th>
         </tr>
       </thead>
       <tbody>
@@ -31,24 +31,113 @@
           <td class="desc-cell">{{ o.descripcion }}</td>
           <td><span :class="['badge', 'badge-' + o.estado]">{{ statusLabel(o.estado) }}</span></td>
           <td>{{ formatDate(o.fecha_creacion) }}</td>
-          <td>{{ formatDate(o.fecha_cierre) }}</td>
+          <td>
+            <button class="btn-sm btn-view" @click="openDetail(o)">Ver</button>
+            <button v-if="o.estado === 'en_proceso'" class="btn-sm btn-chat" @click="openChat(o)">Chat</button>
+          </td>
         </tr>
       </tbody>
     </table>
+
+    <!-- Modal Detalle -->
+    <div v-if="showDetail" class="modal-overlay" @click.self="showDetail = false">
+      <div class="modal modal-lg">
+        <div class="modal-header">
+          <h2>Orden #{{ detail.id }}</h2>
+          <button class="modal-close" @click="showDetail = false">×</button>
+        </div>
+        <div class="modal-body" v-if="detail">
+          <div class="detail-grid">
+            <div class="detail-field">
+              <span class="detail-label">Estado</span>
+              <span :class="['badge', 'badge-' + detail.estado]">{{ statusLabel(detail.estado) }}</span>
+            </div>
+            <div class="detail-field">
+              <span class="detail-label">Moto</span>
+              <span>{{ detail.moto_marca }} {{ detail.moto_modelo }} ({{ detail.moto_placa }}) - {{ detail.moto_anio }}</span>
+            </div>
+            <div class="detail-field">
+              <span class="detail-label">Mecánico</span>
+              <span>{{ detail.mecanico_nombre }}</span>
+            </div>
+            <div class="detail-field">
+              <span class="detail-label">Fecha de Creación</span>
+              <span>{{ formatDate(detail.fecha_creacion) }}</span>
+            </div>
+            <div class="detail-field" v-if="detail.fecha_cierre">
+              <span class="detail-label">Fecha de Cierre</span>
+              <span>{{ formatDate(detail.fecha_cierre) }}</span>
+            </div>
+          </div>
+
+          <!-- Progress Tracker -->
+          <div class="detail-section">
+            <h3>Progreso del Servicio</h3>
+            <div class="progress-tracker">
+              <div class="progress-step" :class="{ completed: pasoCompletado('pendiente'), active: detail.estado === 'pendiente', cancelled: detail.estado === 'cancelada' }">
+                <div class="step-icon">1</div>
+                <div class="step-label">Recibida</div>
+              </div>
+              <div class="progress-line" :class="{ completed: pasoCompletado('en_proceso'), cancelled: detail.estado === 'cancelada' }"></div>
+              <div class="progress-step" :class="{ completed: pasoCompletado('en_proceso'), active: detail.estado === 'en_proceso', cancelled: detail.estado === 'cancelada' }">
+                <div class="step-icon">2</div>
+                <div class="step-label">En Proceso</div>
+              </div>
+              <div class="progress-line" :class="{ completed: detail.estado === 'completada', cancelled: detail.estado === 'cancelada' }"></div>
+              <div class="progress-step" :class="{ completed: detail.estado === 'completada', cancelled: detail.estado === 'cancelada' }">
+                <div class="step-icon" v-if="detail.estado !== 'cancelada'">3</div>
+                <div class="step-icon cancelled-icon" v-else>✕</div>
+                <div class="step-label">{{ detail.estado === 'cancelada' ? 'Cancelada' : 'Completada' }}</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="detail-section">
+            <h3>Descripción</h3>
+            <p>{{ detail.descripcion }}</p>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-cancel" @click="showDetail = false">Cerrar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chat Modal -->
+    <ChatModal
+      v-if="showChatModal"
+      :orden-id="chatOrdenId"
+      :my-role="clienteUser.rol"
+      :my-id="clienteUser.id"
+      :can-chat="true"
+      @close="showChatModal = false"
+    />
   </div>
 </template>
 
 <script>
 import api from "@/services/api";
+import { useAuthStore } from "@/stores/auth";
+import ChatModal from "@/components/ChatModal.vue";
 
 export default {
   name: "ClienteOrders",
+  components: { ChatModal },
   data() {
     return {
       alert: { message: "", type: "success" },
       loading: false,
       orders: [],
+      showDetail: false,
+      detail: null,
+      showChatModal: false,
+      chatOrdenId: null,
     };
+  },
+  computed: {
+    clienteUser() {
+      return useAuthStore().user || { id: 0, rol: "cliente" };
+    },
   },
   methods: {
     statusLabel(estado) {
@@ -73,6 +162,23 @@ export default {
       } finally {
         this.loading = false;
       }
+    },
+    openChat(order) {
+      this.chatOrdenId = order.id;
+      this.showChatModal = true;
+    },
+    async openDetail(o) {
+      try {
+        const { data } = await api.get(`/service-orders/${o.id}`);
+        this.detail = data;
+        this.showDetail = true;
+      } catch (err) {
+        this.showAlert(err.response?.data?.detail || "Error al cargar detalle.", "error");
+      }
+    },
+    pasoCompletado(estado) {
+      const orden = ["pendiente", "en_proceso", "completada"];
+      return orden.indexOf(this.detail.estado) > orden.indexOf(estado);
     },
   },
   mounted() {
@@ -125,4 +231,72 @@ export default {
 .badge-en_proceso { background: #dbeafe; color: #1e40af; }
 .badge-completada { background: #d1fae5; color: #065f46; }
 .badge-cancelada { background: #fee2e2; color: #991b1b; }
+.btn-sm {
+  padding: 5px 12px; border: none; border-radius: 5px;
+  cursor: pointer; font-size: 12px; font-weight: 600;
+}
+.btn-view { background: #eff6ff; color: #2563eb; }
+.btn-view:hover { background: #dbeafe; }
+.btn-chat { background: #075e54; color: #fff; }
+.btn-chat:hover { background: #054d44; }
+
+/* Modal */
+.modal-overlay {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(15,23,42,0.4); backdrop-filter: blur(8px);
+  display: flex; justify-content: center; align-items: center; z-index: 1000;
+}
+.modal {
+  background: #fff; border-radius: 20px; width: 90%; max-width: 640px;
+  padding: 28px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+  max-height: 90vh; overflow-y: auto;
+}
+.modal-header {
+  display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;
+}
+.modal-header h2 { font-size: 1.3rem; }
+.modal-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #94a3b8; }
+.detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+.detail-field { font-size: 0.9rem; }
+.detail-label { display: block; font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 2px; }
+.detail-section { margin-top: 20px; }
+.detail-section h3 { font-size: 1rem; margin-bottom: 8px; color: #1a1a1a; }
+.progress-tracker {
+  display: flex; align-items: center; justify-content: center; margin: 16px 0;
+}
+.progress-step { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.step-icon {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: #e2e8f0; color: #94a3b8;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 0.9rem; transition: all 0.3s;
+}
+.progress-step.active .step-icon { background: #ffaa00; color: #1a1a1a; box-shadow: 0 0 0 4px rgba(255,170,0,0.2); }
+.progress-step.completed .step-icon { background: #16a34a; color: #fff; }
+.progress-step.cancelled .step-icon { background: #ef4444; color: #fff; }
+.cancelled-icon { font-size: 1rem; }
+.step-label { font-size: 0.72rem; font-weight: 700; color: #64748b; text-transform: uppercase; }
+.progress-step.active .step-label { color: #ffaa00; }
+.progress-step.completed .step-label { color: #16a34a; }
+.progress-step.cancelled .step-label { color: #ef4444; }
+.progress-line {
+  width: 50px; height: 3px; background: #e2e8f0;
+  margin: 0 6px; margin-bottom: 22px; border-radius: 2px; transition: background 0.3s;
+}
+.progress-line.completed { background: #16a34a; }
+.progress-line.cancelled { background: #ef4444; }
+.modal-footer { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; }
+.btn-cancel { padding: 10px 20px; background: #f1f5f9; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
+.alert {
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.9rem;
+}
+.alert-success { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+.alert-error { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+.alert-close { background: none; border: none; font-size: 1.3rem; cursor: pointer; color: inherit; padding: 0 4px; }
 </style>

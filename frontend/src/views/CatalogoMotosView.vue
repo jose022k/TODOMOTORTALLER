@@ -92,20 +92,7 @@
                 required 
               />
             </div>
-            <div class="form-group">
-              <label>Gama de Color</label>
-              <div class="color-swatches">
-                <div
-                  v-for="c in colorOptions"
-                  :key="c.name"
-                  class="color-swatch"
-                  :class="{ light: c.name === 'Blanco' || c.name === 'Amarillo' }"
-                  :style="{ backgroundColor: c.hex }"
-                  :title="c.name"
-                >
-                </div>
-              </div>
-            </div>
+
             <div v-if="modal.form.logo_url" class="form-group logo-auto-group">
               <label>Logo de {{ modal.form.marca }}</label>
               <div class="logo-preview-box">
@@ -158,20 +145,6 @@ export default {
     };
   },
   computed: {
-    colorOptions() {
-      return [
-        { name: "Negro", hex: "#1a1a1a" },
-        { name: "Azul", hex: "#2563eb" },
-        { name: "Rojo", hex: "#dc2626" },
-        { name: "Amarillo", hex: "#eab308" },
-        { name: "Morado", hex: "#9333ea" },
-        { name: "Rosa", hex: "#ec4899" },
-        { name: "Gris", hex: "#6b7280" },
-        { name: "Vinotinto", hex: "#7f1d1d" },
-        { name: "Blanco", hex: "#f8fafc" },
-        { name: "Verde", hex: "#16a34a" },
-      ];
-    },
     brands() {
       return [...new Set(this.catalog.map((item) => item.marca))].sort();
     },
@@ -570,32 +543,6 @@ export default {
   max-height: 65px;
   max-width: 100%;
   object-fit: contain;
-}
-
-/* Color Swatches */
-.color-swatches {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 8px;
-}
-
-.color-swatch {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-  position: relative;
-}
-
-.color-swatch:hover {
-  transform: scale(1.2);
-  z-index: 1;
 }
 
 .modal-footer {

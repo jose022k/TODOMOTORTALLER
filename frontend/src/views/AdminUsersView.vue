@@ -219,7 +219,10 @@
                   <td>{{ moto.marca }}</td>
                   <td>{{ moto.modelo }}</td>
                   <td>{{ moto.anio }}</td>
-                  <td>{{ moto.gama_color }}</td>
+                  <td>
+                    <span class="color-dot" :style="{ backgroundColor: getColorHex(moto.color) }"></span>
+                    {{ moto.color }}
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -402,14 +405,20 @@ export default {
         this.showAlert(err.response?.data?.detail || "Error al cambiar estado.", "error");
       }
     },
-    async openDetailClientModal(c) {
-      try {
-        const { data } = await api.get(`/users/clients/${c.id}`);
-        this.clientDetail = data;
-        this.showDetailClient = true;
-      } catch (err) {
-        this.showAlert(err.response?.data?.detail || "Error al cargar detalle del cliente.", "error");
-      }
+    getColorHex(colorName) {
+      const map = {
+        'Negro': '#000000', 'Blanco': '#FFFFFF', 'Gris': '#808080',
+        'Rojo': '#DC2626', 'Azul': '#2563EB', 'Verde': '#16A34A',
+        'Amarillo': '#EAB308', 'Naranja': '#EA580C', 'Morado': '#7C3AED',
+        'Rosa': '#EC4899', 'Vinotinto': '#7F1D1D', 'Marrón': '#8B4513',
+        'Plateado': '#C0C0C0', 'Dorado': '#D4AF37', 'Beige': '#F5F5DC',
+        'Café': '#6B4226', 'Crema': '#FFFDD0',
+      };
+      return map[colorName] || '#CBD5E1';
+    },
+    openDetailClientModal(c) {
+      this.clientDetail = c;
+      this.showDetailClient = true;
     },
   },
 };
@@ -698,6 +707,15 @@ export default {
 }
 .detail-grid div {
   font-size: 0.9rem;
+}
+.color-dot {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1px solid #cbd5e1;
+  margin-right: 6px;
+  vertical-align: middle;
 }
 .motos-title {
   font-size: 1.1rem;

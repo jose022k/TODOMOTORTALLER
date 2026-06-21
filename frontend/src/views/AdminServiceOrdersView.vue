@@ -47,6 +47,7 @@
           <td>{{ formatDate(o.fecha_creacion) }}</td>
           <td class="actions-cell">
             <button class="btn-sm btn-view" @click="openDetailModal(o)">Ver</button>
+            <button v-if="o.estado === 'en_proceso'" class="btn-sm btn-chat" @click="openChat(o)">Chat</button>
           </td>
         </tr>
       </tbody>
@@ -230,14 +231,27 @@
         </div>
       </div>
     </div>
+
+    <!-- Chat Modal -->
+    <ChatModal
+      v-if="showChatModal"
+      :orden-id="chatOrdenId"
+      :my-role="adminUser.rol"
+      :my-id="adminUser.id"
+      :can-chat="true"
+      @close="showChatModal = false"
+    />
   </div>
 </template>
 
 <script>
 import api from "@/services/api";
+import { useAuthStore } from "@/stores/auth";
+import ChatModal from "@/components/ChatModal.vue";
 
 export default {
   name: "AdminServiceOrders",
+  components: { ChatModal },
   data() {
     return {
       alert: { message: "", type: "success" },
@@ -263,6 +277,8 @@ export default {
       },
       detail: null,
       reassignMecanicoId: "",
+      showChatModal: false,
+      chatOrdenId: null,
     };
   },
   computed: {
@@ -290,6 +306,9 @@ export default {
     },
     canChangeStatus() {
       return this.detail && this.detail.estado !== "completada" && this.detail.estado !== "cancelada";
+    },
+    adminUser() {
+      return useAuthStore().user || { id: 0, rol: "admin" };
     },
   },
   methods: {
@@ -430,12 +449,16 @@ export default {
       if (!window.confirm(msgs[newStatus] || "¿Está seguro de cambiar el estado?")) return;
       try {
         await api.patch(`/service-orders/${this.detail.id}/status`, { estado: newStatus });
-        this.showAlert(`Orden actualizada a "${this.statusLabel(newStatus)}".`);
+        this.showAlert(`Orden actualizada a "${this.statusLabel(newStatus)}".`, newStatus === "cancelada" ? "error" : undefined);
         this.showDetailModal = false;
         await this.fetchOrders();
       } catch (err) {
         this.showAlert(err.response?.data?.detail || "Error al cambiar estado.", "error");
       }
+    },
+    openChat(order) {
+      this.chatOrdenId = order.id;
+      this.showChatModal = true;
     },
     async handleReassign() {
       if (!window.confirm("¿Está seguro de reasignar el mecánico?")) return;
@@ -547,6 +570,8 @@ export default {
 }
 .btn-view { background: #f1f5f9; color: #334155; }
 .btn-view:hover { background: #e2e8f0; }
+.btn-chat { background: #075e54; color: #fff; }
+.btn-chat:hover { background: #054d44; }
 .btn-start { background: #dbeafe; color: #1e40af; }
 .btn-start:hover { background: #bfdbfe; }
 .btn-complete { background: #d1fae5; color: #065f46; }
@@ -805,4 +830,16 @@ textarea.form-control {
 }
 .reassign-row .form-control { max-width: 300px; }
 .text-muted { color: #94a3b8; font-size: 13px; font-style: italic; }
+.alert {
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.9rem;
+}
+.alert-success { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+.alert-error { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+.alert-close { background: none; border: none; font-size: 1.3rem; cursor: pointer; color: inherit; padding: 0 4px; }
 </style>

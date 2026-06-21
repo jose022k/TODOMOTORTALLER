@@ -32,28 +32,106 @@
           <td><span :class="['badge', 'badge-' + o.estado]">{{ statusLabel(o.estado) }}</span></td>
           <td>{{ formatDate(o.fecha_creacion) }}</td>
           <td class="actions-cell">
-            <button v-if="o.estado === 'pendiente'" class="btn-sm btn-start" @click="changeStatus(o.id, 'en_proceso')">Iniciar</button>
-            <button v-if="o.estado === 'en_proceso'" class="btn-sm btn-complete" @click="changeStatus(o.id, 'completada')">Completar</button>
-            <button v-if="o.estado === 'pendiente' || o.estado === 'en_proceso'" class="btn-sm btn-cancel-order" @click="changeStatus(o.id, 'cancelada')">Cancelar</button>
-            <span v-if="o.estado === 'completada' || o.estado === 'cancelada'" class="text-muted">—</span>
+            <button class="btn-sm btn-view" @click="openDetail(o)">Ver</button>
+            <button v-if="o.estado === 'en_proceso'" class="btn-sm btn-chat" @click="openChat(o)">Chat</button>
           </td>
         </tr>
       </tbody>
     </table>
+
+    <!-- Modal Detalle -->
+    <div v-if="showDetail" class="modal-overlay" @click.self="showDetail = false">
+      <div class="modal modal-lg">
+        <div class="modal-header">
+          <h2>Orden #{{ detail.id }}</h2>
+          <button class="modal-close" @click="showDetail = false">×</button>
+        </div>
+        <div class="modal-body" v-if="detail">
+          <div class="detail-grid">
+            <div class="detail-field">
+              <span class="detail-label">Estado</span>
+              <span :class="['badge', 'badge-' + detail.estado]">{{ statusLabel(detail.estado) }}</span>
+            </div>
+            <div class="detail-field">
+              <span class="detail-label">Cliente</span>
+              <span>{{ detail.cliente_nombre }} ({{ detail.cliente_cedula }})</span>
+            </div>
+            <div class="detail-field">
+              <span class="detail-label">Moto</span>
+              <span>{{ detail.moto_marca }} {{ detail.moto_modelo }} ({{ detail.moto_placa }}) - {{ detail.moto_anio }}</span>
+            </div>
+            <div class="detail-field">
+              <span class="detail-label">Color</span>
+              <span>{{ detail.moto_color_especifico || detail.moto_color }}</span>
+            </div>
+            <div class="detail-field">
+              <span class="detail-label">Fecha de Creación</span>
+              <span>{{ formatDate(detail.fecha_creacion) }}</span>
+            </div>
+            <div class="detail-field" v-if="detail.fecha_cierre">
+              <span class="detail-label">Fecha de Cierre</span>
+              <span>{{ formatDate(detail.fecha_cierre) }}</span>
+            </div>
+          </div>
+          <div class="detail-section">
+            <h3>Descripción</h3>
+            <p>{{ detail.descripcion }}</p>
+          </div>
+
+          <!-- Cambiar estado -->
+          <div class="detail-section" v-if="detail.estado !== 'completada' && detail.estado !== 'cancelada'">
+            <h3>Cambiar Estado</h3>
+            <div class="status-actions" v-if="detail.estado === 'pendiente'">
+              <button class="btn-sm btn-start" @click="changeStatusFromDetail('en_proceso')">Iniciar</button>
+              <button class="btn-sm btn-cancel-order" @click="changeStatusFromDetail('cancelada')">Cancelar</button>
+            </div>
+            <div class="status-actions" v-else-if="detail.estado === 'en_proceso'">
+              <button class="btn-sm btn-complete" @click="changeStatusFromDetail('completada')">Completar</button>
+              <button class="btn-sm btn-cancel-order" @click="changeStatusFromDetail('cancelada')">Cancelar</button>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-cancel" @click="showDetail = false">Cerrar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chat Modal -->
+    <ChatModal
+      v-if="showChatModal"
+      :orden-id="chatOrdenId"
+      :my-role="mecanicoUser.rol"
+      :my-id="mecanicoUser.id"
+      :can-chat="true"
+      @close="showChatModal = false"
+    />
   </div>
 </template>
 
 <script>
 import api from "@/services/api";
+import { useAuthStore } from "@/stores/auth";
+import ChatModal from "@/components/ChatModal.vue";
 
 export default {
   name: "MecanicoOrders",
+  components: { ChatModal },
   data() {
     return {
       alert: { message: "", type: "success" },
       loading: false,
       orders: [],
+      showDetail: false,
+      detail: null,
+      showChatModal: false,
+      chatOrdenId: null,
     };
+  },
+  computed: {
+    mecanicoUser() {
+      return useAuthStore().user || { id: 0, rol: "mecanico" };
+    },
   },
   methods: {
     statusLabel(estado) {
@@ -79,6 +157,19 @@ export default {
         this.loading = false;
       }
     },
+    openChat(order) {
+      this.chatOrdenId = order.id;
+      this.showChatModal = true;
+    },
+    async openDetail(o) {
+      try {
+        const { data } = await api.get(`/service-orders/${o.id}`);
+        this.detail = data;
+        this.showDetail = true;
+      } catch (err) {
+        this.showAlert(err.response?.data?.detail || "Error al cargar detalle.", "error");
+      }
+    },
     async changeStatus(orderId, newStatus) {
       const msgs = {
         en_proceso: "¿Está seguro de iniciar esta orden?",
@@ -88,11 +179,16 @@ export default {
       if (!window.confirm(msgs[newStatus] || "¿Está seguro de cambiar el estado?")) return;
       try {
         await api.patch(`/service-orders/${orderId}/status`, { estado: newStatus });
-        this.showAlert(`Orden #${orderId} actualizada a "${this.statusLabel(newStatus)}".`);
+        this.showAlert(`Orden #${orderId} actualizada a "${this.statusLabel(newStatus)}".`, newStatus === "cancelada" ? "error" : undefined);
         await this.fetchOrders();
       } catch (err) {
         this.showAlert(err.response?.data?.detail || "Error al cambiar estado.", "error");
       }
+    },
+    async changeStatusFromDetail(newStatus) {
+      if (!this.detail) return;
+      await this.changeStatus(this.detail.id, newStatus);
+      if (this.detail) this.detail.estado = newStatus;
     },
   },
   mounted() {
@@ -137,7 +233,7 @@ export default {
   font-size: 14px;
 }
 .desc-cell { max-width: 250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.actions-cell { display: flex; gap: 6px; }
+.actions-cell { display: flex; gap: 6px; flex-wrap: wrap; }
 .badge {
   display: inline-block; padding: 3px 10px; border-radius: 12px;
   font-size: 12px; font-weight: 600; text-transform: uppercase;
@@ -150,6 +246,10 @@ export default {
   padding: 5px 12px; border: none; border-radius: 5px;
   cursor: pointer; font-size: 12px; font-weight: 600;
 }
+.btn-view { background: #eff6ff; color: #2563eb; }
+.btn-view:hover { background: #dbeafe; }
+.btn-chat { background: #075e54; color: #fff; }
+.btn-chat:hover { background: #054d44; }
 .btn-start { background: #dbeafe; color: #1e40af; }
 .btn-start:hover { background: #bfdbfe; }
 .btn-complete { background: #d1fae5; color: #065f46; }
@@ -157,4 +257,43 @@ export default {
 .btn-cancel-order { background: #fee2e2; color: #991b1b; }
 .btn-cancel-order:hover { background: #fecaca; }
 .text-muted { color: #94a3b8; font-size: 13px; }
+
+/* Modal */
+.modal-overlay {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(15,23,42,0.4); backdrop-filter: blur(8px);
+  display: flex; justify-content: center; align-items: center; z-index: 1000;
+}
+.modal {
+  background: #fff; border-radius: 20px; width: 90%; max-width: 640px;
+  padding: 28px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+  max-height: 90vh; overflow-y: auto;
+}
+.modal-header {
+  display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;
+}
+.modal-header h2 { font-size: 1.3rem; }
+.modal-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #94a3b8; }
+.detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+.detail-field { font-size: 0.9rem; }
+.detail-label { display: block; font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 2px; }
+.detail-section { margin-top: 20px; }
+.detail-section h3 { font-size: 1rem; margin-bottom: 8px; color: #1a1a1a; }
+.status-actions { display: flex; gap: 8px; }
+.reassign-row { display: flex; gap: 8px; }
+.form-control { padding: 8px 12px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem; flex: 1; }
+.modal-footer { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; }
+.btn-cancel { padding: 10px 20px; background: #f1f5f9; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
+.alert {
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.9rem;
+}
+.alert-success { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+.alert-error { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+.alert-close { background: none; border: none; font-size: 1.3rem; cursor: pointer; color: inherit; padding: 0 4px; }
 </style>

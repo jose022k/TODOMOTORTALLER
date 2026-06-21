@@ -1,5 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from pathlib import Path
 from app.core.database import engine, Base, ensure_schema_updates
 
 # Import models so SQLAlchemy discovers them for create_all
@@ -45,6 +47,10 @@ app.include_router(notifications_router)
 app.include_router(reports_router)
 app.include_router(admin_router)
 app.include_router(chat_router)
+
+uploads_dir = Path("uploads") / "evidencias"
+uploads_dir.mkdir(parents=True, exist_ok=True)
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 @app.get("/")
 def root():
