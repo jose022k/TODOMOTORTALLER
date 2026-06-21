@@ -3,28 +3,14 @@ from sqlalchemy.orm import Session
 from app.modules.auth.dao import ClienteDAO, MecanicoDAO
 from app.modules.auth.schemas import UserUpdate
 from app.modules.auth.utils import hash_password
-from app.modules.users.schemas import ClienteDetailResponse, MotoAsociada
+from app.modules.users.schemas import ClienteDetailResponse, ClienteResponse, MotoAsociada
 
 cliente_dao = ClienteDAO()
 mecanico_dao = MecanicoDAO()
 
 
-def get_all_clients(db: Session, activo_only: bool = False):
-    query = cliente_dao.get_all(db)
-    if activo_only:
-        query = [c for c in query if c.activo]
-    return query
-
-
-def get_client_by_id(db: Session, client_id: int):
-    cliente = cliente_dao.get_by_id(db, client_id)
-    if not cliente:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Cliente no encontrado",
-        )
-    # Construir motos con datos del catálogo a través de la relación
-    motos = [
+def _build_motos(cliente):
+    return [
         MotoAsociada(
             id=m.id,
             placa=m.placa,
@@ -37,6 +23,35 @@ def get_client_by_id(db: Session, client_id: int):
         )
         for m in cliente.motos_cliente
     ]
+
+
+def get_all_clients(db: Session, activo_only: bool = False):
+    clientes = cliente_dao.get_all_with_motos(db)
+    if activo_only:
+        clientes = [c for c in clientes if c.activo]
+    return [
+        ClienteResponse(
+            id=c.id,
+            nombre=c.nombre,
+            cedula=c.cedula,
+            email=c.email,
+            telefono=c.telefono,
+            direccion=c.direccion,
+            activo=c.activo,
+            motos=_build_motos(c),
+        )
+        for c in clientes
+    ]
+
+
+def get_client_by_id(db: Session, client_id: int):
+    cliente = cliente_dao.get_with_motos(db, client_id)
+    if not cliente:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Cliente no encontrado",
+        )
+    motos = _build_motos(cliente)
     return ClienteDetailResponse(
         id=cliente.id,
         nombre=cliente.nombre,

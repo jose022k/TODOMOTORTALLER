@@ -120,6 +120,9 @@ router.beforeEach((to, from, next) => {
 
   // Public pages only for non-authenticated
   if (publicPages.includes(to.path) && authStore.isAuthenticated) {
+    if (authStore.isAdmin) return next("/admin");
+    if (authStore.isMecanico) return next("/mecanico/orders");
+    if (authStore.isCliente) return next("/cliente/orders");
     return next("/");
   }
 

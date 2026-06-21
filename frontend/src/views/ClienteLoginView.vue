@@ -38,7 +38,7 @@ export default {
       try {
         const authStore = useAuthStore();
         await authStore.login(this.email, this.password, "cliente");
-        this.$router.push("/");
+        this.$router.push("/cliente/orders");
       } catch (err) {
         this.error = err.response?.data?.detail || "Error al iniciar sesión";
       } finally {
