@@ -24,6 +24,8 @@ _MIGRATIONS = [
     ("mecanico", "ADD COLUMN IF NOT EXISTS activo BOOLEAN NOT NULL DEFAULT TRUE"),
     ("catalogo_moto", "ADD COLUMN IF NOT EXISTS logo_url TEXT"),
     ("moto_cliente", "ADD COLUMN IF NOT EXISTS color VARCHAR(50)"),
+    ("mensaje", "ADD COLUMN IF NOT EXISTS editado BOOLEAN NOT NULL DEFAULT FALSE"),
+    ("mensaje", "ADD COLUMN IF NOT EXISTS fecha_edicion TIMESTAMP"),
 ]
 
 

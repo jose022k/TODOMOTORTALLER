@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, ForeignKey, DateTime
+from sqlalchemy import Column, Integer, Boolean, String, Text, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
 from app.core.database import Base
 
@@ -9,6 +9,8 @@ class Mensaje(Base):
     id = Column(Integer, primary_key=True, index=True)
     contenido = Column(Text, nullable=False)
     fecha_hora = Column(DateTime, nullable=False)
+    editado = Column(Boolean, default=False)
+    fecha_edicion = Column(DateTime, nullable=True)
 
     orden_servicio_id = Column(Integer, ForeignKey("orden_servicio.id"), nullable=False)
     admin_id = Column(Integer, ForeignKey("admin.id"), nullable=True)

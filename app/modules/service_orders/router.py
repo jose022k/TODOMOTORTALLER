@@ -1,6 +1,8 @@
 from fastapi import APIRouter, Depends, status, Query
 from sqlalchemy.orm import Session
 from typing import List, Optional
+from pydantic import BaseModel
+from datetime import datetime
 
 from app.core.database import get_db
 from app.modules.auth.dependencies import (
@@ -10,6 +12,19 @@ from app.modules.auth.dependencies import (
     AnyUser,
 )
 from app.modules.auth.models import Admin
+
+
+class TrackerResponse(BaseModel):
+    id: int
+    estado: str
+    descripcion: str
+    fecha_creacion: datetime
+    fecha_cierre: Optional[datetime] = None
+    cliente_nombre: str
+    mecanico_nombre: str
+    moto_marca: str
+    moto_modelo: str
+    moto_placa: str
 from app.modules.service_orders.schemas import (
     OrdenServicioCreate,
     OrdenServicioResponse,
@@ -76,3 +91,12 @@ def reassign_mechanic(
 ):
     """Reasigna un mecánico a una orden existente. Solo administradores."""
     return service.assign_mechanic(db, order_id, data.mecanico_id, admin)
+
+
+@router.get("/{order_id}/tracker", response_model=TrackerResponse)
+def tracker(
+    order_id: int,
+    db: Session = Depends(get_db),
+):
+    """Endpoint público para consultar estado de una orden desde el QR."""
+    return service.get_order_tracker(db, order_id)

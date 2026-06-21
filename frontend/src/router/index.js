@@ -87,6 +87,13 @@ const routes = [
       import(/* webpackChunkName: "cliente-orders" */ "../views/ClienteOrdersView.vue"),
     meta: { requiresAuth: true, rol: "cliente" },
   },
+  // Tracker público (desde QR)
+  {
+    path: "/tracker/:id",
+    name: "tracker",
+    component: () =>
+      import(/* webpackChunkName: "tracker" */ "../views/TrackerView.vue"),
+  },
 ];
 
 const router = createRouter({
@@ -97,6 +104,9 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   const publicPages = ["/login", "/loginMecanico", "/loginCliente", "/register/cliente"];
   const authStore = useAuthStore();
+
+  // Tracker público (sin auth)
+  if (to.name === "tracker") return next();
 
   // Page requires auth
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
