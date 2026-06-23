@@ -52,7 +52,7 @@ code --version
 
 ### 1. Copiar el proyecto
 
-Copiar toda la carpeta `2026-T303-G03` (del pendrive) al disco de la PC, por ejemplo al escritorio.
+Copiar toda la carpeta `2026-T303-G03` del pendrive a la PC (ej: en `C:\Users\Admin\Documents\` o donde prefieras).
 
 ### 2. Backend (Python)
 
