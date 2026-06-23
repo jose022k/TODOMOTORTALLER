@@ -52,12 +52,12 @@ code --version
 
 ### 1. Copiar el proyecto
 
-Copiar toda la carpeta `2026-T303-G03` del pendrive a la PC (ej: en `C:\Users\Admin\Documents\` o donde prefieras).
+Copiar toda la carpeta `2026-T303-G03` del pendrive a la PC en `C:\Users\Admin\Documents\`.
 
 ### 2. Backend (Python)
 
 ```powershell
-cd ruta/del/proyecto/2026-T303-G03
+cd C:\Users\Admin\Documents\2026-T303-G03
 
 # Crear entorno virtual
 python -m venv venv
@@ -72,7 +72,7 @@ pip install -r requirements.txt
 ### 3. Frontend (Vue.js)
 
 ```powershell
-cd ruta/del/proyecto/2026-T303-G03/frontend
+cd C:\Users\Admin\Documents\2026-T303-G03/frontend
 
 # Instalar dependencias
 npm install
