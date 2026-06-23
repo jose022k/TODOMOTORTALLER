@@ -50,13 +50,9 @@ code --version
 
 ## Pasos de Instalación del Proyecto
 
-### 1. Clonar el repositorio
+### 1. Copiar el proyecto
 
-```powershell
-cd %USERPROFILE%\Desktop
-git clone https://github.com/UPTAMCA/2026-T303-G03.git
-cd 2026-T303-G03
-```
+Copiar toda la carpeta `2026-T303-G03` (del pendrive) al disco de la PC, por ejemplo al escritorio.
 
 ### 2. Backend (Python)
 
@@ -111,12 +107,14 @@ Ejecutar el archivo `scripts\start_servers.bat`. Abre automáticamente el backen
 ### Opción 2 — Manual (dos terminales)
 
 **Terminal 1 — Backend**
+
 ```powershell
 .\venv\Scripts\activate
 python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 **Terminal 2 — Frontend**
+
 ```powershell
 cd frontend
 npm run serve
@@ -130,7 +128,6 @@ La API del backend en: `http://localhost:8000`
 ## Notas importantes
 
 - **No se copian** las carpetas `venv/` ni `node_modules/` — deben generarse con `pip install` y `npm install`
-- **No es necesario** tener Git para ejecutar el proyecto, solo para clonar/hacer pull
 - **No es necesario** instalar PostgreSQL local — la base de datos está en Supabase (nube)
 - **El `.env`** es el archivo más crítico — sin él el backend no puede conectarse a la BD ni a Cloudinary
 - Para verificar que el backend funciona: `http://localhost:8000/` debe responder `{"message": "Todomotortaller API funcionando"}`
