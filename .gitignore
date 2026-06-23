@@ -23,7 +23,8 @@ docs/
 .windsurfrules
 
 # Scripts de una sola ejecución
-scripts/
+scripts/*
+!scripts/start_servers.bat
 
 # Uploads (migrado a Cloudinary)
 uploads/

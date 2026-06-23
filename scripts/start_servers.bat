@@ -17,14 +17,14 @@ timeout /t 2 /nobreak >nul
 
 :: Inicia backend (uvicorn) en ventana nueva
 echo [2/3] Iniciando backend en puerto 8000...
-start "Backend - Todomotortaller" cmd /c "cd /d "%~dp0" && .\venv\Scripts\activate && python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000"
+start "Backend - Todomotortaller" cmd /c "cd /d "%~dp0.." && "%~dp0..\venv\Scripts\python" -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000"
 
 :: Espera unos segundos para que el backend se inicie
 timeout /t 4 /nobreak >nul
 
 :: Inicia frontend (npm serve) en ventana nueva
 echo [3/3] Iniciando frontend en puerto 8080...
-start "Frontend - Todomotortaller" cmd /c "cd /d "%~dp0frontend" && npm run serve"
+start "Frontend - Todomotortaller" cmd /c "cd /d "%~dp0..\frontend" && npm run serve"
 
 echo.
 echo ============================================

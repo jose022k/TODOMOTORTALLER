@@ -53,6 +53,7 @@ code --version
 ### 1. Clonar el repositorio
 
 ```powershell
+cd %USERPROFILE%\Desktop
 git clone https://github.com/UPTAMCA/2026-T303-G03.git
 cd 2026-T303-G03
 ```
@@ -105,7 +106,7 @@ FRONTEND_URL=http://localhost:8080
 
 ### Opción 1 — Script automático
 
-Ejecutar el archivo `start_servers.bat` ubicado en la raíz del proyecto. Abre automáticamente el backend y frontend en ventanas separadas.
+Ejecutar el archivo `scripts\start_servers.bat`. Abre automáticamente el backend y frontend en ventanas separadas.
 
 ### Opción 2 — Manual (dos terminales)
 
