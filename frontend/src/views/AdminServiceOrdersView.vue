@@ -812,64 +812,72 @@ export default {
 .action-btn--assign { background: #ede9fe; color: #5b21b6; }
 .action-btn--assign:hover { background: #ddd6fe; }
 .action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-.form-control { padding: 10px 12px; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 13px; flex: 1; background: #f8fafc; }
-.form-control:focus { outline: none; border-color: #ffaa00; box-shadow: 0 0 0 3px rgba(255,170,0,0.1); background: #fff; }
-.form-group {
-  margin-bottom: 16px;
+.form-control {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  box-sizing: border-box;
 }
-.form-group label {
-  display: block;
-  font-weight: 700;
-  font-size: 12px;
-  color: #475569;
-  margin-bottom: 5px;
-  letter-spacing: 0.3px;
-  text-transform: uppercase;
+.form-control:focus {
+  outline: none;
+  border-color: #ffaa00;
+  box-shadow: 0 0 0 3px rgba(255,170,0,0.1);
+  background: #fff;
 }
 .form-control:disabled {
-  opacity: 0.5;
+  background: #f8fafc;
+  color: #94a3b8;
   cursor: not-allowed;
 }
 textarea.form-control {
   resize: vertical;
   font-family: inherit;
 }
+.form-group {
+  margin-bottom: 16px;
+}
+.form-group label {
+  display: block;
+  font-weight: 600;
+  font-size: 13px;
+  color: #475569;
+  margin-bottom: 5px;
+}
 /* Toggle */
 .moto-toggle {
   display: flex;
   gap: 0;
   margin-bottom: 16px;
-  background: #f1f5f9;
-  border-radius: 10px;
-  padding: 3px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  overflow: hidden;
 }
 .toggle-btn {
   flex: 1;
   padding: 8px 12px;
   border: none;
-  background: transparent;
+  background: #f8fafc;
   color: #64748b;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
-  border-radius: 8px;
-  transition: all 0.2s;
+  transition: all 0.15s;
 }
 .toggle-btn.active {
-  background: #fff;
+  background: #ffaa00;
   color: #1a1a1a;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 .toggle-btn:not(.active):hover {
-  color: #334155;
+  background: #e2e8f0;
 }
 /* New moto section */
 .new-moto-section {
-  padding: 16px;
+  padding: 12px;
   background: #f8fafc;
-  border-radius: 12px;
-  margin-bottom: 12px;
-  border: 1px solid #f1f5f9;
+  border-radius: 8px;
+  margin-bottom: 8px;
 }
 .form-row {
   display: flex;
@@ -953,26 +961,24 @@ textarea.form-control {
 .btn-primary {
   background: #ffaa00;
   color: #1a1a1a;
-  padding: 10px 24px;
+  padding: 9px 18px;
   border: none;
-  border-radius: 10px;
-  font-weight: 800;
+  border-radius: 6px;
+  font-weight: 700;
   font-size: 14px;
   cursor: pointer;
-  transition: all 0.2s;
 }
 .btn-primary:hover { background: #e69900; }
 .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
 .btn-cancel {
   background: #f1f5f9;
   color: #475569;
-  padding: 10px 24px;
+  padding: 9px 18px;
   border: none;
-  border-radius: 10px;
-  font-weight: 700;
+  border-radius: 6px;
+  font-weight: 600;
   font-size: 14px;
   cursor: pointer;
-  transition: all 0.2s;
 }
 .btn-cancel:hover { background: #e2e8f0; }
 .alert {
