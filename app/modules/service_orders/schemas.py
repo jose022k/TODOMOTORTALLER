@@ -52,8 +52,11 @@ class OrdenServicioListResponse(BaseModel):
     mecanico_nombre: str
     moto_cliente_id: int
     moto_placa: str
+    moto_anio: Optional[int] = None
+    moto_color_especifico: Optional[str] = None
     moto_marca: str
     moto_modelo: str
+    moto_color: str
 
 
 class OrdenServicioDetailResponse(BaseModel):

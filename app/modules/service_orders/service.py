@@ -28,6 +28,8 @@ TRANSICIONES_VALIDAS = {
 
 def _build_list_response(order):
     """Construye OrdenServicioListResponse a partir de un OrdenServicio con relaciones cargadas."""
+    moto = order.moto_cliente
+    catalogo = moto.catalogo_moto if moto else None
     return OrdenServicioListResponse(
         id=order.id,
         descripcion=order.descripcion,
@@ -39,13 +41,12 @@ def _build_list_response(order):
         mecanico_id=order.mecanico_id,
         mecanico_nombre=order.mecanico.nombre if order.mecanico else "—",
         moto_cliente_id=order.moto_cliente_id,
-        moto_placa=order.moto_cliente.placa if order.moto_cliente else "—",
-        moto_marca=order.moto_cliente.catalogo_moto.marca
-        if order.moto_cliente and order.moto_cliente.catalogo_moto
-        else "—",
-        moto_modelo=order.moto_cliente.catalogo_moto.modelo
-        if order.moto_cliente and order.moto_cliente.catalogo_moto
-        else "—",
+        moto_placa=moto.placa if moto else "—",
+        moto_anio=moto.anio if moto else None,
+        moto_color_especifico=moto.color if moto else None,
+        moto_marca=catalogo.marca if catalogo else "—",
+        moto_modelo=catalogo.modelo if catalogo else "—",
+        moto_color=catalogo.gama_color if catalogo else "—",
     )
 
 
