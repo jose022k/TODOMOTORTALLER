@@ -272,7 +272,7 @@ export default {
   max-height: 90vh; overflow-y: auto;
 }
 .modal-header {
-  display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;
+  display: flex; justify-content: flex-end; align-items: center; margin-bottom: 20px;
 }
 .modal-header h2 { font-size: 1.35rem; font-weight: 800; color: #1a1a1a; letter-spacing: -0.3px; }
 .modal-close {

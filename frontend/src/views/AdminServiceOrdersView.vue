@@ -625,7 +625,7 @@ export default {
 .modal-lg { max-width: 680px; }
 .modal-header {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
   margin-bottom: 20px;
 }
