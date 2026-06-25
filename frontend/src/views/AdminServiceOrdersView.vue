@@ -161,9 +161,7 @@
             <span :class="['badge', 'badge-' + detail?.estado]">{{ statusLabel(detail?.estado) }}</span>
             <span class="topbar-id">#{{ detail?.id }}</span>
           </div>
-          <button class="modal-close" @click="showDetailModal = false">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-          </button>
+          <button class="modal-close" @click="showDetailModal = false">&times;</button>
         </div>
         <div class="modal-body" v-if="detail">
           <div class="detail-grid">
@@ -235,41 +233,39 @@
             <p class="detail-card-body">{{ detail.descripcion }}</p>
           </div>
 
-          <div class="detail-actions" v-if="canChangeStatus">
+          <div class="detail-actions" v-if="canChangeStatus || (detail.estado !== 'completada' && detail.estado !== 'cancelada')">
             <span class="actions-title">Acciones</span>
-            <div class="actions-row" v-if="detail.estado === 'pendiente'">
-              <button class="action-btn action-btn--start" @click="changeStatus('en_proceso')">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                Iniciar
-              </button>
-              <button class="action-btn action-btn--cancel" @click="changeStatus('cancelada')">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
-                Cancelar
-              </button>
-            </div>
-            <div class="actions-row" v-else-if="detail.estado === 'en_proceso'">
-              <button class="action-btn action-btn--complete" @click="changeStatus('completada')">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                Completar
-              </button>
-              <button class="action-btn action-btn--cancel" @click="changeStatus('cancelada')">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
-                Cancelar
-              </button>
-            </div>
-          </div>
-
-          <div class="detail-actions" v-if="detail.estado !== 'completada' && detail.estado !== 'cancelada'">
-            <span class="actions-title">Reasignar Mecánico</span>
-            <div class="reassign-row">
-              <select v-model="reassignMecanicoId" class="form-control">
-                <option value="">Seleccionar mecánico...</option>
-                <option v-for="m in mechanics" :key="m.id" :value="m.id">{{ m.nombre }}</option>
-              </select>
-              <button class="action-btn action-btn--assign" @click="handleReassign" :disabled="!reassignMecanicoId">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg>
-                Reasignar
-              </button>
+            <div class="actions-bar">
+              <div class="actions-row" v-if="detail.estado === 'pendiente'">
+                <button class="action-btn action-btn--start" @click="changeStatus('en_proceso')">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                  Iniciar
+                </button>
+                <button class="action-btn action-btn--cancel" @click="changeStatus('cancelada')">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                  Cancelar
+                </button>
+              </div>
+              <div class="actions-row" v-else-if="detail.estado === 'en_proceso'">
+                <button class="action-btn action-btn--complete" @click="changeStatus('completada')">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  Completar
+                </button>
+                <button class="action-btn action-btn--cancel" @click="changeStatus('cancelada')">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                  Cancelar
+                </button>
+              </div>
+              <div class="reassign-inline" v-if="detail.estado !== 'completada' && detail.estado !== 'cancelada'">
+                <select v-model="reassignMecanicoId" class="form-control">
+                  <option value="">Reasignar mecánico...</option>
+                  <option v-for="m in mechanics" :key="m.id" :value="m.id">{{ m.nombre }}</option>
+                </select>
+                <button class="action-btn action-btn--assign" @click="handleReassign" :disabled="!reassignMecanicoId">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg>
+                  Reasignar
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -686,16 +682,18 @@ export default {
 .modal-close {
   background: none;
   border: none;
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   border-radius: 8px;
   cursor: pointer;
-  color: #475569;
+  color: #64748b;
+  font-size: 24px;
+  font-weight: 400;
+  line-height: 1;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.2s;
-  font-size: 20px;
 }
 .modal-close:hover {
   background: #fee2e2;
@@ -772,6 +770,19 @@ export default {
   margin-bottom: 10px;
 }
 .actions-row { display: flex; gap: 10px; }
+.actions-bar {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.reassign-inline {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-left: auto;
+}
+.reassign-inline .form-control { width: auto; min-width: 180px; }
 .action-btn {
   display: inline-flex;
   align-items: center;
@@ -794,8 +805,6 @@ export default {
 .action-btn--assign { background: #ede9fe; color: #5b21b6; }
 .action-btn--assign:hover { background: #ddd6fe; }
 .action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-.reassign-row { display: flex; gap: 10px; align-items: center; }
-.reassign-row .form-control { max-width: 300px; }
 .form-control { padding: 10px 12px; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 13px; flex: 1; background: #f8fafc; }
 .form-control:focus { outline: none; border-color: #ffaa00; box-shadow: 0 0 0 3px rgba(255,170,0,0.1); background: #fff; }
 .form-group {

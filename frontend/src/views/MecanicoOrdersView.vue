@@ -47,9 +47,7 @@
             <span :class="['badge', 'badge-' + detail?.estado]">{{ statusLabel(detail?.estado) }}</span>
             <span class="topbar-id">#{{ detail?.id }}</span>
           </div>
-          <button class="modal-close" @click="showDetail = false">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-          </button>
+          <button class="modal-close" @click="showDetail = false">&times;</button>
         </div>
         <div class="modal-body" v-if="detail">
           <div class="detail-grid">
@@ -319,8 +317,8 @@ export default {
 .topbar-left .badge { font-size: 13px; padding: 6px 16px; border-radius: 20px; }
 .topbar-id { font-size: 14px; font-weight: 700; color: #94a3b8; letter-spacing: 0.3px; }
 .modal-close {
-  background: none; border: none; width: 32px; height: 32px; border-radius: 8px;
-  cursor: pointer; color: #475569; font-size: 20px;
+  background: none; border: none; width: 36px; height: 36px; border-radius: 8px;
+  cursor: pointer; color: #64748b; font-size: 24px; font-weight: 400; line-height: 1;
   display: flex; align-items: center; justify-content: center; transition: all 0.2s;
 }
 .modal-close:hover { background: #fee2e2; color: #dc2626; }
