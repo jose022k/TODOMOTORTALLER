@@ -319,11 +319,11 @@ export default {
 .topbar-left .badge { font-size: 13px; padding: 6px 16px; border-radius: 20px; }
 .topbar-id { font-size: 14px; font-weight: 700; color: #94a3b8; letter-spacing: 0.3px; }
 .modal-close {
-  background: #f1f5f9; border: none; width: 32px; height: 32px; border-radius: 8px;
-  cursor: pointer; color: #64748b;
+  background: none; border: none; width: 32px; height: 32px; border-radius: 8px;
+  cursor: pointer; color: #475569; font-size: 20px;
   display: flex; align-items: center; justify-content: center; transition: all 0.2s;
 }
-.modal-close:hover { background: #fef2f2; color: #dc2626; }
+.modal-close:hover { background: #fee2e2; color: #dc2626; }
 .modal-body { padding: 24px 28px 28px; }
 .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
 .detail-item {
