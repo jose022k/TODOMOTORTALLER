@@ -37,7 +37,7 @@
         </button>
       </form>
       <div class="auth-link">
-        ¿Ya tienes cuenta? <router-link to="/login/cliente">Inicia Sesión aquí</router-link>
+        ¿Ya tienes cuenta? <router-link to="/login">Inicia Sesión aquí</router-link>
       </div>
     </div>
   </div>
@@ -82,7 +82,7 @@ export default {
           password: this.form.password,
         });
         alert("Cuenta creada exitosamente. Ahora puedes iniciar sesión.");
-        this.$router.push("/login/cliente");
+        this.$router.push("/login");
       } catch (err) {
         this.error = err.response?.data?.detail || "Error al registrarse";
       } finally {

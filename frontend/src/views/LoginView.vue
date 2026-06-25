@@ -1,26 +1,55 @@
 <template>
   <div class="auth-container">
     <div class="auth-card">
-      <h1 class="auth-title">Bienvenido a TodoMotor Taller</h1>
-      <p class="auth-subtitle">Selecciona tu tipo de usuario para iniciar sesión</p>
-      <div class="login-options">
-        <router-link to="/login/cliente" class="login-option btn-primary">
-          🏍️ Soy Cliente
-        </router-link>
-        <router-link to="/login/mecanico" class="login-option btn-secondary">
-          🔧 Soy Mecánico
-        </router-link>
-        <router-link to="/login/admin" class="login-option btn-admin">
-          🛡️ Soy Administrador
-        </router-link>
-      </div>
+      <h1 class="auth-title">Inicio de Sesión</h1>
+      <form @submit.prevent="handleLogin">
+        <div class="form-group">
+          <label for="email">Correo electrónico</label>
+          <input id="email" v-model="email" type="email" placeholder="tu@email.com" required />
+        </div>
+        <div class="form-group">
+          <label for="password">Contraseña</label>
+          <input id="password" v-model="password" type="password" placeholder="••••••••" required />
+        </div>
+        <p v-if="error" class="error-msg">{{ error }}</p>
+        <button type="submit" class="btn-primary btn-full" :disabled="loading">
+          {{ loading ? "Entrando..." : "Iniciar Sesión" }}
+        </button>
+      </form>
+      <p class="auth-link">
+        ¿Eres cliente?
+        <router-link to="/register/cliente">Regístrate aquí</router-link>
+      </p>
     </div>
   </div>
 </template>
 
 <script>
+import { useAuthStore } from "@/stores/auth";
+
 export default {
   name: "LoginView",
+  data() {
+    return { email: "", password: "", error: "", loading: false };
+  },
+  methods: {
+    async handleLogin() {
+      this.error = "";
+      this.loading = true;
+      try {
+        const authStore = useAuthStore();
+        await authStore.login(this.email, this.password);
+        if (authStore.isAdmin) this.$router.push("/admin");
+        else if (authStore.isMecanico) this.$router.push("/mecanico/orders");
+        else if (authStore.isCliente) this.$router.push("/cliente/orders");
+        else this.$router.push("/");
+      } catch (err) {
+        this.error = err.response?.data?.detail || "Error al iniciar sesión";
+      } finally {
+        this.loading = false;
+      }
+    },
+  },
 };
 </script>
 
@@ -37,48 +66,26 @@ export default {
   border-radius: 8px;
   padding: 40px;
   width: 100%;
-  max-width: 420px;
-  text-align: center;
+  max-width: 400px;
 }
 .auth-title {
   color: var(--color-dark);
   font-size: 24px;
-  margin-bottom: 8px;
-}
-.auth-subtitle {
-  color: var(--color-muted);
-  font-size: 14px;
-  margin-bottom: 28px;
-}
-.login-options {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-.login-option {
-  display: block;
-  padding: 14px 20px;
-  border-radius: 6px;
-  font-size: 16px;
-  font-weight: 600;
-  text-decoration: none;
+  margin-bottom: 24px;
   text-align: center;
-  transition: transform 0.15s, box-shadow 0.15s;
 }
-.login-option:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+.form-group { margin-bottom: 16px; }
+.form-group label {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--color-dark);
+  font-weight: 600;
+  font-size: 14px;
 }
-.btn-primary {
-  background: var(--color-primary);
-  color: white;
-}
-.btn-secondary {
-  background: #2ecc71;
-  color: white;
-}
-.btn-admin {
-  background: #34495e;
-  color: white;
-}
+.btn-full { width: 100%; margin-top: 8px; }
+.btn-full:disabled { opacity: 0.6; cursor: not-allowed; }
+.error-msg { color: #e74c3c; font-size: 14px; margin-bottom: 8px; text-align: center; }
+.auth-link { margin-top: 20px; text-align: center; font-size: 14px; color: var(--color-muted); }
+.auth-link a { color: var(--color-primary); font-weight: 600; text-decoration: none; }
+.auth-link a:hover { text-decoration: underline; }
 </style>

@@ -18,10 +18,7 @@
           <button class="btn-logout" @click="handleLogout">Cerrar Sesión</button>
         </template>
         <template v-else>
-          <router-link 
-            v-if="!['/loginCliente', '/loginMecanico'].includes($route.path)"
-            :to="$route.path === '/register/cliente' ? '/loginCliente' : '/login'"
-          >
+          <router-link v-if="$route.path !== '/login'" to="/login">
             Iniciar Sesión
           </router-link>
         </template>
