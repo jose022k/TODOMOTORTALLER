@@ -40,9 +40,9 @@
       <tbody>
         <tr v-for="o in orders" :key="o.id">
           <td>{{ o.id }}</td>
-          <td>{{ o.cliente_nombre }}</td>
+          <td>{{ capitalize(o.cliente_nombre) }}</td>
           <td>{{ o.moto_marca }} {{ o.moto_modelo }} ({{ o.moto_placa }})</td>
-          <td>{{ o.mecanico_nombre }}</td>
+          <td>{{ capitalize(o.mecanico_nombre) }}</td>
           <td><span :class="['badge', 'badge-' + o.estado]">{{ statusLabel(o.estado) }}</span></td>
           <td>{{ formatDate(o.fecha_creacion) }}</td>
           <td class="actions-cell">
@@ -168,11 +168,11 @@
             </div>
             <div class="detail-field">
               <span class="detail-label">Cliente</span>
-              <span>{{ detail.cliente_nombre }} ({{ detail.cliente_cedula }})</span>
+              <span>{{ capitalize(detail.cliente_nombre) }}</span>
             </div>
             <div class="detail-field">
               <span class="detail-label">Moto</span>
-              <span>{{ detail.moto_marca }} {{ detail.moto_modelo }} ({{ detail.moto_placa }}) - {{ detail.moto_anio }}</span>
+              <span>{{ detail.moto_marca }} {{ detail.moto_modelo }} ({{ detail.moto_placa }})<template v-if="detail.moto_anio"> - {{ detail.moto_anio }}</template></span>
             </div>
             <div class="detail-field">
               <span class="detail-label">Color</span>
@@ -184,7 +184,7 @@
             </div>
             <div class="detail-field">
               <span class="detail-label">Mecánico Asignado</span>
-              <span>{{ detail.mecanico_nombre }}</span>
+              <span>{{ capitalize(detail.mecanico_nombre) }}</span>
             </div>
             <div class="detail-field">
               <span class="detail-label">Fecha de Creación</span>
@@ -429,6 +429,10 @@ export default {
       } catch (err) {
         this.showAlert(err.response?.data?.detail || "Error al crear la orden.", "error");
       }
+    },
+    capitalize(s) {
+      if (!s) return "";
+      return s.replace(/\b\w/g, c => c.toUpperCase());
     },
     openDetailModal(order) {
       this.detail = { ...order };
