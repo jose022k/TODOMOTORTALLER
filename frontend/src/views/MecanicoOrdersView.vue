@@ -161,14 +161,12 @@ export default {
       this.chatOrdenId = order.id;
       this.showChatModal = true;
     },
-    async openDetail(o) {
-      try {
-        const { data } = await api.get(`/service-orders/${o.id}`);
+    openDetail(o) {
+      this.detail = { ...o };
+      this.showDetail = true;
+      api.get(`/service-orders/${o.id}`).then(({ data }) => {
         this.detail = data;
-        this.showDetail = true;
-      } catch (err) {
-        this.showAlert(err.response?.data?.detail || "Error al cargar detalle.", "error");
-      }
+      }).catch(() => {});
     },
     async changeStatus(orderId, newStatus) {
       const msgs = {

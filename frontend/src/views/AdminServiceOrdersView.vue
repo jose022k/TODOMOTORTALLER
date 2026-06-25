@@ -430,15 +430,13 @@ export default {
         this.showAlert(err.response?.data?.detail || "Error al crear la orden.", "error");
       }
     },
-    async openDetailModal(order) {
-      try {
-        const { data } = await api.get(`/service-orders/${order.id}`);
+    openDetailModal(order) {
+      this.detail = { ...order };
+      this.reassignMecanicoId = "";
+      this.showDetailModal = true;
+      api.get(`/service-orders/${order.id}`).then(({ data }) => {
         this.detail = data;
-        this.reassignMecanicoId = "";
-        this.showDetailModal = true;
-      } catch (err) {
-        this.showAlert(err.response?.data?.detail || "Error al cargar detalle.", "error");
-      }
+      }).catch(() => {});
     },
     async changeStatus(newStatus) {
       const msgs = {
