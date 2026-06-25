@@ -12,6 +12,7 @@ from app.modules.users.schemas import (
     MecanicoResponse,
     ClienteResponse,
     ClienteDetailResponse,
+    ClienteSummary,
 )
 
 router = APIRouter(prefix="/users", tags=["users"])
@@ -29,10 +30,22 @@ def register_mechanic(
 @router.get("/clients", response_model=List[ClienteResponse])
 def list_clients(
     activo_only: bool = False,
+    skip: int = 0,
+    limit: int = 100,
     db: Session = Depends(get_db),
     admin: Admin = Depends(get_current_admin),
 ):
-    return service.get_all_clients(db, activo_only)
+    return service.get_all_clients(db, activo_only, skip=skip, limit=limit)
+
+
+@router.get("/clients/summary", response_model=List[ClienteSummary])
+def list_clients_summary(
+    activo_only: bool = False,
+    db: Session = Depends(get_db),
+    admin: Admin = Depends(get_current_admin),
+):
+    """Versión ligera para dropdowns: solo id, nombre, cedula."""
+    return service.get_clients_summary(db, activo_only)
 
 
 @router.get("/clients/{client_id}", response_model=ClienteDetailResponse)
@@ -67,10 +80,12 @@ def deactivate_client(
 @router.get("/mechanics", response_model=List[MecanicoResponse])
 def list_mechanics(
     activo_only: bool = False,
+    skip: int = 0,
+    limit: int = 100,
     db: Session = Depends(get_db),
     admin: Admin = Depends(get_current_admin),
 ):
-    return service.get_all_mechanics(db, activo_only)
+    return service.get_all_mechanics(db, activo_only, skip=skip, limit=limit)
 
 
 @router.get("/mechanics/{mechanic_id}", response_model=MecanicoResponse)

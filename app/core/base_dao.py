@@ -20,6 +20,8 @@ class BaseDAO(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
     def get_all(self, db: Session, skip: int = 0, limit: int = 100) -> List[ModelType]:
         return db.query(self.model).offset(skip).limit(limit).all()
 
+
+
     def create(self, db: Session, obj_in: CreateSchemaType) -> ModelType:
         # Convert schemas to dict if necessary
         obj_in_data = obj_in.dict() if hasattr(obj_in, "dict") else obj_in

@@ -31,6 +31,15 @@ class MotoAsociada(BaseModel):
     codigo_qr: Optional[str] = None
 
 
+class ClienteSummary(BaseModel):
+    """Versión ligera de ClienteResponse sin motos, para dropdowns."""
+    id: int
+    nombre: str
+    cedula: str
+
+    model_config = {"from_attributes": True}
+
+
 class MecanicoResponse(BaseModel):
     id: int
     nombre: str

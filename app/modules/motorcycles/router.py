@@ -22,7 +22,7 @@ router = APIRouter(prefix="/motorcycles", tags=["motorcycles"])
 @router.get("/catalog", response_model=List[CatalogoMotoResponse])
 def list_catalog(
     skip: int = 0,
-    limit: int = 500,
+    limit: int = 100,
     db: Session = Depends(get_db),
     current_user: AnyUser = Depends(get_current_user),
 ):

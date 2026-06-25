@@ -347,7 +347,7 @@ export default {
     },
     async fetchClients() {
       try {
-        const { data } = await api.get("/users/clients");
+        const { data } = await api.get("/users/clients/summary");
         this.clients = data;
       } catch (err) {
         console.error("Error loading clients", err);

@@ -6,19 +6,19 @@ Sistema Web PWA de Seguimiento y Hoja de Vida para Motos.
 
 ## 1. Stack Tecnológico
 
-| Capa | Tecnología | Versión |
-|------|-----------|---------|
-| Backend | Python + FastAPI | Python 3.12+ / FastAPI 0.111 |
-| ORM | SQLAlchemy | 2.0 |
-| Base de datos | PostgreSQL (Supabase) | — |
-| Frontend | Vue.js 3 (Options API + `setup()`) | ^3.2.13 |
-| Estado | Pinia | ^3.0.4 |
-| Enrutador | Vue Router | ^4.0.3 |
-| HTTP | Axios | ^1.16.1 |
-| Autenticación | JWT (python-jose + bcrypt) | — |
-| Archivos | Cloudinary | — |
-| QR | qrcode[pil] | 7.4.2 |
-| PWA | @vue/cli-plugin-pwa | ~5.0.0 |
+| Capa          | Tecnología                         | Versión                      |
+| ------------- | ---------------------------------- | ---------------------------- |
+| Backend       | Python + FastAPI                   | Python 3.12+ / FastAPI 0.111 |
+| ORM           | SQLAlchemy                         | 2.0                          |
+| Base de datos | PostgreSQL (Supabase)              | —                            |
+| Frontend      | Vue.js 3 (Options API + `setup()`) | ^3.2.13                      |
+| Estado        | Pinia                              | ^3.0.4                       |
+| Enrutador     | Vue Router                         | ^4.0.3                       |
+| HTTP          | Axios                              | ^1.16.1                      |
+| Autenticación | JWT (python-jose + bcrypt)         | —                            |
+| Archivos      | Cloudinary                         | —                            |
+| QR            | qrcode[pil]                        | 7.4.2                        |
+| PWA           | @vue/cli-plugin-pwa                | ~5.0.0                       |
 
 ---
 
@@ -29,11 +29,11 @@ Sistema Web PWA de Seguimiento y Hoja de Vida para Motos.
 El frontend Vue.js se comunica con el backend exclusivamente mediante **peticiones HTTP REST**.
 
 ```
-Vue.js (localhost:8080) 
-  → axios (HTTP + JSON) 
-  → FastAPI (localhost:8000) 
-  → Service Layer 
-  → DAO Layer 
+Vue.js (localhost:8080)
+  → axios (HTTP + JSON)
+  → FastAPI (localhost:8000)
+  → Service Layer
+  → DAO Layer
   → PostgreSQL (Supabase - nube)
 ```
 
@@ -46,12 +46,12 @@ router.py  →  service.py  →  dao.py  →  models.py
   (ruta)      (lógica)      (datos)      (BD)
 ```
 
-| Capa | Archivo | Ruta | Responsabilidad |
-|------|---------|------|-----------------|
-| **Router** | `router.py` | `app/modules/*/router.py` | Define endpoints HTTP, inyecta dependencias de autenticación, valida schemas de entrada. Sin lógica de negocio. |
-| **Service** | `service.py` | `app/modules/*/service.py` | Lógica de negocio, reglas, validaciones, orquesta múltiples DAOs. |
-| **DAO** | `dao.py` | `app/modules/*/dao.py` | CRUD directo a base de datos. Hereda de `BaseDAO`. Sin lógica de negocio. |
-| **Model** | `models.py` | `app/modules/*/models.py` | Modelos SQLAlchemy planos (solo columnas y relaciones). Sin métodos de persistencia. |
+| Capa        | Archivo      | Ruta                       | Responsabilidad                                                                                                 |
+| ----------- | ------------ | -------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| **Router**  | `router.py`  | `app/modules/*/router.py`  | Define endpoints HTTP, inyecta dependencias de autenticación, valida schemas de entrada. Sin lógica de negocio. |
+| **Service** | `service.py` | `app/modules/*/service.py` | Lógica de negocio, reglas, validaciones, orquesta múltiples DAOs.                                               |
+| **DAO**     | `dao.py`     | `app/modules/*/dao.py`     | CRUD directo a base de datos. Hereda de `BaseDAO`. Sin lógica de negocio.                                       |
+| **Model**   | `models.py`  | `app/modules/*/models.py`  | Modelos SQLAlchemy planos (solo columnas y relaciones). Sin métodos de persistencia.                            |
 
 ### Capas del Frontend
 
@@ -81,6 +81,7 @@ cliente = cliente_dao.get_by_id(db, 1)
 ```
 
 **BaseDAO genérico** — `app/core/base_dao.py`
+
 - `BaseDAO[ModelType, CreateSchemaType, UpdateSchemaType]`
 - Métodos: `get_by_id`, `get_all`, `create`, `update`, `delete`
 - Todos los DAOs del proyecto heredan de esta clase.
@@ -90,15 +91,15 @@ cliente = cliente_dao.get_by_id(db, 1)
 
 La lógica de negocio está aislada en archivos `service.py` separados de los routers y DAOs. Ejemplos:
 
-| Módulo | Ruta | Responsabilidad |
-|--------|------|-----------------|
-| Auth | `app/modules/auth/service.py` | registro, login, refresh token, actualización de perfil |
-| Service Orders | `app/modules/service_orders/service.py` | creación de órdenes, cambio de estados, generación de QR |
-| Chat | `app/modules/chat/service.py` | envío de mensajes, subida de evidencias a Cloudinary, edición con límite de 10 min |
-| Motorcycles | `app/modules/motorcycles/service.py` | CRUD catálogo, validación de duplicados |
-| Users | `app/modules/users/service.py` | CRUD clientes y mecánicos, activar/desactivar |
-| Reports | `app/modules/reports/service.py` | 5 consultas de estadísticas agregadas |
-| Admin | `app/modules/admin/service.py` | dashboard con 8 contadores |
+| Módulo         | Ruta                                    | Responsabilidad                                                                    |
+| -------------- | --------------------------------------- | ---------------------------------------------------------------------------------- |
+| Auth           | `app/modules/auth/service.py`           | registro, login, refresh token, actualización de perfil                            |
+| Service Orders | `app/modules/service_orders/service.py` | creación de órdenes, cambio de estados, generación de QR                           |
+| Chat           | `app/modules/chat/service.py`           | envío de mensajes, subida de evidencias a Cloudinary, edición con límite de 10 min |
+| Motorcycles    | `app/modules/motorcycles/service.py`    | CRUD catálogo, validación de duplicados                                            |
+| Users          | `app/modules/users/service.py`          | CRUD clientes y mecánicos, activar/desactivar                                      |
+| Reports        | `app/modules/reports/service.py`        | 5 consultas de estadísticas agregadas                                              |
+| Admin          | `app/modules/admin/service.py`          | dashboard con 8 contadores                                                         |
 
 ### 3.3 Inyección de Dependencias (FastAPI)
 
@@ -124,8 +125,8 @@ Pinia (`frontend/src/stores/auth.js`) maneja el estado global de autenticación.
 
 ```javascript
 // Archivo: frontend/src/stores/auth.js
-const user = ref(null);  // reactivo
-const isAdmin = computed(() => state.user?.rol === 'admin');  // getter derivado
+const user = ref(null); // reactivo
+const isAdmin = computed(() => state.user?.rol === "admin"); // getter derivado
 ```
 
 El interceptor de Axios (`frontend/src/services/api.js`) añade automáticamente el token Bearer a cada petición y maneja el refresh automático en caso de 401.
@@ -142,11 +143,11 @@ Implementado en `app/modules/auth/utils.py` (creación/verificación) y `app/mod
 
 Definido en `app/modules/auth/models.py`. No existe una sola tabla `Usuario`. En su lugar hay tres tablas independientes:
 
-| Tabla | Clase | Archivo | Campos clave |
-|-------|-------|---------|-------------|
-| `admin` | `class Admin(Base)` | `app/modules/auth/models.py` | id, nombre, email, contraseña |
-| `cliente` | `class Cliente(Base)` | `app/modules/auth/models.py` | id, nombre, cedula, email, contraseña, telefono, direccion, activo |
-| `mecanico` | `class Mecanico(Base)` | `app/modules/auth/models.py` | id, nombre, email, contraseña, activo |
+| Tabla      | Clase                  | Archivo                      | Campos clave                                                       |
+| ---------- | ---------------------- | ---------------------------- | ------------------------------------------------------------------ |
+| `admin`    | `class Admin(Base)`    | `app/modules/auth/models.py` | id, nombre, email, contraseña                                      |
+| `cliente`  | `class Cliente(Base)`  | `app/modules/auth/models.py` | id, nombre, cedula, email, contraseña, telefono, direccion, activo |
+| `mecanico` | `class Mecanico(Base)` | `app/modules/auth/models.py` | id, nombre, email, contraseña, activo                              |
 
 Cada tabla tiene su propio login y sus propias FK en tablas como `mensaje` y `notificacion`. Los DAOs correspondientes están en `app/modules/auth/dao.py`.
 
@@ -236,12 +237,12 @@ app/
 
 ### 4.1 Módulos en estado stub (no implementados completamente)
 
-| Módulo | Ruta | Estado |
-|--------|------|--------|
+| Módulo           | Ruta                         | Estado                                                     |
+| ---------------- | ---------------------------- | ---------------------------------------------------------- |
 | `notifications/` | `app/modules/notifications/` | Modelo y schemas listos. Router sin endpoints funcionales. |
-| `clients/` | `app/modules/clients/` | Router stub (solo health check). |
-| `mechanics/` | `app/modules/mechanics/` | Router stub (solo health check). |
-| WebSocket | `app/core/websocket.py` | Archivo vacío (placeholder para futura funcionalidad). |
+| `clients/`       | `app/modules/clients/`       | Router stub (solo health check).                           |
+| `mechanics/`     | `app/modules/mechanics/`     | Router stub (solo health check).                           |
+| WebSocket        | `app/core/websocket.py`      | Archivo vacío (placeholder para futura funcionalidad).     |
 
 ---
 
@@ -252,7 +253,7 @@ frontend/src/
   main.js                           ← Arranque de Vue, instalación de Pinia y Router
   App.vue                           ← Componente raíz (header con nav + router-view)
   registerServiceWorker.js          ← Registro PWA (solo producción)
-  
+
   assets/
     styles.css                      ← Variables CSS globales (color primario #FFAA00)
     logo.png                        ← Logo de Vue
@@ -305,18 +306,18 @@ El archivo `frontend/src/router/index.js` implementa un guardia `beforeEach` que
 
 ### 6.1 Tablas
 
-| Tabla | Modelo (archivo) | Descripción | FK |
-|-------|------------------|-------------|----|
-| `admin` | `class Admin` — `app/modules/auth/models.py` | Administradores del sistema | — |
-| `cliente` | `class Cliente` — `app/modules/auth/models.py` | Clientes del taller | — |
-| `mecanico` | `class Mecanico` — `app/modules/auth/models.py` | Mecánicos del taller | — |
-| `catalogo_moto` | `class CatalogoMoto` — `app/modules/motorcycles/models.py` | Catálogo maestro de modelos de motos | — |
-| `moto_cliente` | `class MotoCliente` — `app/modules/motorcycles/models.py` | Motos registradas de cada cliente | `catalogo_moto_id`, `cliente_id` |
-| `orden_servicio` | `class OrdenServicio` — `app/modules/service_orders/models.py` | Órdenes de servicio/reparación | `cliente_id`, `mecanico_id`, `moto_cliente_id` |
-| `evidencia` | `class Evidencia` — `app/modules/service_orders/models.py` | Evidencias (fotos) de órdenes | `orden_servicio_id`, `mensaje_id` |
-| `mensaje` | `class Mensaje` — `app/modules/chat/models.py` | Mensajes del chat | `orden_servicio_id`, `admin_id?`, `cliente_id?`, `mecanico_id?` |
-| `notificacion` | `class Notificacion` — `app/modules/notifications/models.py` | Notificaciones del sistema | `orden_servicio_id`, `admin_id?`, `cliente_id?`, `mecanico_id?` |
-| `historial_mantenimiento` | `class HistorialMantenimiento` — `app/modules/motorcycles/models.py` | Historial de mantenimiento completado | `moto_cliente_id`, `orden_servicio_id`, `mecanico_id` |
+| Tabla                     | Modelo (archivo)                                                     | Descripción                           | FK                                                              |
+| ------------------------- | -------------------------------------------------------------------- | ------------------------------------- | --------------------------------------------------------------- |
+| `admin`                   | `class Admin` — `app/modules/auth/models.py`                         | Administradores del sistema           | —                                                               |
+| `cliente`                 | `class Cliente` — `app/modules/auth/models.py`                       | Clientes del taller                   | —                                                               |
+| `mecanico`                | `class Mecanico` — `app/modules/auth/models.py`                      | Mecánicos del taller                  | —                                                               |
+| `catalogo_moto`           | `class CatalogoMoto` — `app/modules/motorcycles/models.py`           | Catálogo maestro de modelos de motos  | —                                                               |
+| `moto_cliente`            | `class MotoCliente` — `app/modules/motorcycles/models.py`            | Motos registradas de cada cliente     | `catalogo_moto_id`, `cliente_id`                                |
+| `orden_servicio`          | `class OrdenServicio` — `app/modules/service_orders/models.py`       | Órdenes de servicio/reparación        | `cliente_id`, `mecanico_id`, `moto_cliente_id`                  |
+| `evidencia`               | `class Evidencia` — `app/modules/service_orders/models.py`           | Evidencias (fotos) de órdenes         | `orden_servicio_id`, `mensaje_id`                               |
+| `mensaje`                 | `class Mensaje` — `app/modules/chat/models.py`                       | Mensajes del chat                     | `orden_servicio_id`, `admin_id?`, `cliente_id?`, `mecanico_id?` |
+| `notificacion`            | `class Notificacion` — `app/modules/notifications/models.py`         | Notificaciones del sistema            | `orden_servicio_id`, `admin_id?`, `cliente_id?`, `mecanico_id?` |
+| `historial_mantenimiento` | `class HistorialMantenimiento` — `app/modules/motorcycles/models.py` | Historial de mantenimiento completado | `moto_cliente_id`, `orden_servicio_id`, `mecanico_id`           |
 
 ### 6.2 Estados de Orden de Servicio
 
@@ -333,22 +334,22 @@ Definida en `sql/create_tables.sql`. Es una **VIEW** de SQL (no tabla física) q
 
 ## 7. Pull Requests (Historial Completo)
 
-| PR # | Rama | Commit Hash | Fecha | Descripción |
-|------|------|-------------|-------|-------------|
-| #1 | `chore/project-setup` | `ecfd6b0` | 2026-05-17 | Estructura inicial del proyecto y configuración base |
-| #2 | `chore/project-setup` | `e6ad761` | 2026-05-17 | Configuración del frontend Vue.js |
-| #3 | `chore/project-setup` | `42ead99` | 2026-05-20 | Corrección de configuración ESLint |
-| #4 | `chore/project-setup` | `1690164` | 2026-05-24 | Configuración final del proyecto e inicialización del CHANGELOG |
-| #5 | `feature/auth-module` | `5d1ab20` | 2026-05-24 | Módulo de autenticación: login, JWT, registro de clientes |
-| #6 | `feature/auth-module` | `7b5a032` | 2026-06-09 | Refactorización: separación de modelos de usuario por rol, vistas de login independientes, route guards |
-| #7 | `feature/motorcycles-module` | `0d18f87` | 2026-06-09 | CRUD de catálogo de motos con vista frontend |
-| #8 | `feature/users-module` | `258e64c` | 2026-06-12 | CRUD de usuarios (clientes y mecánicos) con campo activo |
-| #9 | `feature/service-orders-module` | `928cdd2` | 2026-06-12 | Órdenes de servicio completo: CRUD, QR, selección de color del catálogo, historial de mantenimiento |
-| #10 | `feature/auth-module` | `4c19ce8` | 2026-06-12 | Merge final del módulo auth con actualizaciones menores |
-| #11 | `feature/motorcycles-module` | `7e17ed9` | 2026-06-12 | Merge final del módulo motorcycles |
-| #12 | `feature/users-module` | `1984f9e` | 2026-06-12 | Merge final del módulo users |
-| #13 | `chore/project-setup` | `9ae8cbe` | 2026-06-12 | Resolución de conflictos en .gitignore y configuración de scripts/ |
-| #14 | `feature/chat-module` | `f4fd274` | 2026-06-21 | Módulo de chat completo: mensajería, evidencias, edición, modal WhatsApp-style, Cloudinary |
+| PR # | Rama                            | Commit Hash | Fecha      | Descripción                                                                                             |
+| ---- | ------------------------------- | ----------- | ---------- | ------------------------------------------------------------------------------------------------------- |
+| #1   | `chore/project-setup`           | `ecfd6b0`   | 2026-05-17 | Estructura inicial del proyecto y configuración base                                                    |
+| #2   | `chore/project-setup`           | `e6ad761`   | 2026-05-17 | Configuración del frontend Vue.js                                                                       |
+| #3   | `chore/project-setup`           | `42ead99`   | 2026-05-20 | Corrección de configuración ESLint                                                                      |
+| #4   | `chore/project-setup`           | `1690164`   | 2026-05-24 | Configuración final del proyecto e inicialización del CHANGELOG                                         |
+| #5   | `feature/auth-module`           | `5d1ab20`   | 2026-05-24 | Módulo de autenticación: login, JWT, registro de clientes                                               |
+| #6   | `feature/auth-module`           | `7b5a032`   | 2026-06-09 | Refactorización: separación de modelos de usuario por rol, vistas de login independientes, route guards |
+| #7   | `feature/motorcycles-module`    | `0d18f87`   | 2026-06-09 | CRUD de catálogo de motos con vista frontend                                                            |
+| #8   | `feature/users-module`          | `258e64c`   | 2026-06-12 | CRUD de usuarios (clientes y mecánicos) con campo activo                                                |
+| #9   | `feature/service-orders-module` | `928cdd2`   | 2026-06-12 | Órdenes de servicio completo: CRUD, QR, selección de color del catálogo, historial de mantenimiento     |
+| #10  | `feature/auth-module`           | `4c19ce8`   | 2026-06-12 | Merge final del módulo auth con actualizaciones menores                                                 |
+| #11  | `feature/motorcycles-module`    | `7e17ed9`   | 2026-06-12 | Merge final del módulo motorcycles                                                                      |
+| #12  | `feature/users-module`          | `1984f9e`   | 2026-06-12 | Merge final del módulo users                                                                            |
+| #13  | `chore/project-setup`           | `9ae8cbe`   | 2026-06-12 | Resolución de conflictos en .gitignore y configuración de scripts/                                      |
+| #14  | `feature/chat-module`           | `f4fd274`   | 2026-06-21 | Módulo de chat completo: mensajería, evidencias, edición, modal WhatsApp-style, Cloudinary              |
 
 ---
 
@@ -414,89 +415,99 @@ Definida en `sql/create_tables.sql`. Es una **VIEW** de SQL (no tabla física) q
 ## 9. API — Endpoints Principales
 
 ### Autenticación (`/auth`) — Router: `app/modules/auth/router.py`
-| Método | Ruta | Acceso |
-|--------|------|--------|
-| POST | `/auth/register/cliente` | Público |
-| POST | `/auth/login` | Público (Admin) |
-| POST | `/auth/loginMecanico` | Público |
-| POST | `/auth/loginCliente` | Público |
-| POST | `/auth/refresh` | Público (token requerido) |
-| GET | `/auth/me` | Autenticado |
-| PUT | `/auth/me` | Autenticado |
+
+| Método | Ruta                     | Acceso                    |
+| ------ | ------------------------ | ------------------------- |
+| POST   | `/auth/register/cliente` | Público                   |
+| POST   | `/auth/login`            | Público (Admin)           |
+| POST   | `/auth/loginMecanico`    | Público                   |
+| POST   | `/auth/loginCliente`     | Público                   |
+| POST   | `/auth/refresh`          | Público (token requerido) |
+| GET    | `/auth/me`               | Autenticado               |
+| PUT    | `/auth/me`               | Autenticado               |
 
 ### Usuarios (`/users`) — Router: `app/modules/users/router.py`
-| Método | Ruta | Acceso |
-|--------|------|--------|
-| POST | `/users/mechanics` | Admin |
-| GET | `/users/clients` | Admin |
-| GET | `/users/clients/{id}` | Admin |
-| PATCH | `/users/clients/{id}` | Admin |
-| PATCH | `/users/clients/{id}/deactivate` | Admin |
-| GET | `/users/mechanics` | Admin |
-| GET | `/users/mechanics/{id}` | Admin |
-| PATCH | `/users/mechanics/{id}` | Admin |
-| PATCH | `/users/mechanics/{id}/deactivate` | Admin |
+
+| Método | Ruta                               | Acceso |
+| ------ | ---------------------------------- | ------ |
+| POST   | `/users/mechanics`                 | Admin  |
+| GET    | `/users/clients`                   | Admin  |
+| GET    | `/users/clients/{id}`              | Admin  |
+| PATCH  | `/users/clients/{id}`              | Admin  |
+| PATCH  | `/users/clients/{id}/deactivate`   | Admin  |
+| GET    | `/users/mechanics`                 | Admin  |
+| GET    | `/users/mechanics/{id}`            | Admin  |
+| PATCH  | `/users/mechanics/{id}`            | Admin  |
+| PATCH  | `/users/mechanics/{id}/deactivate` | Admin  |
 
 ### Órdenes de Servicio (`/service-orders`) — Router: `app/modules/service_orders/router.py`
-| Método | Ruta | Acceso |
-|--------|------|--------|
-| POST | `/service-orders` | Admin |
-| GET | `/service-orders` | Autenticado (filtrado por rol) |
-| GET | `/service-orders/{id}` | Autenticado |
-| PATCH | `/service-orders/{id}/status` | Mecánico/Admin |
-| PATCH | `/service-orders/{id}/mechanic` | Admin |
-| GET | `/service-orders/{id}/tracker` | Público |
+
+| Método | Ruta                            | Acceso                         |
+| ------ | ------------------------------- | ------------------------------ |
+| POST   | `/service-orders`               | Admin                          |
+| GET    | `/service-orders`               | Autenticado (filtrado por rol) |
+| GET    | `/service-orders/{id}`          | Autenticado                    |
+| PATCH  | `/service-orders/{id}/status`   | Mecánico/Admin                 |
+| PATCH  | `/service-orders/{id}/mechanic` | Admin                          |
+| GET    | `/service-orders/{id}/tracker`  | Público                        |
 
 ### Chat (`/chat`) — Router: `app/modules/chat/router.py`
-| Método | Ruta | Acceso |
-|--------|------|--------|
-| GET | `/chat/{orden_id}` | Participantes de la orden |
-| POST | `/chat/{orden_id}` | Participantes de la orden |
-| GET | `/chat/{orden_id}/evidencias` | Participantes de la orden |
-| POST | `/chat/{orden_id}/evidencias` | Participantes de la orden (solo en_proceso) |
-| PUT | `/chat/{orden_id}/{mensaje_id}` | Remitente del mensaje |
-| DELETE | `/chat/{orden_id}/evidencias/{evidencia_id}` | Participantes de la orden |
+
+| Método | Ruta                                         | Acceso                                      |
+| ------ | -------------------------------------------- | ------------------------------------------- |
+| GET    | `/chat/{orden_id}`                           | Participantes de la orden                   |
+| POST   | `/chat/{orden_id}`                           | Participantes de la orden                   |
+| GET    | `/chat/{orden_id}/evidencias`                | Participantes de la orden                   |
+| POST   | `/chat/{orden_id}/evidencias`                | Participantes de la orden (solo en_proceso) |
+| PUT    | `/chat/{orden_id}/{mensaje_id}`              | Remitente del mensaje                       |
+| DELETE | `/chat/{orden_id}/evidencias/{evidencia_id}` | Participantes de la orden                   |
 
 ### Catálogo de Motos (`/motorcycles`) — Router: `app/modules/motorcycles/router.py`
-| Método | Ruta | Acceso |
-|--------|------|--------|
-| GET | `/motorcycles/catalog` | Autenticado |
-| GET | `/motorcycles/catalog/{id}` | Autenticado |
-| POST | `/motorcycles/catalog` | Admin |
-| PUT | `/motorcycles/catalog/{id}` | Admin |
-| DELETE | `/motorcycles/catalog/{id}` | Admin |
+
+| Método | Ruta                        | Acceso      |
+| ------ | --------------------------- | ----------- |
+| GET    | `/motorcycles/catalog`      | Autenticado |
+| GET    | `/motorcycles/catalog/{id}` | Autenticado |
+| POST   | `/motorcycles/catalog`      | Admin       |
+| PUT    | `/motorcycles/catalog/{id}` | Admin       |
+| DELETE | `/motorcycles/catalog/{id}` | Admin       |
 
 ### Reportes (`/reports`) — Router: `app/modules/reports/router.py`
-| Método | Ruta | Acceso |
-|--------|------|--------|
-| GET | `/reports/mecanicos/mas-servicios` | Admin |
-| GET | `/reports/motos/mas-atendidas` | Admin |
-| GET | `/reports/clientes/recurrentes` | Admin |
-| GET | `/reports/tiempo-promedio-reparacion` | Admin |
-| GET | `/reports/mecanicos/rendimiento` | Admin |
+
+| Método | Ruta                                  | Acceso |
+| ------ | ------------------------------------- | ------ |
+| GET    | `/reports/mecanicos/mas-servicios`    | Admin  |
+| GET    | `/reports/motos/mas-atendidas`        | Admin  |
+| GET    | `/reports/clientes/recurrentes`       | Admin  |
+| GET    | `/reports/tiempo-promedio-reparacion` | Admin  |
+| GET    | `/reports/mecanicos/rendimiento`      | Admin  |
 
 ### Dashboard (`/admin`) — Router: `app/modules/admin/router.py`
-| Método | Ruta | Acceso |
-|--------|------|--------|
-| GET | `/admin/dashboard` | Admin |
+
+| Método | Ruta               | Acceso |
+| ------ | ------------------ | ------ |
+| GET    | `/admin/dashboard` | Admin  |
 
 ---
 
 ## 10. Convenciones de Código
 
 ### Backend (Python)
+
 - **Nombres de tablas y columnas**: en español (`orden_servicio`, `moto_cliente`, `fecha_creacion`) — definido en `app/modules/*/models.py`
 - **Nombres de código**: en inglés (`class OrdenServicioDAO`, `def create_order`) — definido en `app/modules/*/`
 - **Arquitectura**: Router → Service → DAO → DB (Data Mapper) — BaseDAO en `app/core/base_dao.py`
 - **Autenticación**: dependencias de FastAPI para cada rol — definido en `app/modules/auth/dependencies.py`
 
 ### Frontend (Vue.js)
+
 - **Idioma de UI**: español (etiquetas, mensajes, estados) — en `frontend/src/views/*.vue`
 - **Nombres de componentes/variables**: en inglés
 - **Estado global**: Pinia store — `frontend/src/stores/auth.js`
 - **Peticiones HTTP**: Axios con interceptors JWT — `frontend/src/services/api.js`
 
 ### Git
+
 - **Ramas**: `<tipo>/<descripcion-en-kebab-case>` (ej: `feature/chat-module`)
 - **Commits**: `<tipo>: <descripción>` (tipos: `feat`, `fix`, `refactor`, `chore`, `docs`)
 
@@ -517,9 +528,9 @@ FRONTEND_URL=http://localhost:8080
 
 ## 12. Usuarios de Prueba
 
-| Rol | Email | Contraseña |
-|-----|-------|-----------|
-| Admin | `admin@todomotortaller.com` | `Admintaller$` |
-| Cliente | `josepalma@gmail.com` | (registrado por usuario) |
-| Mecánico 1 | `prueba@gmail.com` | (asignado por admin) |
-| Mecánico 2 | `test@test.com` | `test123` |
+| Rol        | Email                       | Contraseña               |
+| ---------- | --------------------------- | ------------------------ |
+| Admin      | `admin@todomotortaller.com` | `Admintaller$`           |
+| Cliente    | `josepalma@gmail.com`       | (registrado por usuario) |
+| Mecánico 1 | `prueba@gmail.com`          | (asignado por admin)     |
+| Mecánico 2 | `test@test.com`             | `test123`                |

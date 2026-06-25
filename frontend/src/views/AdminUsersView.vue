@@ -296,7 +296,7 @@ export default {
     async fetchMechanics() {
       this.loading = true;
       try {
-        const { data } = await api.get("/users/mechanics");
+        const { data } = await api.get("/users/mechanics", { params: { skip: 0, limit: 200 } });
         this.mechanics = data;
       } catch (err) {
         this.showAlert(err.response?.data?.detail || "Error al cargar mecánicos.", "error");
@@ -357,7 +357,7 @@ export default {
     async fetchClients() {
       this.loading = true;
       try {
-        const { data } = await api.get("/users/clients");
+        const { data } = await api.get("/users/clients", { params: { skip: 0, limit: 200 } });
         this.clients = data;
       } catch (err) {
         this.showAlert(err.response?.data?.detail || "Error al cargar clientes.", "error");
