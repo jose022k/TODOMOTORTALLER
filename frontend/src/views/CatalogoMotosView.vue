@@ -178,7 +178,7 @@ export default {
     async fetchCatalog() {
       this.loading = true;
       try {
-        const { data } = await api.get("/motorcycles/catalog");
+        const { data } = await api.get("/motorcycles/catalog", { params: { limit: 500 } });
         this.catalog = data;
       } catch (err) {
         this.showAlert(
