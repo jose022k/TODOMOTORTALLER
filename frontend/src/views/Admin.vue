@@ -21,6 +21,12 @@
         <h2>Catálogo de Motos</h2>
         <p>Administrar modelos y marcas</p>
       </router-link>
+
+      <router-link to="/admin/service-orders" class="dash-card">
+        <div class="dash-icon">📋</div>
+        <h2>Órdenes de Servicio</h2>
+        <p>Crear, gestionar y dar seguimiento</p>
+      </router-link>
     </div>
   </div>
 </template>
