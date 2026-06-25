@@ -78,7 +78,7 @@
                 required
               >
                 <option value="" disabled>Selecciona una marca</option>
-                <option v-for="b in brands" :key="b" :value="b">{{ b }}</option>
+                <option v-for="b in brandNames" :key="b" :value="b">{{ b }}</option>
               </select>
             </div>
             <div class="form-group">
@@ -123,6 +123,7 @@ export default {
   data() {
     return {
       catalog: [],
+      brands: [],
       searchQuery: "",
       loading: false,
       alert: {
@@ -145,8 +146,8 @@ export default {
     };
   },
   computed: {
-    brands() {
-      return [...new Set(this.catalog.map((item) => item.marca))].sort();
+    brandNames() {
+      return this.brands.map((b) => b.marca).sort();
     },
     filteredCatalog() {
       const query = this.searchQuery.toLowerCase().trim();
@@ -161,6 +162,7 @@ export default {
   },
   mounted() {
     this.fetchCatalog();
+    this.fetchBrands();
   },
   watch: {
     "modal.form.marca"(newMarca) {
@@ -168,7 +170,7 @@ export default {
         this.modal.form.logo_url = "";
         return;
       }
-      const found = this.catalog.find((item) => item.marca === newMarca);
+      const found = this.brands.find((b) => b.marca === newMarca);
       this.modal.form.logo_url = found?.logo_url || "";
     },
   },
@@ -185,6 +187,14 @@ export default {
         );
       } finally {
         this.loading = false;
+      }
+    },
+    async fetchBrands() {
+      try {
+        const { data } = await api.get("/motorcycles/brands");
+        this.brands = data;
+      } catch (err) {
+        console.error("Error al cargar marcas:", err);
       }
     },
     showAlert(message, type = "success") {

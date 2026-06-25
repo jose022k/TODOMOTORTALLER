@@ -5,11 +5,13 @@ from typing import List
 from app.core.database import get_db
 from app.modules.auth.dependencies import get_current_user, get_current_admin, AnyUser
 from app.modules.motorcycles.schemas import (
+    BrandResponse,
     CatalogoMotoCreate,
     CatalogoMotoUpdate,
     CatalogoMotoResponse,
 )
 from app.modules.motorcycles.service import (
+    get_brands,
     get_catalog_items,
     get_catalog_item_by_id,
     create_catalog_item,
@@ -18,6 +20,15 @@ from app.modules.motorcycles.service import (
 )
 
 router = APIRouter(prefix="/motorcycles", tags=["motorcycles"])
+
+@router.get("/brands", response_model=List[BrandResponse])
+def list_brands(
+    db: Session = Depends(get_db),
+    current_user: AnyUser = Depends(get_current_user),
+):
+    """Obtiene todas las marcas disponibles en el catálogo.
+    Cualquier usuario autenticado puede consultarlo."""
+    return get_brands(db)
 
 @router.get("/catalog", response_model=List[CatalogoMotoResponse])
 def list_catalog(

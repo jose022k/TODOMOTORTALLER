@@ -126,4 +126,6 @@ export default {
 .btn-full:disabled { opacity: 0.6; cursor: not-allowed; }
 .error-msg { color: #e74c3c; font-size: 14px; margin-bottom: 8px; text-align: center; }
 .auth-link { margin-top: 16px; text-align: center; font-size: 14px; color: var(--color-muted); }
+.auth-link a { color: var(--color-primary); font-weight: 600; text-decoration: none; }
+.auth-link a:hover { text-decoration: underline; }
 </style>
