@@ -56,14 +56,22 @@
             <label for="password">Contraseña</label>
             <div class="input-wrapper">
               <svg class="input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-              <input id="password" v-model="form.password" type="password" placeholder="••••••••" required />
+              <input id="password" v-model="form.password" :type="showPassword ? 'text' : 'password'" placeholder="••••••••" required />
+              <button type="button" class="toggle-pw" @click="showPassword = !showPassword" :title="showPassword ? 'Ocultar' : 'Mostrar'">
+                <svg v-if="showPassword" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffaa00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffaa00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
             </div>
           </div>
           <div class="input-group">
             <label for="confirmPassword">Confirmar</label>
             <div class="input-wrapper">
               <svg class="input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/><line x1="12" y1="16" x2="12" y2="16"/></svg>
-              <input id="confirmPassword" v-model="confirmPassword" type="password" placeholder="••••••••" required />
+              <input id="confirmPassword" v-model="confirmPassword" :type="showConfirm ? 'text' : 'password'" placeholder="••••••••" required />
+              <button type="button" class="toggle-pw" @click="showConfirm = !showConfirm" :title="showConfirm ? 'Ocultar' : 'Mostrar'">
+                <svg v-if="showConfirm" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffaa00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffaa00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
             </div>
           </div>
         </div>
@@ -96,6 +104,8 @@ export default {
         password: "",
       },
       confirmPassword: "",
+      showPassword: false,
+      showConfirm: false,
       error: "",
       loading: false,
     };
@@ -245,6 +255,22 @@ export default {
   align-items: center;
   justify-content: center;
   gap: 8px;
+}
+.toggle-pw {
+  position: absolute;
+  right: 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+.toggle-pw:hover {
+  background: rgba(255, 170, 0, 0.1);
 }
 .btn-submit:hover:not(:disabled) {
   background: #f5a000;
