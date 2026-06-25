@@ -108,24 +108,16 @@ router.beforeEach((to, from, next) => {
   // Tracker público (sin auth)
   if (to.name === "tracker") return next();
 
+  // Home page: redirigir según rol si está autenticado
+  if (to.path === "/" && authStore.isAuthenticated) {
+    if (authStore.isAdmin) return next("/admin");
+    if (authStore.isMecanico) return next("/mecanico/orders");
+    if (authStore.isCliente) return next("/cliente/orders");
+  }
+
   // Page requires auth
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
     return next("/login");
-  }
-
-  // Page requires admin role
-  if (to.meta.rol === "admin" && authStore.isAuthenticated && !authStore.isAdmin) {
-    return next("/");
-  }
-
-  // Page requires mecanico role
-  if (to.meta.rol === "mecanico" && authStore.isAuthenticated && !authStore.isMecanico) {
-    return next("/");
-  }
-
-  // Page requires cliente role
-  if (to.meta.rol === "cliente" && authStore.isAuthenticated && !authStore.isCliente) {
-    return next("/");
   }
 
   // Public pages only for non-authenticated
