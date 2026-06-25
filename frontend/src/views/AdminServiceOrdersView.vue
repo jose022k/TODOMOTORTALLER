@@ -697,8 +697,8 @@ export default {
   transition: all 0.2s;
 }
 .modal-close:hover {
-  background: #e2e8f0;
-  color: #1a1a1a;
+  background: #fef2f2;
+  color: #dc2626;
 }
 .modal-header {
   display: flex;

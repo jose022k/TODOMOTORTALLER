@@ -323,7 +323,7 @@ export default {
   cursor: pointer; color: #64748b;
   display: flex; align-items: center; justify-content: center; transition: all 0.2s;
 }
-.modal-close:hover { background: #e2e8f0; color: #1a1a1a; }
+.modal-close:hover { background: #fef2f2; color: #dc2626; }
 .modal-body { padding: 24px 28px 28px; }
 .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
 .detail-item {
