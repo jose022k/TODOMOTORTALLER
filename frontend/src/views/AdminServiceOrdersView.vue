@@ -157,15 +157,14 @@
     <div v-if="showDetailModal" class="modal-overlay" @click.self="showDetailModal = false">
       <div class="modal modal-lg">
         <div class="modal-header">
-          <h2>Orden #{{ detail.id }}</h2>
           <button class="modal-close" @click="showDetailModal = false">×</button>
         </div>
         <div class="modal-body" v-if="detail">
+          <div class="status-badge-wrap">
+            <span :class="['badge', 'badge-' + detail.estado]">{{ statusLabel(detail.estado) }}</span>
+            <span class="order-id-label">Orden #{{ detail.id }}</span>
+          </div>
           <div class="detail-grid">
-            <div class="detail-field">
-              <span class="detail-label">Estado</span>
-              <span :class="['badge', 'badge-' + detail.estado]">{{ statusLabel(detail.estado) }}</span>
-            </div>
             <div class="detail-field">
               <span class="detail-label">Cliente</span>
               <span>{{ capitalize(detail.cliente_nombre) }}</span>
@@ -225,9 +224,6 @@
               <button class="btn-sm btn-assign" @click="handleReassign" :disabled="!reassignMecanicoId">Reasignar</button>
             </div>
           </div>
-        </div>
-        <div class="modal-footer">
-          <button class="btn-cancel" @click="showDetailModal = false">Cerrar</button>
         </div>
       </div>
     </div>
@@ -609,7 +605,8 @@ export default {
 .modal-overlay {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.5);
+  background: rgba(15,23,42,0.5);
+  backdrop-filter: blur(6px);
   z-index: 1000;
   display: flex;
   justify-content: center;
@@ -617,36 +614,44 @@ export default {
 }
 .modal {
   background: #fff;
-  border-radius: 12px;
+  border-radius: 20px;
   width: 90%;
   max-width: 500px;
   max-height: 85vh;
   overflow-y: auto;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+  box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+  padding: 28px;
 }
-.modal-lg { max-width: 700px; }
+.modal-lg { max-width: 680px; }
 .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 24px 0;
+  margin-bottom: 20px;
 }
-.modal-header h2 { font-size: 1.3rem; color: #1a1a1a; }
+.modal-header h2 {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #1a1a1a;
+  letter-spacing: -0.3px;
+}
 .modal-close {
-  background: none;
+  background: #f1f5f9;
   border: none;
-  font-size: 24px;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  font-size: 18px;
   cursor: pointer;
-  color: #94a3b8;
-}
-.modal-close:hover { color: #475569; }
-.modal-body { padding: 20px 24px; }
-.modal-footer {
-  padding: 16px 24px;
+  color: #64748b;
   display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  border-top: 1px solid #f1f5f9;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+.modal-close:hover {
+  background: #e2e8f0;
+  color: #1a1a1a;
 }
 .form-group {
   margin-bottom: 16px;
@@ -788,6 +793,26 @@ textarea.form-control {
   background: #fff8e6;
 }
 /* Detail */
+.status-badge-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #f1f5f9;
+}
+.status-badge-wrap .badge {
+  font-size: 13px;
+  padding: 6px 16px;
+  border-radius: 20px;
+}
+.order-id-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
 .detail-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -797,24 +822,30 @@ textarea.form-control {
 .detail-field {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
 }
 .detail-label {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
-  color: #64748b;
+  color: #94a3b8;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.6px;
+}
+.detail-field > span:last-child {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1a1a;
 }
 .detail-section {
-  margin-top: 24px;
+  margin-top: 20px;
   padding-top: 20px;
   border-top: 1px solid #f1f5f9;
 }
 .detail-section h3 {
-  font-size: 1rem;
+  font-size: 0.95rem;
+  font-weight: 700;
   color: #1a1a1a;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 .detail-section p {
   font-size: 14px;

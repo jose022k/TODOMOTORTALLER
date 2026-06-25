@@ -43,10 +43,13 @@
     <div v-if="showDetail" class="modal-overlay" @click.self="showDetail = false">
       <div class="modal modal-lg">
         <div class="modal-header">
-          <h2>Orden #{{ detail.id }}</h2>
           <button class="modal-close" @click="showDetail = false">×</button>
         </div>
         <div class="modal-body" v-if="detail">
+          <div class="status-badge-wrap">
+            <span :class="['badge', 'badge-' + detail.estado]">{{ statusLabel(detail.estado) }}</span>
+            <span class="order-id-label">Orden #{{ detail.id }}</span>
+          </div>
           <div class="detail-grid">
             <div class="detail-field">
               <span class="detail-label">Estado</span>
@@ -90,9 +93,6 @@
               <button class="btn-sm btn-cancel-order" @click="changeStatusFromDetail('cancelada')">Cancelar</button>
             </div>
           </div>
-        </div>
-        <div class="modal-footer">
-          <button class="btn-cancel" @click="showDetail = false">Cerrar</button>
         </div>
       </div>
     </div>
@@ -263,29 +263,40 @@ export default {
 /* Modal */
 .modal-overlay {
   position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(15,23,42,0.4); backdrop-filter: blur(8px);
+  background: rgba(15,23,42,0.5); backdrop-filter: blur(6px);
   display: flex; justify-content: center; align-items: center; z-index: 1000;
 }
 .modal {
   background: #fff; border-radius: 20px; width: 90%; max-width: 640px;
-  padding: 28px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+  padding: 28px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
   max-height: 90vh; overflow-y: auto;
 }
 .modal-header {
   display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;
 }
-.modal-header h2 { font-size: 1.3rem; }
-.modal-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #94a3b8; }
-.detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
-.detail-field { font-size: 0.9rem; }
-.detail-label { display: block; font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 2px; }
-.detail-section { margin-top: 20px; }
-.detail-section h3 { font-size: 1rem; margin-bottom: 8px; color: #1a1a1a; }
-.status-actions { display: flex; gap: 8px; }
+.modal-header h2 { font-size: 1.35rem; font-weight: 800; color: #1a1a1a; letter-spacing: -0.3px; }
+.modal-close {
+  background: #f1f5f9; border: none; width: 32px; height: 32px; border-radius: 8px;
+  font-size: 18px; cursor: pointer; color: #64748b;
+  display: flex; align-items: center; justify-content: center; transition: all 0.2s;
+}
+.modal-close:hover { background: #e2e8f0; color: #1a1a1a; }
+.status-badge-wrap {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 20px; padding-bottom: 20px;
+  border-bottom: 1px solid #f1f5f9;
+}
+.status-badge-wrap .badge { font-size: 13px; padding: 6px 16px; border-radius: 20px; }
+.order-id-label { font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; }
+.detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+.detail-field { display: flex; flex-direction: column; gap: 3px; }
+.detail-label { font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.6px; }
+.detail-field > span:last-child { font-size: 14px; font-weight: 600; color: #1a1a1a; }
+.detail-section { margin-top: 20px; padding-top: 20px; border-top: 1px solid #f1f5f9; }
+.detail-section h3 { font-size: 0.95rem; font-weight: 700; color: #1a1a1a; margin-bottom: 10px; }
+.status-actions { display: flex; gap: 10px; }
 .reassign-row { display: flex; gap: 8px; }
 .form-control { padding: 8px 12px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem; flex: 1; }
-.modal-footer { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; }
-.btn-cancel { padding: 10px 20px; background: #f1f5f9; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
 .alert {
   padding: 12px 16px;
   border-radius: 8px;
