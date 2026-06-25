@@ -713,6 +713,13 @@ export default {
   letter-spacing: -0.3px;
 }
 .modal-body { padding: 24px 28px 28px; }
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 28px;
+  border-top: 1px solid #f1f5f9;
+}
 .detail-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -812,22 +819,16 @@ export default {
 }
 .form-group label {
   display: block;
-  font-weight: 600;
-  font-size: 13px;
+  font-weight: 700;
+  font-size: 12px;
   color: #475569;
   margin-bottom: 5px;
-}
-.form-control {
-  width: 100%;
-  padding: 9px 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  font-size: 14px;
-  box-sizing: border-box;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
 }
 .form-control:disabled {
-  background: #f8fafc;
-  color: #94a3b8;
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 textarea.form-control {
   resize: vertical;
@@ -838,34 +839,37 @@ textarea.form-control {
   display: flex;
   gap: 0;
   margin-bottom: 16px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  overflow: hidden;
+  background: #f1f5f9;
+  border-radius: 10px;
+  padding: 3px;
 }
 .toggle-btn {
   flex: 1;
   padding: 8px 12px;
   border: none;
-  background: #f8fafc;
+  background: transparent;
   color: #64748b;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
-  transition: all 0.15s;
+  border-radius: 8px;
+  transition: all 0.2s;
 }
 .toggle-btn.active {
-  background: #ffaa00;
+  background: #fff;
   color: #1a1a1a;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 .toggle-btn:not(.active):hover {
-  background: #e2e8f0;
+  color: #334155;
 }
 /* New moto section */
 .new-moto-section {
-  padding: 12px;
+  padding: 16px;
   background: #f8fafc;
-  border-radius: 8px;
-  margin-bottom: 8px;
+  border-radius: 12px;
+  margin-bottom: 12px;
+  border: 1px solid #f1f5f9;
 }
 .form-row {
   display: flex;
@@ -936,7 +940,7 @@ textarea.form-control {
   border-radius: 16px;
   padding: 4px 14px;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
   color: #475569;
   cursor: pointer;
   transition: all 0.15s;
@@ -946,77 +950,31 @@ textarea.form-control {
   color: #1a1a1a;
   background: #fff8e6;
 }
-/* Detail */
-.status-badge-wrap {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 20px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid #f1f5f9;
-}
-.status-badge-wrap .badge {
-  font-size: 13px;
-  padding: 6px 16px;
-  border-radius: 20px;
-}
-.order-id-label {
-  font-size: 11px;
-  font-weight: 700;
-  color: #94a3b8;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-.detail-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  margin-bottom: 20px;
-}
-.detail-field {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-.detail-label {
-  font-size: 11px;
-  font-weight: 700;
-  color: #94a3b8;
-  text-transform: uppercase;
-  letter-spacing: 0.6px;
-}
-.detail-field > span:last-child {
-  font-size: 14px;
-  font-weight: 600;
+.btn-primary {
+  background: #ffaa00;
   color: #1a1a1a;
-}
-.detail-section {
-  margin-top: 20px;
-  padding-top: 20px;
-  border-top: 1px solid #f1f5f9;
-}
-.detail-section h3 {
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: #1a1a1a;
-  margin-bottom: 10px;
-}
-.detail-section p {
+  padding: 10px 24px;
+  border: none;
+  border-radius: 10px;
+  font-weight: 800;
   font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-primary:hover { background: #e69900; }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-cancel {
+  background: #f1f5f9;
   color: #475569;
-  line-height: 1.6;
+  padding: 10px 24px;
+  border: none;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
 }
-.status-actions {
-  display: flex;
-  gap: 10px;
-}
-.reassign-row {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-.reassign-row .form-control { max-width: 300px; }
-.text-muted { color: #94a3b8; font-size: 13px; font-style: italic; }
+.btn-cancel:hover { background: #e2e8f0; }
 .alert {
   padding: 12px 16px;
   border-radius: 8px;
