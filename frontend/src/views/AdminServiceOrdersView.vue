@@ -1,7 +1,10 @@
 <template>
   <div class="admin-orders">
     <div class="orders-header">
-      <h1>Órdenes de Servicio</h1>
+      <h1>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px; vertical-align: middle;"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M9 14l2 2 4-4"/></svg>
+        Órdenes de Servicio
+      </h1>
     </div>
 
     <!-- Alerta -->
@@ -18,6 +21,14 @@
         <option value="en_proceso">En Proceso</option>
         <option value="completada">Completada</option>
         <option value="cancelada">Cancelada</option>
+      </select>
+      <select v-model="filterClienteId" class="filter-select" @change="fetchOrders">
+        <option value="">Todos los clientes</option>
+        <option v-for="c in clients" :key="c.id" :value="c.id">{{ capitalize(c.nombre) }}</option>
+      </select>
+      <select v-model="filterMecanicoId" class="filter-select" @change="fetchOrders">
+        <option value="">Todos los mecánicos</option>
+        <option v-for="m in mechanics" :key="m.id" :value="m.id">{{ capitalize(m.nombre) }}</option>
       </select>
       <button class="btn-primary" @click="openCreateModal">+ Nueva Orden</button>
     </div>
@@ -298,6 +309,8 @@ export default {
       loading: false,
       orders: [],
       filterEstado: "",
+      filterClienteId: "",
+      filterMecanicoId: "",
       showCreateModal: false,
       showDetailModal: false,
       clients: [],
@@ -377,6 +390,8 @@ export default {
       try {
         const params = {};
         if (this.filterEstado) params.estado = this.filterEstado;
+        if (this.filterClienteId) params.cliente_id = this.filterClienteId;
+        if (this.filterMecanicoId) params.mecanico_id = this.filterMecanicoId;
         const { data } = await api.get("/service-orders/", { params });
         this.orders = data;
       } catch (err) {
@@ -403,7 +418,7 @@ export default {
     },
     async fetchCatalog() {
       try {
-        const { data } = await api.get("/motorcycles/catalog");
+        const { data } = await api.get("/motorcycles/catalog", { params: { limit: 500 } });
         this.catalog = data;
       } catch (err) {
         console.error("Error loading catalog", err);
@@ -515,12 +530,34 @@ export default {
         this.showAlert(err.response?.data?.detail || "Error al reasignar mecánico.", "error");
       }
     },
+    openOrderFromRoute() {
+      const orderId = this.$route.query.order_id;
+      if (!orderId) return;
+      if (this.$route.query.open_chat === "1") {
+        this.chatOrdenId = Number(orderId);
+        this.showChatModal = true;
+        return;
+      }
+      this.reassignMecanicoId = "";
+      this.showDetailModal = true;
+      api.get(`/service-orders/${orderId}`).then(({ data }) => {
+        this.detail = data;
+      }).catch(() => {});
+    },
   },
   mounted() {
     this.fetchOrders();
     this.fetchClients();
     this.fetchMechanics();
     this.fetchCatalog();
+    this.openOrderFromRoute();
+  },
+  watch: {
+    $route() {
+      if (this.$route.query.order_id) {
+        this.openOrderFromRoute();
+      }
+    },
   },
 };
 </script>
@@ -540,6 +577,7 @@ export default {
 .orders-header h1 {
   font-size: 1.8rem;
   color: #1a1a1a;
+  font-weight: 800;
 }
 .toolbar {
   display: flex;

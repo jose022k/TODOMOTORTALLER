@@ -1,9 +1,11 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, status, Response
 from sqlalchemy.orm import Session
 from typing import List
+import base64
 from app.core.database import get_db
-from app.modules.auth.dependencies import get_current_admin
+from app.modules.auth.dependencies import get_current_user, get_current_admin, AnyUser
 from app.modules.auth.models import Admin
+from app.modules.motorcycles.models import MotoCliente
 from app.modules.users import service
 from app.modules.users.schemas import (
     ClienteUpdate,
@@ -13,6 +15,7 @@ from app.modules.users.schemas import (
     ClienteResponse,
     ClienteDetailResponse,
     ClienteSummary,
+    MotoAsociada,
 )
 
 router = APIRouter(prefix="/users", tags=["users"])
@@ -55,6 +58,42 @@ def get_client(
     admin: Admin = Depends(get_current_admin),
 ):
     return service.get_client_by_id(db, client_id)
+
+
+@router.get("/clients/me/motos", response_model=List[MotoAsociada])
+def my_motos(
+    db: Session = Depends(get_db),
+    current_user: AnyUser = Depends(get_current_user),
+):
+    """Devuelve las motos del cliente autenticado."""
+    return service.get_my_motos(db, current_user)
+
+
+@router.get("/clients/motos/{moto_cliente_id}/qr/download")
+def download_moto_qr(
+    moto_cliente_id: int,
+    db: Session = Depends(get_db),
+    current_user: AnyUser = Depends(get_current_user),
+):
+    """Descarga el código QR de una moto como imagen PNG. Solo el cliente propietario."""
+    if current_user.rol != "cliente":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Solo clientes pueden descargar QR")
+    moto = db.query(MotoCliente).filter(MotoCliente.id == moto_cliente_id).first()
+    if not moto:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Moto no encontrada")
+    if moto.cliente_id != current_user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="No eres el propietario de esta moto")
+    if not moto.codigo_qr:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Esta moto no tiene código QR")
+    qr_base64 = moto.codigo_qr
+    if qr_base64.startswith("data:image/png;base64,"):
+        qr_base64 = qr_base64.split(",", 1)[1]
+    qr_bytes = base64.b64decode(qr_base64)
+    return Response(
+        content=qr_bytes,
+        media_type="image/png",
+        headers={"Content-Disposition": f'attachment; filename="QR_{moto.placa}.png"'},
+    )
 
 
 @router.patch("/clients/{client_id}", response_model=ClienteResponse)

@@ -1,8 +1,10 @@
 <template>
   <div class="admin-panel">
     <div class="welcome-section">
-      <h1>Panel de Administración</h1>
-      <p class="subtitle">Bienvenido, {{ authStore.user?.nombre }}</p>
+      <h1>
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 10px; vertical-align: middle;"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Panel de Administración
+      </h1>
     </div>
 
     <div class="dashboard-grid">
@@ -63,6 +65,28 @@
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
         </div>
       </router-link>
+
+      <router-link to="/admin/reports" class="dash-card">
+        <div class="dash-icon-wrap">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 20h16"/>
+            <path d="M4 20V4"/>
+            <path d="M8 14V8"/>
+            <path d="M12 14v-4"/>
+            <path d="M16 14v-6"/>
+            <path d="M20 14V6"/>
+          </svg>
+        </div>
+        <div class="dash-info">
+          <h2>Reportes</h2>
+          <span class="dash-badge">Admin</span>
+        </div>
+        <p>Estadísticas, rendimiento y métricas del taller</p>
+        <div class="dash-footer">
+          <span>Ir a Reportes</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+        </div>
+      </router-link>
     </div>
   </div>
 </template>
@@ -81,9 +105,12 @@ export default {
 
 <style scoped>
 .admin-panel {
-  max-width: 900px;
+  height: calc(100vh - 92px);
+  display: flex;
+  flex-direction: column;
+  max-width: 1400px;
   margin: 0 auto;
-  padding: 40px 20px;
+  padding: 8px 40px 12px;
   animation: fadeIn 0.4s ease-out;
 }
 @keyframes fadeIn {
@@ -91,33 +118,30 @@ export default {
   to { opacity: 1; transform: translateY(0); }
 }
 .welcome-section h1 {
-  font-size: 2rem;
+  font-size: 1.6rem;
   color: #1a1a1a;
-  margin-bottom: 4px;
+  margin-bottom: 8px;
   font-weight: 800;
   letter-spacing: -0.5px;
 }
-.subtitle {
-  color: #64748b;
-  font-size: 1rem;
-  margin-bottom: 40px;
-}
 .dashboard-grid {
+  flex: 1;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 20px;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 16px;
 }
 .dash-card {
   background: #fff;
   border: 1.5px solid #e2e8f0;
   border-radius: 16px;
-  padding: 24px;
+  padding: 24px 28px;
   text-decoration: none;
   color: inherit;
   transition: all 0.25s cubic-bezier(0.165, 0.84, 0.44, 1);
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
   position: relative;
   overflow: hidden;
 }
@@ -151,6 +175,7 @@ export default {
   align-items: center;
   justify-content: center;
 }
+.dash-icon-wrap svg { width: 28px; height: 28px; }
 .dash-info {
   display: flex;
   align-items: center;
@@ -172,7 +197,7 @@ export default {
   border-radius: 20px;
 }
 .dash-card p {
-  font-size: 0.88rem;
+  font-size: 0.85rem;
   color: #64748b;
   line-height: 1.4;
   margin: 0;
@@ -185,7 +210,7 @@ export default {
   font-weight: 600;
   color: #ffaa00;
   margin-top: auto;
-  padding-top: 8px;
+  padding-top: 10px;
   border-top: 1px solid #f1f5f9;
 }
 .dash-footer svg {

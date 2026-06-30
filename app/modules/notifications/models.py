@@ -21,3 +21,15 @@ class Notificacion(Base):
     admin = relationship("Admin", backref="notificaciones")
     cliente = relationship("Cliente", backref="notificaciones")
     mecanico = relationship("Mecanico", backref="notificaciones")
+
+
+class PushSubscription(Base):
+    __tablename__ = "push_subscription"
+
+    id = Column(Integer, primary_key=True, index=True)
+    endpoint = Column(Text, nullable=False, unique=True)
+    p256dh = Column(Text, nullable=False)
+    auth = Column(Text, nullable=False)
+    admin_id = Column(Integer, ForeignKey("admin.id"), nullable=True)
+    cliente_id = Column(Integer, ForeignKey("cliente.id"), nullable=True)
+    mecanico_id = Column(Integer, ForeignKey("mecanico.id"), nullable=True)

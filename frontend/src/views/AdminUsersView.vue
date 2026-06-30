@@ -1,7 +1,10 @@
 <template>
   <div class="admin-users">
     <div class="users-header">
-      <h1>Gestión de Usuarios</h1>
+      <h1>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px; vertical-align: middle;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Gestión de Usuarios
+      </h1>
     </div>
 
     <!-- Alert -->
@@ -433,6 +436,7 @@ export default {
 .users-header h1 {
   font-size: 1.8rem;
   color: #1a1a1a;
+  font-weight: 800;
   margin-bottom: 20px;
 }
 .alert {
@@ -631,10 +635,20 @@ export default {
 .btn-close {
   background: none;
   border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
   font-size: 1.5rem;
   cursor: pointer;
   color: #94a3b8;
-  padding: 0 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+.btn-close:hover {
+  background: #fee2e2;
+  color: #dc2626;
 }
 .form-group {
   margin-bottom: 16px;

@@ -8,6 +8,8 @@ from app.modules.chat.dao import MensajeDAO
 from app.modules.chat.schemas import MensajeResponse
 from app.modules.service_orders.dao import OrdenServicioDAO
 from app.modules.service_orders.models import Evidencia
+from app.modules.auth.models import Admin
+from app.modules.notifications.service import create_notification
 
 cloudinary.config(
     cloud_name=CLOUDINARY_CLOUD_NAME,
@@ -94,6 +96,25 @@ def send_message(db: Session, orden_id: int, contenido: str, current_user):
     }
 
     msg = mensaje_dao.create(db, msg_data)
+
+    # Notificar a los otros participantes de la orden
+    sender_role = current_user.rol
+    if sender_role == "admin":
+        if order.cliente_id:
+            create_notification(db, "mensaje_recibido", f"Nuevo mensaje en la orden #{orden_id}", orden_servicio_id=orden_id, cliente_id=order.cliente_id, open_chat=True)
+        if order.mecanico_id:
+            create_notification(db, "mensaje_recibido", f"Nuevo mensaje en la orden #{orden_id}", orden_servicio_id=orden_id, mecanico_id=order.mecanico_id, open_chat=True)
+    elif sender_role == "mecanico":
+        if order.cliente_id:
+            create_notification(db, "mensaje_recibido", f"Nuevo mensaje en la orden #{orden_id}", orden_servicio_id=orden_id, cliente_id=order.cliente_id, open_chat=True)
+        for aid in [a.id for a in db.query(Admin.id).all()]:
+            create_notification(db, "mensaje_recibido", f"Nuevo mensaje en la orden #{orden_id}", orden_servicio_id=orden_id, admin_id=aid, open_chat=True)
+    elif sender_role == "cliente":
+        if order.mecanico_id:
+            create_notification(db, "mensaje_recibido", f"Nuevo mensaje en la orden #{orden_id}", orden_servicio_id=orden_id, mecanico_id=order.mecanico_id, open_chat=True)
+        for aid in [a.id for a in db.query(Admin.id).all()]:
+            create_notification(db, "mensaje_recibido", f"Nuevo mensaje en la orden #{orden_id}", orden_servicio_id=orden_id, admin_id=aid, open_chat=True)
+
     return _build_mensaje_response(msg)
 
 
@@ -206,6 +227,15 @@ async def create_evidencia(db: Session, orden_id: int, file: UploadFile, mensaje
     db.add(evidencia)
     db.commit()
     db.refresh(evidencia)
+
+    # Notificar a los participantes de la orden
+    if order.cliente_id:
+        create_notification(db, "evidencia_enviada", f"Nueva evidencia en la orden #{orden_id}", orden_servicio_id=orden_id, cliente_id=order.cliente_id, open_chat=True)
+    if order.mecanico_id:
+        create_notification(db, "evidencia_enviada", f"Nueva evidencia en la orden #{orden_id}", orden_servicio_id=orden_id, mecanico_id=order.mecanico_id, open_chat=True)
+    for aid in [a.id for a in db.query(Admin.id).all()]:
+        create_notification(db, "evidencia_enviada", f"Nueva evidencia en la orden #{orden_id}", orden_servicio_id=orden_id, admin_id=aid, open_chat=True)
+
     return evidencia
 
 

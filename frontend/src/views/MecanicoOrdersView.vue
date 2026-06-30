@@ -228,9 +228,30 @@ export default {
       await this.changeStatus(this.detail.id, newStatus);
       if (this.detail) this.detail.estado = newStatus;
     },
+    openOrderFromRoute() {
+      const orderId = this.$route.query.order_id;
+      if (!orderId) return;
+      if (this.$route.query.open_chat === "1") {
+        this.chatOrdenId = Number(orderId);
+        this.showChatModal = true;
+        return;
+      }
+      this.showDetail = true;
+      api.get(`/service-orders/${orderId}`).then(({ data }) => {
+        this.detail = data;
+      }).catch(() => {});
+    },
   },
   mounted() {
     this.fetchOrders();
+    this.openOrderFromRoute();
+  },
+  watch: {
+    $route() {
+      if (this.$route.query.order_id) {
+        this.openOrderFromRoute();
+      }
+    },
   },
 };
 </script>

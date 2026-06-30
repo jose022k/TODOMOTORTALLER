@@ -45,6 +45,30 @@
           <span>{{ formatDate(order.fecha_cierre) }}</span>
         </div>
       </div>
+
+      <!-- Historial de Mantenimiento -->
+      <div v-if="history.length > 0" class="history-section">
+        <h3>Historial de Mantenimiento</h3>
+        <div class="history-list">
+          <div v-for="h in history" :key="h.id" class="history-item" :class="'history-' + h.estado">
+            <div class="history-icon">
+              <span v-if="h.estado === 'completada'">✓</span>
+              <span v-else-if="h.estado === 'cancelada'">✕</span>
+              <span v-else>●</span>
+            </div>
+            <div class="history-info">
+              <div class="history-header">
+                <span class="history-id">Orden #{{ h.id }}</span>
+                <span :class="['badge', 'badge-' + h.estado]">{{ statusLabel(h.estado) }}</span>
+              </div>
+              <div class="history-meta">
+                {{ h.mecanico_nombre }} — {{ formatDate(h.fecha_creacion) }}
+              </div>
+              <div class="history-desc">{{ h.descripcion }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -57,6 +81,7 @@ export default {
   data() {
     return {
       order: null,
+      history: [],
       loading: true,
       error: false,
     };
@@ -70,11 +95,26 @@ export default {
       try {
         const { data } = await api.get(`/service-orders/${id}/tracker`);
         this.order = data;
+        if (data.moto_cliente_id) {
+          this.fetchHistory(data.moto_cliente_id);
+        }
       } catch {
         this.error = true;
       } finally {
         this.loading = false;
       }
+    },
+    async fetchHistory(motoClienteId) {
+      try {
+        const { data } = await api.get(`/service-orders/moto/${motoClienteId}/history`);
+        this.history = data;
+      } catch {
+        // silently fail
+      }
+    },
+    statusLabel(estado) {
+      const map = { pendiente: "Pendiente", en_proceso: "En Proceso", completada: "Completada", cancelada: "Cancelada" };
+      return map[estado] || estado;
     },
     pasoCompletado(estado) {
       const orden = ["pendiente", "en_proceso", "completada"];
@@ -217,4 +257,78 @@ export default {
   color: #dc2626;
   margin-bottom: 8px;
 }
+
+/* Historial */
+.history-section {
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px solid #f1f5f9;
+}
+.history-section h3 {
+  font-size: 1rem;
+  color: #1a1a1a;
+  margin-bottom: 16px;
+}
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.history-item {
+  display: flex;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid #f8fafc;
+}
+.history-item:last-child {
+  border-bottom: none;
+}
+.history-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #e2e8f0;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.history-completada .history-icon { background: #d1fae5; color: #065f46; }
+.history-cancelada .history-icon { background: #fee2e2; color: #991b1b; }
+.history-pendiente .history-icon { background: #fef3c7; color: #92400e; }
+.history-en_proceso .history-icon { background: #dbeafe; color: #1e40af; }
+.history-info { flex: 1; min-width: 0; }
+.history-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+.history-id {
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: #1a1a1a;
+}
+.history-meta {
+  font-size: 0.78rem;
+  color: #94a3b8;
+  margin-bottom: 4px;
+}
+.history-desc {
+  font-size: 0.82rem;
+  color: #475569;
+  line-height: 1.4;
+}
+.badge {
+  display: inline-block; padding: 2px 8px; border-radius: 10px;
+  font-size: 0.65rem; font-weight: 700; text-transform: uppercase;
+}
+.badge-pendiente { background: #fef3c7; color: #92400e; }
+.badge-en_proceso { background: #dbeafe; color: #1e40af; }
+.badge-completada { background: #d1fae5; color: #065f46; }
+.badge-cancelada { background: #fee2e2; color: #991b1b; }
 </style>

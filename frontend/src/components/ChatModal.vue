@@ -143,21 +143,32 @@ export default {
       if (el) el.scrollTop = el.scrollHeight;
     },
     async send() {
-      if ((!this.text.trim() && !this.selectedFile) || !this.canChat) return;
+      const textContent = this.text.trim();
+      const file = this.selectedFile;
+      if (!textContent && !file) return;
       this.uploading = true;
+      let tempMsg = null;
+      if (textContent) {
+        tempMsg = { id: -Date.now(), contenido: textContent, fecha_hora: new Date().toISOString(), remitente_id: this.myId, remitente_rol: this.myRole, editado: false };
+        this.messages.push(tempMsg);
+        this.text = "";
+        this.$nextTick(() => this.scrollDown());
+      }
       try {
-        if (this.selectedFile) {
-          const formData = new FormData();
-          formData.append("file", this.selectedFile);
-          await api.post(`/chat/${this.ordenId}/evidencias`, formData);
-          this.clearPreview();
+        const promises = [];
+        if (file) {
+          const fd = new FormData();
+          fd.append("file", file);
+          promises.push(api.post(`/chat/${this.ordenId}/evidencias`, fd));
         }
-        if (this.text.trim()) {
-          await api.post(`/chat/${this.ordenId}`, { contenido: this.text, orden_servicio_id: this.ordenId });
-          this.text = "";
+        if (textContent) {
+          promises.push(api.post(`/chat/${this.ordenId}`, { contenido: textContent, orden_servicio_id: this.ordenId }));
         }
-        await this.fetchAll();
+        await Promise.all(promises);
+        if (file) this.clearPreview();
+        this.fetchAll();
       } catch (err) {
+        if (tempMsg) this.messages = this.messages.filter(m => m.id !== tempMsg.id);
         alert("Error al enviar: " + (err.response?.data?.detail || err.message));
       } finally {
         this.uploading = false;
@@ -197,6 +208,9 @@ export default {
         alert("Error al editar: " + (err.response?.data?.detail || err.message));
       }
     },
+    onVisible() {
+      if (document.visibilityState === "visible") this.fetchAll();
+    },
     imageUrl(url) {
       if (url && url.startsWith("/")) return api.defaults.baseURL + url;
       return url;
@@ -211,10 +225,12 @@ export default {
   },
   mounted() {
     this.fetchAll();
-    this.polling = setInterval(() => this.fetchAll(), 5000);
+    this.polling = setInterval(() => this.fetchAll(), 2000);
+    document.addEventListener("visibilitychange", this.onVisible);
   },
   beforeUnmount() {
     if (this.polling) clearInterval(this.polling);
+    document.removeEventListener("visibilitychange", this.onVisible);
   },
 };
 </script>
@@ -250,7 +266,8 @@ export default {
   color: #1a1a1a;
 }
 .chat-header h3 { font-size: 1rem; margin: 0; }
-.chat-close { background: none; border: none; color: #1a1a1a; font-size: 1.5rem; cursor: pointer; }
+.chat-close { background: none; border: none; width: 36px; height: 36px; border-radius: 8px; color: #1a1a1a; font-size: 1.5rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+.chat-close:hover { background: #fee2e2; color: #dc2626; }
 .chat-body {
   flex: 1;
   overflow-y: auto;

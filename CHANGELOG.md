@@ -6,6 +6,62 @@ Todas las modificaciones siguen el estándar de versión semántica (https://sem
 
 ---
 
+## [1.6.0] - 2026-06-30
+
+### Added
+
+- Web Push via `pywebpush` con VAPID: `PushSubscription`, Service Worker personalizado, notificaciones push funcionales
+- Notificaciones automáticas al crear/cancelar órdenes, enviar mensajes y subir evidencias
+- `NotificationsDropdown.vue` con badge de no leídos, polling cada 10s y navegación al hacer clic
+- Sonido de notificación (`/sounds/notification.wav`) en el Service Worker
+- Vista `AdminReportsView.vue` con 5 tarjetas de reportes y ruta `/admin/reports`
+- Filtros de órdenes por cliente y mecánico en vista admin (RF-009)
+- "Mis Motos" tab en `ClienteOrdersView` con historial y descarga de QR (CU-12/CU-13)
+- Endpoint `GET /motorcycles/brands` con `logo_url` de todas las marcas
+- Endpoint `GET /service-orders/moto/{id}/history` para historial de moto
+- Descarga de QR con validación de propiedad
+- Tarjeta "Órdenes de Servicio" y SVG icons en dashboard admin
+- Redirección de ruta `/` a dashboard según rol
+- `data-tooltip` en todos los nav-icon-btn (evita tooltip nativo superpuesto)
+- Ojo amarillo (`#ffaa00`) para mostrar/ocultar contraseña en todos los campos password
+- Vista unificada de login (`/login`) con detección de rol
+- Modal de detalle de orden rediseñado: borde superior de color, grid de iconos, descripción en card, botones pill, blur overlay, reassign inline
+- `open_chat=1` en notificaciones de mensajes/evidencias para abrir chat directamente
+- Optimistic update en envío de mensajes (aparecen instantáneamente) y polling a 2s en ChatModal
+- Refresco de chat al volver a la pestaña (`visibilitychange`)
+- Envío en paralelo de texto y evidencias en chat
+
+### Changed
+
+- Namespace de routers con prefijo `/api/v1` en lugar de rutas planas
+- Rendimiento: paginación en endpoints de clientes/mecánicos, endpoint ligero `clients/summary`, límite default 100 en catálogo, timeout axios 15000
+- `OrdenServicioListResponse` enriquecido con `moto_anio`, `moto_color_especifico`, `moto_color`
+- Modal de detalle se abre instantáneamente con datos de lista y detalle completo se fetchea en background
+- Nombres capitalizados, cédula eliminada de modales
+- Texto de navegación reemplazado por SVG icons con tooltips
+- Estilos profesionales en login/register
+- `NotificationsDropdown` usa `<a>` en lugar de `<button>` para renderizado correcto
+- URLs de notificaciones incluyen `order_id` y `open_chat=1` según tipo
+- Service Worker registrado también en desarrollo (sin guard `production`)
+- SW `notificationclick` usa `matching.navigate(url)` + `matching.focus()`
+- Proxy `/notifications` añadido en `vue.config.js` para desarrollo
+- Notificaciones de evidencia notifican también al mecánico
+- Notificaciones de chat notifican al admin cuando el cliente envía mensaje
+- Login/Register: diseño moderno profesional con SVG icons
+- `start_servers.bat` restaurado en `scripts/`
+
+### Fixed
+
+- Bug crítico: modal no se cerraba — causa raíz: `ensure_schema_updates()` duplicado + columnas incorrectas en `push_subscription`
+- Tooltip nativo del browser aparecía encima del tooltip CSS; unificado con `data-tooltip`
+- Al hacer clic en notificación de mensaje/evidencia, ya no abre el modal de detalle de orden, solo el chat
+- Notificaciones de cliente con `open_chat` ahora redirigen a `/cliente/orders` (donde hay chat) en lugar de `/tracker` (sin chat)
+
+### Documentation
+
+- `DOCUMENTACION_TECNICA.md` con arquitectura completa, flujo de datos, descripción de módulos
+- `SETUP.md` con guía de instalación paso a paso
+
 ## [1.5.0] - 2026-06-21
 
 ### Changed

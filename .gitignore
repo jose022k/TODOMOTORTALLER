@@ -18,6 +18,10 @@ uml/
 sql/
 docs/
 
+# Documentos de proyecto (trackeados con git rm --cached)
+SETUP.md
+DOCUMENTACION_TECNICA.md
+
 # Configuración
 .cursorrules
 .windsurfrules

@@ -6,7 +6,7 @@ from app.core.database import engine, Base, ensure_schema_updates
 from app.modules.auth.models import Admin, Cliente, Mecanico
 from app.modules.motorcycles.models import CatalogoMoto, MotoCliente, HistorialMantenimiento
 from app.modules.service_orders.models import OrdenServicio, Evidencia
-from app.modules.notifications.models import Notificacion
+from app.modules.notifications.models import Notificacion, PushSubscription
 from app.modules.chat.models import Mensaje
 
 # Import routers

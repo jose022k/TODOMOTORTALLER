@@ -1,7 +1,20 @@
 <template>
   <div class="cliente-orders">
     <div class="header">
-      <h1>Mis Órdenes de Servicio</h1>
+      <h1>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px; vertical-align: middle;"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Mi Panel
+      </h1>
+      <div class="nav-tabs">
+        <button :class="['nav-tab', { active: activeTab === 'ordenes' }]" @click="activeTab = 'ordenes'">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 14l2 2 4-4"/></svg>
+          Órdenes
+        </button>
+        <button :class="['nav-tab', { active: activeTab === 'motos' }]" @click="switchToMotos">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="1"/></svg>
+          Mis Motos
+        </button>
+      </div>
     </div>
 
     <div v-if="alert.message" :class="['alert', 'alert-' + alert.type]">
@@ -9,35 +22,60 @@
       <button class="alert-close" @click="alert.message = ''">×</button>
     </div>
 
-    <div v-if="loading" class="loading-state">Cargando órdenes...</div>
-    <div v-else-if="orders.length === 0" class="empty-state">No tienes órdenes de servicio registradas.</div>
-    <table v-else class="data-table">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Moto</th>
-          <th>Mecánico</th>
-          <th>Descripción</th>
-          <th>Estado</th>
-          <th>Fecha Creación</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="o in orders" :key="o.id">
-          <td>{{ o.id }}</td>
-          <td>{{ o.moto_marca }} {{ o.moto_modelo }} ({{ o.moto_placa }})</td>
-          <td>{{ o.mecanico_nombre }}</td>
-          <td class="desc-cell">{{ o.descripcion }}</td>
-          <td><span :class="['badge', 'badge-' + o.estado]">{{ statusLabel(o.estado) }}</span></td>
-          <td>{{ formatDate(o.fecha_creacion) }}</td>
-          <td>
-            <button class="btn-sm btn-view" @click="openDetail(o)">Ver</button>
-            <button v-if="o.estado === 'en_proceso'" class="btn-sm btn-chat" @click="openChat(o)">Chat</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    <div v-if="activeTab === 'ordenes'">
+      <div v-if="loading" class="loading-state">Cargando órdenes...</div>
+      <div v-else-if="orders.length === 0" class="empty-state">No tienes órdenes de servicio registradas.</div>
+      <table v-else class="data-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Moto</th>
+            <th>Mecánico</th>
+            <th>Descripción</th>
+            <th>Estado</th>
+            <th>Fecha Creación</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="o in orders" :key="o.id">
+            <td>{{ o.id }}</td>
+            <td>{{ o.moto_marca }} {{ o.moto_modelo }} ({{ o.moto_placa }})</td>
+            <td>{{ o.mecanico_nombre }}</td>
+            <td class="desc-cell">{{ o.descripcion }}</td>
+            <td><span :class="['badge', 'badge-' + o.estado]">{{ statusLabel(o.estado) }}</span></td>
+            <td>{{ formatDate(o.fecha_creacion) }}</td>
+            <td>
+              <button class="btn-sm btn-view" @click="openDetail(o)">Ver</button>
+              <button v-if="o.estado === 'en_proceso'" class="btn-sm btn-chat" @click="openChat(o)">Chat</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div v-if="activeTab === 'motos'">
+      <div v-if="motosLoading" class="loading-state">Cargando motos...</div>
+      <div v-else-if="motos.length === 0" class="empty-state">No tienes motos registradas.</div>
+      <div v-else class="motos-grid">
+        <div v-for="m in motos" :key="m.id" class="moto-card">
+          <div class="moto-card-header">
+            <span class="moto-marca">{{ m.marca }}</span>
+            <span class="moto-modelo">{{ m.modelo }}</span>
+          </div>
+          <div class="moto-card-body">
+            <div class="moto-detail"><span class="moto-label">Placa:</span> {{ m.placa }}</div>
+            <div class="moto-detail"><span class="moto-label">Año:</span> {{ m.anio }}</div>
+            <div class="moto-detail"><span class="moto-label">Color:</span> {{ m.color || m.gama_color }}</div>
+          </div>
+          <div class="moto-card-actions">
+            <button v-if="m.codigo_qr" class="btn-sm btn-view" @click="showMotoQR(m)">Ver QR</button>
+            <button v-if="m.codigo_qr" class="btn-sm btn-download" @click="downloadQR(m.id)">Descargar QR</button>
+            <button class="btn-sm btn-history" @click="showMotoHistory(m)">Historial</button>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- Modal Detalle -->
     <div v-if="showDetail" class="modal-overlay" @click.self="showDetail = false">
@@ -97,9 +135,7 @@
             <p>{{ detail.descripcion }}</p>
           </div>
         </div>
-        <div class="modal-footer">
-          <button class="btn-cancel" @click="showDetail = false">Cerrar</button>
-        </div>
+        <div class="modal-footer"></div>
       </div>
     </div>
 
@@ -112,6 +148,55 @@
       :can-chat="true"
       @close="showChatModal = false"
     />
+
+    <!-- Modal QR -->
+    <div v-if="showQRModal" class="modal-overlay" @click.self="showQRModal = false">
+      <div class="modal modal-sm">
+        <div class="modal-header">
+          <h2>QR de {{ qrMoto.marca }} {{ qrMoto.modelo }}</h2>
+          <button class="modal-close" @click="showQRModal = false">×</button>
+        </div>
+        <div class="modal-body qr-body">
+          <img :src="qrMoto.codigo_qr" alt="QR" class="qr-image" />
+          <p class="qr-placa">Placa: {{ qrMoto.placa }}</p>
+        </div>
+        <div class="modal-footer"></div>
+      </div>
+    </div>
+
+    <!-- Modal Historial -->
+    <div v-if="showHistoryModal" class="modal-overlay" @click.self="showHistoryModal = false">
+      <div class="modal modal-lg">
+        <div class="modal-header">
+          <h2>Historial — {{ historyMoto.marca }} {{ historyMoto.modelo }} ({{ historyMoto.placa }})</h2>
+          <button class="modal-close" @click="showHistoryModal = false">×</button>
+        </div>
+        <div class="modal-body">
+          <div v-if="historyLoading" class="loading-state">Cargando historial...</div>
+          <div v-else-if="motoHistory.length === 0" class="empty-state">Esta moto no tiene órdenes de servicio.</div>
+          <div v-else class="history-list">
+            <div v-for="h in motoHistory" :key="h.id" class="history-item" :class="'history-' + h.estado">
+              <div class="history-icon">
+                <span v-if="h.estado === 'completada'">✓</span>
+                <span v-else-if="h.estado === 'cancelada'">✕</span>
+                <span v-else>●</span>
+              </div>
+              <div class="history-info">
+                <div class="history-header">
+                  <span class="history-id">Orden #{{ h.id }}</span>
+                  <span :class="['badge', 'badge-' + h.estado]">{{ statusLabel(h.estado) }}</span>
+                </div>
+                <div class="history-meta">{{ h.mecanico_nombre }} — {{ formatDate(h.fecha_creacion) }}</div>
+                <div class="history-desc">{{ h.descripcion }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-cancel" @click="showHistoryModal = false">Cerrar</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -126,12 +211,21 @@ export default {
   data() {
     return {
       alert: { message: "", type: "success" },
+      activeTab: "ordenes",
       loading: false,
       orders: [],
       showDetail: false,
       detail: null,
       showChatModal: false,
       chatOrdenId: null,
+      motos: [],
+      motosLoading: false,
+      showQRModal: false,
+      qrMoto: null,
+      showHistoryModal: false,
+      historyMoto: null,
+      motoHistory: [],
+      historyLoading: false,
     };
   },
   computed: {
@@ -151,6 +245,21 @@ export default {
     showAlert(message, type = "success") {
       this.alert = { message, type };
       setTimeout(() => { this.alert.message = ""; }, 4000);
+    },
+    switchToMotos() {
+      this.activeTab = "motos";
+      if (this.motos.length === 0) this.fetchMotos();
+    },
+    async fetchMotos() {
+      this.motosLoading = true;
+      try {
+        const { data } = await api.get("/users/clients/me/motos");
+        this.motos = data;
+      } catch (err) {
+        this.showAlert(err.response?.data?.detail || "Error al cargar motos.", "error");
+      } finally {
+        this.motosLoading = false;
+      }
     },
     async fetchOrders() {
       this.loading = true;
@@ -180,9 +289,63 @@ export default {
       const orden = ["pendiente", "en_proceso", "completada"];
       return orden.indexOf(this.detail.estado) > orden.indexOf(estado);
     },
+    showMotoQR(moto) {
+      this.qrMoto = moto;
+      this.showQRModal = true;
+    },
+    async showMotoHistory(moto) {
+      this.historyMoto = moto;
+      this.showHistoryModal = true;
+      this.historyLoading = true;
+      this.motoHistory = [];
+      try {
+        const { data } = await api.get(`/service-orders/moto/${moto.id}/history`);
+        this.motoHistory = data;
+      } catch (err) {
+        this.showAlert(err.response?.data?.detail || "Error al cargar historial.", "error");
+      } finally {
+        this.historyLoading = false;
+      }
+    },
+    async downloadQR(motoClienteId) {
+      try {
+        const { data } = await api.get(`/users/clients/motos/${motoClienteId}/qr/download`, { responseType: "blob" });
+        const url = window.URL.createObjectURL(new Blob([data]));
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", `QR_moto_${motoClienteId}.png`);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+      } catch (err) {
+        this.showAlert(err.response?.data?.detail || "Error al descargar QR", "error");
+      }
+    },
+    openOrderFromRoute() {
+      const orderId = this.$route.query.order_id;
+      if (!orderId) return;
+      if (this.$route.query.open_chat === "1") {
+        this.chatOrdenId = Number(orderId);
+        this.showChatModal = true;
+        return;
+      }
+      api.get(`/service-orders/${orderId}`).then(({ data }) => {
+        this.detail = data;
+        this.showDetail = true;
+      }).catch(() => {});
+    },
   },
   mounted() {
     this.fetchOrders();
+    this.openOrderFromRoute();
+  },
+  watch: {
+    $route() {
+      if (this.$route.query.order_id) {
+        this.openOrderFromRoute();
+      }
+    },
   },
 };
 </script>
@@ -193,8 +356,12 @@ export default {
   margin: 0 auto;
   padding: 24px;
 }
-.header { margin-bottom: 20px; }
+.header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
 .header h1 { font-size: 1.8rem; color: #1a1a1a; }
+.nav-tabs { display: flex; gap: 4px; background: #f1f5f9; border-radius: 10px; padding: 3px; }
+.nav-tab { display: flex; align-items: center; gap: 6px; padding: 8px 16px; border: none; border-radius: 8px; background: transparent; font-size: 0.85rem; font-weight: 600; color: #64748b; cursor: pointer; transition: all 0.2s; }
+.nav-tab.active { background: #fff; color: #1a1a1a; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.nav-tab svg { flex-shrink: 0; }
 .loading-state, .empty-state {
   text-align: center; padding: 40px; color: #64748b; font-size: 1rem;
 }
@@ -239,6 +406,12 @@ export default {
 .btn-view:hover { background: #dbeafe; }
 .btn-chat { background: #075e54; color: #fff; }
 .btn-chat:hover { background: #054d44; }
+.btn-download { background: #ffaa00; color: #1a1a1a; }
+.btn-download:hover { background: #e69900; }
+.btn-history { background: #f3e8ff; color: #7c3aed; }
+.btn-history:hover { background: #e9d5ff; }
+.btn-qr { padding: 10px 20px; background: #ffaa00; color: #1a1a1a; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; }
+.btn-qr:hover { background: #e69900; }
 
 /* Modal */
 .modal-overlay {
@@ -255,7 +428,8 @@ export default {
   display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;
 }
 .modal-header h2 { font-size: 1.3rem; }
-.modal-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #94a3b8; }
+.modal-close { background: none; border: none; width: 36px; height: 36px; border-radius: 8px; font-size: 1.5rem; cursor: pointer; color: #94a3b8; display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s; }
+.modal-close:hover { background: #fee2e2; color: #dc2626; }
 .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
 .detail-field { font-size: 0.9rem; }
 .detail-label { display: block; font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 2px; }
@@ -299,4 +473,36 @@ export default {
 .alert-success { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
 .alert-error { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
 .alert-close { background: none; border: none; font-size: 1.3rem; cursor: pointer; color: inherit; padding: 0 4px; }
+
+/* Motos Grid */
+.motos-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+.moto-card { background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+.moto-card-header { background: #f8fafc; padding: 14px 16px; border-bottom: 1px solid #f1f5f9; display: flex; align-items: center; gap: 8px; }
+.moto-marca { font-weight: 800; font-size: 0.85rem; color: #1a1a1a; text-transform: uppercase; }
+.moto-modelo { font-size: 0.85rem; color: #64748b; }
+.moto-card-body { padding: 14px 16px; }
+.moto-detail { font-size: 0.85rem; color: #334155; margin-bottom: 4px; }
+.moto-label { color: #94a3b8; font-weight: 600; }
+.moto-card-actions { padding: 10px 16px; border-top: 1px solid #f1f5f9; display: flex; gap: 8px; }
+
+/* QR Modal */
+.modal-sm { max-width: 420px; text-align: center; }
+.qr-body { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 16px 0; }
+.qr-image { width: 280px; height: 280px; border-radius: 12px; border: 2px solid #f1f5f9; }
+.qr-placa { font-size: 1.1rem; font-weight: 700; color: #1a1a1a; }
+
+/* History List in Modal */
+.history-list { display: flex; flex-direction: column; }
+.history-item { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid #f8fafc; }
+.history-item:last-child { border-bottom: none; }
+.history-icon { width: 32px; height: 32px; border-radius: 50%; background: #e2e8f0; color: #94a3b8; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; flex-shrink: 0; margin-top: 2px; }
+.history-completada .history-icon { background: #d1fae5; color: #065f46; }
+.history-cancelada .history-icon { background: #fee2e2; color: #991b1b; }
+.history-pendiente .history-icon { background: #fef3c7; color: #92400e; }
+.history-en_proceso .history-icon { background: #dbeafe; color: #1e40af; }
+.history-info { flex: 1; min-width: 0; }
+.history-header { display: flex; align-items: center; gap: 8px; margin-bottom: 2px; }
+.history-id { font-weight: 700; font-size: 0.85rem; color: #1a1a1a; }
+.history-meta { font-size: 0.78rem; color: #94a3b8; margin-bottom: 4px; }
+.history-desc { font-size: 0.82rem; color: #475569; line-height: 1.4; }
 </style>
