@@ -8,20 +8,33 @@
           <router-link v-if="!authStore.isMecanico && !authStore.isCliente" to="/about">About</router-link>
         </template>
         <template v-if="authStore.isAuthenticated">
-          <router-link v-if="authStore.isAdmin" to="/admin">Panel Admin</router-link>
-          <router-link v-if="authStore.isAdmin" to="/admin/users">Gestionar Usuarios</router-link>
-          <router-link v-if="authStore.isAdmin" to="/admin/catalog">Catálogo de Motos</router-link>
-          <router-link v-if="authStore.isAdmin" to="/admin/service-orders">Órdenes de Servicio</router-link>
-          <router-link v-if="authStore.isMecanico" to="/mecanico/orders">Mis Órdenes</router-link>
-          <router-link v-if="authStore.isCliente" to="/cliente/orders">Mis Órdenes</router-link>
+          <router-link v-if="authStore.isAdmin" to="/admin" class="nav-icon-btn" data-tooltip="Panel Admin">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          </router-link>
+          <router-link v-if="authStore.isAdmin" to="/admin/users" class="nav-icon-btn" data-tooltip="Gestionar Usuarios">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </router-link>
+          <router-link v-if="authStore.isAdmin" to="/admin/catalog" class="nav-icon-btn" data-tooltip="Catálogo de Motos">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5Z"/><path d="M9 9h.01"/><path d="M5 15l4-4 2 2 4-4 4 4"/></svg>
+          </router-link>
+          <router-link v-if="authStore.isAdmin" to="/admin/service-orders" class="nav-icon-btn" data-tooltip="Órdenes de Servicio">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M9 14l2 2 4-4"/></svg>
+          </router-link>
+          <router-link v-if="authStore.isAdmin" to="/admin/reports" class="nav-icon-btn" data-tooltip="Reportes">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16"/><path d="M4 20V4"/><path d="M8 14V8"/><path d="M12 14v-4"/><path d="M16 14v-6"/><path d="M20 14V6"/></svg>
+          </router-link>
+          <router-link v-if="authStore.isMecanico" to="/mecanico/orders" class="nav-icon-btn" data-tooltip="Mis Órdenes">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 14l2 2 4-4"/></svg>
+          </router-link>
+          <router-link v-if="authStore.isCliente" to="/cliente/orders" class="nav-icon-btn" data-tooltip="Mi Panel">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          </router-link>
+          <NotificationsDropdown />
           <span class="user-info">{{ authStore.user?.nombre }}</span>
           <button class="btn-logout" @click="handleLogout">Cerrar Sesión</button>
         </template>
         <template v-else>
-          <router-link 
-            v-if="!['/loginCliente', '/loginMecanico'].includes($route.path)"
-            :to="$route.path === '/register/cliente' ? '/loginCliente' : '/login'"
-          >
+          <router-link v-if="$route.path !== '/login'" to="/login">
             Iniciar Sesión
           </router-link>
         </template>
@@ -35,15 +48,28 @@
 
 <script>
 import { useAuthStore } from "@/stores/auth";
+import NotificationsDropdown from "@/components/NotificationsDropdown.vue";
+import { setupPush } from "@/services/push";
 
 export default {
   name: "App",
+  components: { NotificationsDropdown },
   setup() {
     const authStore = useAuthStore();
     if (authStore.isAuthenticated && !authStore.user) {
       authStore.fetchUser();
     }
     return { authStore };
+  },
+  watch: {
+    "authStore.isAuthenticated": {
+      immediate: true,
+      handler(val) {
+        if (val) {
+          setTimeout(() => setupPush(), 1000);
+        }
+      },
+    },
   },
   computed: {
     homeRoute() {
@@ -106,6 +132,40 @@ export default {
 .app-nav a.router-link-exact-active {
   color: #ffaa00;
 }
+.nav-icon-btn {
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: background 0.2s;
+  position: relative;
+}
+.nav-icon-btn:hover {
+  background: rgba(255, 170, 0, 0.15);
+}
+.nav-icon-btn:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1a1a1a;
+  color: #fff;
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+.nav-icon-btn.router-link-exact-active svg {
+  color: #ffaa00;
+}
 .user-info {
   color: #b0b5b9;
   font-size: 14px;
@@ -124,6 +184,6 @@ export default {
   color: #ffaa00;
 }
 .app-main {
-  padding: 20px;
+  padding: 12px 20px;
 }
 </style>

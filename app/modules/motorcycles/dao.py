@@ -8,6 +8,13 @@ class CatalogoMotoDAO(BaseDAO[CatalogoMoto, CatalogoMotoCreate, CatalogoMotoUpda
     def __init__(self):
         super().__init__(CatalogoMoto)
 
+    def get_all_brands(self, db: Session) -> list:
+        return (
+            db.query(self.model.marca, self.model.logo_url)
+            .distinct()
+            .all()
+        )
+
     def get_by_marca_modelo_color(
         self, db: Session, marca: str, modelo: str, gama_color: str
     ) -> Optional[CatalogoMoto]:

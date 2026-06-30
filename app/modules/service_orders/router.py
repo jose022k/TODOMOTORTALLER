@@ -25,6 +25,7 @@ class TrackerResponse(BaseModel):
     moto_marca: str
     moto_modelo: str
     moto_placa: str
+    moto_cliente_id: int
 from app.modules.service_orders.schemas import (
     OrdenServicioCreate,
     OrdenServicioResponse,
@@ -53,11 +54,13 @@ def list_orders(
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=500),
     estado: Optional[str] = None,
+    cliente_id: Optional[int] = Query(None),
+    mecanico_id: Optional[int] = Query(None),
     db: Session = Depends(get_db),
     current_user: AnyUser = Depends(get_current_user),
 ):
     """Lista órdenes de servicio. Filtra según el rol del usuario."""
-    return service.get_orders(db, current_user, skip=skip, limit=limit, estado=estado)
+    return service.get_orders(db, current_user, skip=skip, limit=limit, estado=estado, cliente_id=cliente_id, mecanico_id=mecanico_id)
 
 
 @router.get("/{order_id}", response_model=OrdenServicioDetailResponse)
@@ -100,3 +103,12 @@ def tracker(
 ):
     """Endpoint público para consultar estado de una orden desde el QR."""
     return service.get_order_tracker(db, order_id)
+
+
+@router.get("/moto/{moto_cliente_id}/history", response_model=List[OrdenServicioListResponse])
+def moto_history(
+    moto_cliente_id: int,
+    db: Session = Depends(get_db),
+):
+    """Endpoint público para obtener el historial de órdenes de una moto."""
+    return service.get_moto_history(db, moto_cliente_id)

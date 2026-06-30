@@ -1,7 +1,10 @@
 <template>
   <div class="admin-orders">
     <div class="orders-header">
-      <h1>Órdenes de Servicio</h1>
+      <h1>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px; vertical-align: middle;"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M9 14l2 2 4-4"/></svg>
+        Órdenes de Servicio
+      </h1>
     </div>
 
     <!-- Alerta -->
@@ -18,6 +21,14 @@
         <option value="en_proceso">En Proceso</option>
         <option value="completada">Completada</option>
         <option value="cancelada">Cancelada</option>
+      </select>
+      <select v-model="filterClienteId" class="filter-select" @change="fetchOrders">
+        <option value="">Todos los clientes</option>
+        <option v-for="c in clients" :key="c.id" :value="c.id">{{ capitalize(c.nombre) }}</option>
+      </select>
+      <select v-model="filterMecanicoId" class="filter-select" @change="fetchOrders">
+        <option value="">Todos los mecánicos</option>
+        <option v-for="m in mechanics" :key="m.id" :value="m.id">{{ capitalize(m.nombre) }}</option>
       </select>
       <button class="btn-primary" @click="openCreateModal">+ Nueva Orden</button>
     </div>
@@ -40,9 +51,9 @@
       <tbody>
         <tr v-for="o in orders" :key="o.id">
           <td>{{ o.id }}</td>
-          <td>{{ o.cliente_nombre }}</td>
+          <td>{{ capitalize(o.cliente_nombre) }}</td>
           <td>{{ o.moto_marca }} {{ o.moto_modelo }} ({{ o.moto_placa }})</td>
-          <td>{{ o.mecanico_nombre }}</td>
+          <td>{{ capitalize(o.mecanico_nombre) }}</td>
           <td><span :class="['badge', 'badge-' + o.estado]">{{ statusLabel(o.estado) }}</span></td>
           <td>{{ formatDate(o.fecha_creacion) }}</td>
           <td class="actions-cell">
@@ -155,79 +166,119 @@
 
     <!-- Modal Detalle -->
     <div v-if="showDetailModal" class="modal-overlay" @click.self="showDetailModal = false">
-      <div class="modal modal-lg">
-        <div class="modal-header">
-          <h2>Orden #{{ detail.id }}</h2>
-          <button class="modal-close" @click="showDetailModal = false">×</button>
+      <div class="modal modal-lg" :class="'modal--' + detail?.estado">
+        <div class="modal-topbar">
+          <div class="topbar-left">
+            <span :class="['badge', 'badge-' + detail?.estado]">{{ statusLabel(detail?.estado) }}</span>
+            <span class="topbar-id">#{{ detail?.id }}</span>
+          </div>
+          <button class="modal-close" @click="showDetailModal = false">&times;</button>
         </div>
         <div class="modal-body" v-if="detail">
           <div class="detail-grid">
-            <div class="detail-field">
-              <span class="detail-label">Estado</span>
-              <span :class="['badge', 'badge-' + detail.estado]">{{ statusLabel(detail.estado) }}</span>
+            <div class="detail-item">
+              <div class="detail-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              </div>
+              <div>
+                <span class="detail-label">Cliente</span>
+                <span class="detail-value">{{ capitalize(detail.cliente_nombre) }}</span>
+              </div>
             </div>
-            <div class="detail-field">
-              <span class="detail-label">Cliente</span>
-              <span>{{ detail.cliente_nombre }} ({{ detail.cliente_cedula }})</span>
+            <div class="detail-item">
+              <div class="detail-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5Z"/><circle cx="9" cy="9" r="1"/><path d="m5 15 4-4 2 2 4-4 4 4"/></svg>
+              </div>
+              <div>
+                <span class="detail-label">Moto</span>
+                <span class="detail-value">{{ detail.moto_marca }} {{ detail.moto_modelo }} ({{ detail.moto_placa }})<template v-if="detail.moto_anio"> · {{ detail.moto_anio }}</template></span>
+              </div>
             </div>
-            <div class="detail-field">
-              <span class="detail-label">Moto</span>
-              <span>{{ detail.moto_marca }} {{ detail.moto_modelo }} ({{ detail.moto_placa }}) - {{ detail.moto_anio }}</span>
+            <div class="detail-item">
+              <div class="detail-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><line x1="4.93" y1="4.93" x2="9.17" y2="9.17"/><line x1="14.83" y1="14.83" x2="19.07" y2="19.07"/><line x1="14.83" y1="9.17" x2="19.07" y2="4.93"/><line x1="4.93" y1="19.07" x2="9.17" y2="14.83"/></svg>
+              </div>
+              <div>
+                <span class="detail-label">Color</span>
+                <span class="detail-value" v-if="detail.moto_color_especifico">
+                  <span class="color-dot" :style="{ backgroundColor: colorHex(detail.moto_color_especifico) }"></span>
+                  {{ detail.moto_color_especifico }}
+                </span>
+                <span class="detail-value" v-else>{{ detail.moto_color }}</span>
+              </div>
             </div>
-            <div class="detail-field">
-              <span class="detail-label">Color</span>
-              <span class="color-display" v-if="detail.moto_color_especifico">
-                <span class="color-dot" :style="{ backgroundColor: colorHex(detail.moto_color_especifico) }"></span>
-                {{ detail.moto_color_especifico }}
-              </span>
-              <span v-else>{{ detail.moto_color }}</span>
+            <div class="detail-item">
+              <div class="detail-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              </div>
+              <div>
+                <span class="detail-label">Mecánico</span>
+                <span class="detail-value">{{ capitalize(detail.mecanico_nombre) }}</span>
+              </div>
             </div>
-            <div class="detail-field">
-              <span class="detail-label">Mecánico Asignado</span>
-              <span>{{ detail.mecanico_nombre }}</span>
+            <div class="detail-item">
+              <div class="detail-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              </div>
+              <div>
+                <span class="detail-label">Creada</span>
+                <span class="detail-value">{{ formatDate(detail.fecha_creacion) }}</span>
+              </div>
             </div>
-            <div class="detail-field">
-              <span class="detail-label">Fecha de Creación</span>
-              <span>{{ formatDate(detail.fecha_creacion) }}</span>
+            <div class="detail-item" v-if="detail.fecha_cierre">
+              <div class="detail-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+              </div>
+              <div>
+                <span class="detail-label">Cerrada</span>
+                <span class="detail-value">{{ formatDate(detail.fecha_cierre) }}</span>
+              </div>
             </div>
-            <div class="detail-field" v-if="detail.fecha_cierre">
-              <span class="detail-label">Fecha de Cierre</span>
-              <span>{{ formatDate(detail.fecha_cierre) }}</span>
-            </div>
-          </div>
-          <div class="detail-section">
-            <h3>Descripción</h3>
-            <p>{{ detail.descripcion }}</p>
           </div>
 
-          <!-- Cambiar estado -->
-          <div class="detail-section" v-if="canChangeStatus">
-            <h3>Cambiar Estado</h3>
-            <div class="status-actions" v-if="detail.estado === 'pendiente'">
-              <button class="btn-sm btn-start" @click="changeStatus('en_proceso')">Iniciar</button>
-              <button class="btn-sm btn-cancel-order" @click="changeStatus('cancelada')">Cancelar</button>
+          <div class="detail-card">
+            <div class="detail-card-header">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+              <span>Descripción</span>
             </div>
-            <div class="status-actions" v-else-if="detail.estado === 'en_proceso'">
-              <button class="btn-sm btn-complete" @click="changeStatus('completada')">Completar</button>
-              <button class="btn-sm btn-cancel-order" @click="changeStatus('cancelada')">Cancelar</button>
-            </div>
-            <p v-else class="text-muted">No se pueden realizar cambios en una orden {{ statusLabel(detail.estado).toLowerCase() }}.</p>
+            <p class="detail-card-body">{{ detail.descripcion }}</p>
           </div>
 
-          <!-- Reasignar mecánico -->
-          <div class="detail-section" v-if="detail.estado !== 'completada' && detail.estado !== 'cancelada'">
-            <h3>Reasignar Mecánico</h3>
-            <div class="reassign-row">
-              <select v-model="reassignMecanicoId" class="form-control">
-                <option value="">Seleccionar mecánico...</option>
-                <option v-for="m in mechanics" :key="m.id" :value="m.id">{{ m.nombre }}</option>
-              </select>
-              <button class="btn-sm btn-assign" @click="handleReassign" :disabled="!reassignMecanicoId">Reasignar</button>
+          <div class="detail-actions" v-if="canChangeStatus || (detail.estado !== 'completada' && detail.estado !== 'cancelada')">
+            <span class="actions-title">Acciones</span>
+            <div class="actions-bar">
+              <div class="actions-row" v-if="detail.estado === 'pendiente'">
+                <button class="action-btn action-btn--start" @click="changeStatus('en_proceso')">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                  Iniciar
+                </button>
+                <button class="action-btn action-btn--cancel" @click="changeStatus('cancelada')">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                  Cancelar
+                </button>
+              </div>
+              <div class="actions-row" v-else-if="detail.estado === 'en_proceso'">
+                <button class="action-btn action-btn--complete" @click="changeStatus('completada')">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  Completar
+                </button>
+                <button class="action-btn action-btn--cancel" @click="changeStatus('cancelada')">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                  Cancelar
+                </button>
+              </div>
+              <div class="reassign-inline" v-if="detail.estado !== 'completada' && detail.estado !== 'cancelada'">
+                <select v-model="reassignMecanicoId" class="form-control">
+                  <option value="">Reasignar mecánico...</option>
+                  <option v-for="m in mechanics" :key="m.id" :value="m.id">{{ m.nombre }}</option>
+                </select>
+                <button class="action-btn action-btn--assign" @click="handleReassign" :disabled="!reassignMecanicoId">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg>
+                  Reasignar
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-        <div class="modal-footer">
-          <button class="btn-cancel" @click="showDetailModal = false">Cerrar</button>
         </div>
       </div>
     </div>
@@ -258,6 +309,8 @@ export default {
       loading: false,
       orders: [],
       filterEstado: "",
+      filterClienteId: "",
+      filterMecanicoId: "",
       showCreateModal: false,
       showDetailModal: false,
       clients: [],
@@ -337,6 +390,8 @@ export default {
       try {
         const params = {};
         if (this.filterEstado) params.estado = this.filterEstado;
+        if (this.filterClienteId) params.cliente_id = this.filterClienteId;
+        if (this.filterMecanicoId) params.mecanico_id = this.filterMecanicoId;
         const { data } = await api.get("/service-orders/", { params });
         this.orders = data;
       } catch (err) {
@@ -347,7 +402,7 @@ export default {
     },
     async fetchClients() {
       try {
-        const { data } = await api.get("/users/clients");
+        const { data } = await api.get("/users/clients/summary");
         this.clients = data;
       } catch (err) {
         console.error("Error loading clients", err);
@@ -363,7 +418,7 @@ export default {
     },
     async fetchCatalog() {
       try {
-        const { data } = await api.get("/motorcycles/catalog");
+        const { data } = await api.get("/motorcycles/catalog", { params: { limit: 500 } });
         this.catalog = data;
       } catch (err) {
         console.error("Error loading catalog", err);
@@ -430,15 +485,17 @@ export default {
         this.showAlert(err.response?.data?.detail || "Error al crear la orden.", "error");
       }
     },
-    async openDetailModal(order) {
-      try {
-        const { data } = await api.get(`/service-orders/${order.id}`);
+    capitalize(s) {
+      if (!s) return "";
+      return s.replace(/\b\w/g, c => c.toUpperCase());
+    },
+    openDetailModal(order) {
+      this.detail = { ...order };
+      this.reassignMecanicoId = "";
+      this.showDetailModal = true;
+      api.get(`/service-orders/${order.id}`).then(({ data }) => {
         this.detail = data;
-        this.reassignMecanicoId = "";
-        this.showDetailModal = true;
-      } catch (err) {
-        this.showAlert(err.response?.data?.detail || "Error al cargar detalle.", "error");
-      }
+      }).catch(() => {});
     },
     async changeStatus(newStatus) {
       const msgs = {
@@ -473,12 +530,34 @@ export default {
         this.showAlert(err.response?.data?.detail || "Error al reasignar mecánico.", "error");
       }
     },
+    openOrderFromRoute() {
+      const orderId = this.$route.query.order_id;
+      if (!orderId) return;
+      if (this.$route.query.open_chat === "1") {
+        this.chatOrdenId = Number(orderId);
+        this.showChatModal = true;
+        return;
+      }
+      this.reassignMecanicoId = "";
+      this.showDetailModal = true;
+      api.get(`/service-orders/${orderId}`).then(({ data }) => {
+        this.detail = data;
+      }).catch(() => {});
+    },
   },
   mounted() {
     this.fetchOrders();
     this.fetchClients();
     this.fetchMechanics();
     this.fetchCatalog();
+    this.openOrderFromRoute();
+  },
+  watch: {
+    $route() {
+      if (this.$route.query.order_id) {
+        this.openOrderFromRoute();
+      }
+    },
   },
 };
 </script>
@@ -498,6 +577,7 @@ export default {
 .orders-header h1 {
   font-size: 1.8rem;
   color: #1a1a1a;
+  font-weight: 800;
 }
 .toolbar {
   display: flex;
@@ -607,7 +687,8 @@ export default {
 .modal-overlay {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.5);
+  background: rgba(15,23,42,0.5);
+  backdrop-filter: blur(6px);
   z-index: 1000;
   display: flex;
   justify-content: center;
@@ -615,36 +696,182 @@ export default {
 }
 .modal {
   background: #fff;
-  border-radius: 12px;
+  border-radius: 20px;
   width: 90%;
   max-width: 500px;
+  overflow: hidden;
+  box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
   max-height: 85vh;
   overflow-y: auto;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.15);
 }
-.modal-lg { max-width: 700px; }
+.modal-lg { max-width: 680px; }
+.modal--pendiente { border-top: 4px solid #f59e0b; }
+.modal--en_proceso { border-top: 4px solid #3b82f6; }
+.modal-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 28px;
+  border-bottom: 1px solid #f1f5f9;
+}
+.topbar-left { display: flex; align-items: center; gap: 10px; }
+.topbar-left .badge { font-size: 13px; padding: 6px 16px; border-radius: 20px; }
+.topbar-id { font-size: 14px; font-weight: 700; color: #94a3b8; letter-spacing: 0.3px; }
+.modal-close {
+  background: none;
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #64748b;
+  font-size: 24px;
+  font-weight: 400;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+.modal-close:hover {
+  background: #fee2e2;
+  color: #dc2626;
+}
 .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 24px 0;
+  padding: 20px 28px;
+  border-bottom: 1px solid #f1f5f9;
 }
-.modal-header h2 { font-size: 1.3rem; color: #1a1a1a; }
-.modal-close {
-  background: none;
-  border: none;
-  font-size: 24px;
-  cursor: pointer;
-  color: #94a3b8;
+.modal-header h2 {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #1a1a1a;
+  letter-spacing: -0.3px;
 }
-.modal-close:hover { color: #475569; }
-.modal-body { padding: 20px 24px; }
+.modal-body { padding: 24px 28px 28px; }
 .modal-footer {
-  padding: 16px 24px;
   display: flex;
   justify-content: flex-end;
   gap: 10px;
+  padding: 16px 28px;
   border-top: 1px solid #f1f5f9;
+}
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.detail-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px;
+  background: #f8fafc;
+  border-radius: 10px;
+}
+.detail-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: #fff;
+  color: #ffaa00;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.detail-label { display: block; font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 1px; }
+.detail-value { font-size: 13px; font-weight: 600; color: #1a1a1a; display: flex; align-items: center; gap: 6px; }
+.detail-card {
+  margin-bottom: 24px;
+  padding: 16px;
+  background: #f8fafc;
+  border-radius: 12px;
+}
+.detail-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+.detail-card-body { margin: 0; font-size: 14px; color: #475569; line-height: 1.6; }
+.detail-actions { margin-top: 0; }
+.detail-actions + .detail-actions { margin-top: 20px; padding-top: 20px; border-top: 1px solid #f1f5f9; }
+.actions-title {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 10px;
+}
+.actions-row { display: flex; gap: 10px; }
+.actions-bar {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.reassign-inline {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-left: auto;
+}
+.reassign-inline .form-control { width: auto; min-width: 180px; }
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 18px;
+  border: none;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.action-btn svg { flex-shrink: 0; }
+.action-btn--start { background: #dbeafe; color: #1e40af; }
+.action-btn--start:hover { background: #bfdbfe; }
+.action-btn--complete { background: #d1fae5; color: #065f46; }
+.action-btn--complete:hover { background: #a7f3d0; }
+.action-btn--cancel { background: #fef2f2; color: #991b1b; }
+.action-btn--cancel:hover { background: #fecaca; }
+.action-btn--assign { background: #ede9fe; color: #5b21b6; }
+.action-btn--assign:hover { background: #ddd6fe; }
+.action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.form-control {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+.form-control:focus {
+  outline: none;
+  border-color: #ffaa00;
+  box-shadow: 0 0 0 3px rgba(255,170,0,0.1);
+  background: #fff;
+}
+.form-control:disabled {
+  background: #f8fafc;
+  color: #94a3b8;
+  cursor: not-allowed;
+}
+textarea.form-control {
+  resize: vertical;
+  font-family: inherit;
 }
 .form-group {
   margin-bottom: 16px;
@@ -655,22 +882,6 @@ export default {
   font-size: 13px;
   color: #475569;
   margin-bottom: 5px;
-}
-.form-control {
-  width: 100%;
-  padding: 9px 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  font-size: 14px;
-  box-sizing: border-box;
-}
-.form-control:disabled {
-  background: #f8fafc;
-  color: #94a3b8;
-}
-textarea.form-control {
-  resize: vertical;
-  font-family: inherit;
 }
 /* Toggle */
 .moto-toggle {
@@ -775,7 +986,7 @@ textarea.form-control {
   border-radius: 16px;
   padding: 4px 14px;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
   color: #475569;
   cursor: pointer;
   transition: all 0.15s;
@@ -785,51 +996,29 @@ textarea.form-control {
   color: #1a1a1a;
   background: #fff8e6;
 }
-/* Detail */
-.detail-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  margin-bottom: 20px;
-}
-.detail-field {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-.detail-label {
-  font-size: 12px;
-  font-weight: 700;
-  color: #64748b;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-.detail-section {
-  margin-top: 24px;
-  padding-top: 20px;
-  border-top: 1px solid #f1f5f9;
-}
-.detail-section h3 {
-  font-size: 1rem;
+.btn-primary {
+  background: #ffaa00;
   color: #1a1a1a;
-  margin-bottom: 12px;
-}
-.detail-section p {
+  padding: 9px 18px;
+  border: none;
+  border-radius: 6px;
+  font-weight: 700;
   font-size: 14px;
+  cursor: pointer;
+}
+.btn-primary:hover { background: #e69900; }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-cancel {
+  background: #f1f5f9;
   color: #475569;
-  line-height: 1.6;
+  padding: 9px 18px;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
 }
-.status-actions {
-  display: flex;
-  gap: 10px;
-}
-.reassign-row {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-.reassign-row .form-control { max-width: 300px; }
-.text-muted { color: #94a3b8; font-size: 13px; font-style: italic; }
+.btn-cancel:hover { background: #e2e8f0; }
 .alert {
   padding: 12px 16px;
   border-radius: 8px;

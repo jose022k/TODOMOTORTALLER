@@ -14,6 +14,8 @@ from app.modules.service_orders.schemas import (
     OrdenServicioListResponse,
 )
 from app.modules.motorcycles.models import HistorialMantenimiento, MotoCliente, CatalogoMoto
+from app.modules.auth.models import Admin
+from app.modules.notifications.service import create_notification
 
 orden_dao = OrdenServicioDAO()
 
@@ -28,6 +30,8 @@ TRANSICIONES_VALIDAS = {
 
 def _build_list_response(order):
     """Construye OrdenServicioListResponse a partir de un OrdenServicio con relaciones cargadas."""
+    moto = order.moto_cliente
+    catalogo = moto.catalogo_moto if moto else None
     return OrdenServicioListResponse(
         id=order.id,
         descripcion=order.descripcion,
@@ -39,13 +43,12 @@ def _build_list_response(order):
         mecanico_id=order.mecanico_id,
         mecanico_nombre=order.mecanico.nombre if order.mecanico else "—",
         moto_cliente_id=order.moto_cliente_id,
-        moto_placa=order.moto_cliente.placa if order.moto_cliente else "—",
-        moto_marca=order.moto_cliente.catalogo_moto.marca
-        if order.moto_cliente and order.moto_cliente.catalogo_moto
-        else "—",
-        moto_modelo=order.moto_cliente.catalogo_moto.modelo
-        if order.moto_cliente and order.moto_cliente.catalogo_moto
-        else "—",
+        moto_placa=moto.placa if moto else "—",
+        moto_anio=moto.anio if moto else None,
+        moto_color_especifico=moto.color if moto else None,
+        moto_marca=catalogo.marca if catalogo else "—",
+        moto_modelo=catalogo.modelo if catalogo else "—",
+        moto_color=catalogo.gama_color if catalogo else "—",
     )
 
 
@@ -90,7 +93,18 @@ def create_order(db: Session, data: OrdenServicioCreate, admin_user):
         "mecanico_id": data.mecanico_id,
         "moto_cliente_id": moto_cliente_id,
     }
-    return orden_dao.create(db, order_data)
+    order = orden_dao.create(db, order_data)
+
+    # Notificar al cliente
+    create_notification(db, "orden_creada", f"Se ha creado una nueva orden de servicio", orden_servicio_id=order.id, cliente_id=data.cliente_id)
+    # Notificar al mecánico
+    create_notification(db, "orden_creada", f"Tienes una nueva orden asignada", orden_servicio_id=order.id, mecanico_id=data.mecanico_id)
+    # Notificar a todos los administradores
+    admin_ids = [a.id for a in db.query(Admin.id).all()]
+    for aid in admin_ids:
+        create_notification(db, "orden_creada", f"Se ha creado la orden #{order.id}", orden_servicio_id=order.id, admin_id=aid)
+
+    return order
 
 
 def get_orders(
@@ -99,15 +113,17 @@ def get_orders(
     skip: int = 0,
     limit: int = 100,
     estado: Optional[str] = None,
+    cliente_id: Optional[int] = None,
+    mecanico_id: Optional[int] = None,
 ) -> List[OrdenServicioListResponse]:
     """Lista órdenes según el rol del usuario autenticado."""
-    mecanico_id = None
-    cliente_id = None
-
     if current_user.rol == "mecanico":
         mecanico_id = current_user.id
+        cliente_id = None
     elif current_user.rol == "cliente":
         cliente_id = current_user.id
+        mecanico_id = None
+    # Admin: usa los filtros pasados por query param (pueden ser None)
 
     orders = orden_dao.get_all_with_relations(
         db, skip=skip, limit=limit, estado=estado,
@@ -199,6 +215,22 @@ def update_order_status(db: Session, order_id: int, new_status: str, current_use
 
     updated = orden_dao.update(db, order, update_data)
 
+    # Notificar según la transición
+    admin_ids = [a.id for a in db.query(Admin.id).all()]
+
+    if new_status == "en_proceso":
+        create_notification(db, "orden_en_proceso", f"La orden #{order_id} está en proceso", orden_servicio_id=order_id, cliente_id=order.cliente_id)
+        for aid in admin_ids:
+            create_notification(db, "orden_en_proceso", f"La orden #{order_id} está en proceso", orden_servicio_id=order_id, admin_id=aid)
+    elif new_status == "completada":
+        create_notification(db, "orden_completada", f"La orden #{order_id} ha sido completada", orden_servicio_id=order_id, cliente_id=order.cliente_id)
+        for aid in admin_ids:
+            create_notification(db, "orden_completada", f"La orden #{order_id} ha sido completada", orden_servicio_id=order_id, admin_id=aid)
+    elif new_status == "cancelada":
+        create_notification(db, "orden_cancelada", f"La orden #{order_id} ha sido cancelada", orden_servicio_id=order_id, cliente_id=order.cliente_id)
+        for aid in admin_ids:
+            create_notification(db, "orden_cancelada", f"La orden #{order_id} ha sido cancelada", orden_servicio_id=order_id, admin_id=aid)
+
     # Si se completa la orden, crear historial y generar QR
     if new_status == "completada":
         _completar_orden(db, updated, moto_cliente_id, mecanico_id, descripcion)
@@ -271,4 +303,12 @@ def get_order_tracker(db: Session, order_id: int):
         "moto_marca": order.moto_cliente.catalogo_moto.marca if order.moto_cliente and order.moto_cliente.catalogo_moto else "—",
         "moto_modelo": order.moto_cliente.catalogo_moto.modelo if order.moto_cliente and order.moto_cliente.catalogo_moto else "—",
         "moto_placa": order.moto_cliente.placa if order.moto_cliente else "—",
+        "moto_cliente_id": order.moto_cliente_id,
     }
+
+
+def get_moto_history(db: Session, moto_cliente_id: int):
+    orders = orden_dao.get_all_with_relations(
+        db, skip=0, limit=500, moto_cliente_id=moto_cliente_id
+    )
+    return [_build_list_response(o) for o in orders]

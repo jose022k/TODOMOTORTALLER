@@ -3,7 +3,8 @@ from sqlalchemy.orm import Session
 from app.modules.auth.dao import ClienteDAO, MecanicoDAO
 from app.modules.auth.schemas import UserUpdate
 from app.modules.auth.utils import hash_password
-from app.modules.users.schemas import ClienteDetailResponse, ClienteResponse, MotoAsociada
+from app.modules.users.schemas import ClienteDetailResponse, ClienteResponse, ClienteSummary, MotoAsociada
+from app.modules.notifications.service import create_notification
 
 cliente_dao = ClienteDAO()
 mecanico_dao = MecanicoDAO()
@@ -25,8 +26,8 @@ def _build_motos(cliente):
     ]
 
 
-def get_all_clients(db: Session, activo_only: bool = False):
-    clientes = cliente_dao.get_all_with_motos(db)
+def get_all_clients(db: Session, activo_only: bool = False, skip: int = 0, limit: int = 100):
+    clientes = cliente_dao.get_all_with_motos(db, skip=skip, limit=limit)
     if activo_only:
         clientes = [c for c in clientes if c.activo]
     return [
@@ -40,6 +41,16 @@ def get_all_clients(db: Session, activo_only: bool = False):
             activo=c.activo,
             motos=_build_motos(c),
         )
+        for c in clientes
+    ]
+
+
+def get_clients_summary(db: Session, activo_only: bool = False):
+    clientes = cliente_dao.get_all(db)
+    if activo_only:
+        clientes = [c for c in clientes if c.activo]
+    return [
+        ClienteSummary(id=c.id, nombre=c.nombre, cedula=c.cedula)
         for c in clientes
     ]
 
@@ -73,6 +84,7 @@ def update_client(db: Session, client_id: int, data: dict):
         )
     updated = cliente_dao.update(db, cliente, data)
     setattr(updated, "rol", "cliente")
+    create_notification(db, "datos_actualizados", "Tus datos han sido actualizados por el administrador", cliente_id=client_id)
     return updated
 
 
@@ -87,8 +99,8 @@ def deactivate_client(db: Session, client_id: int):
     return cliente_dao.update(db, cliente, {"activo": nuevo_estado})
 
 
-def get_all_mechanics(db: Session, activo_only: bool = False):
-    query = mecanico_dao.get_all(db)
+def get_all_mechanics(db: Session, activo_only: bool = False, skip: int = 0, limit: int = 100):
+    query = mecanico_dao.get_all(db, skip=skip, limit=limit)
     if activo_only:
         query = [m for m in query if m.activo]
     return query
@@ -113,6 +125,7 @@ def update_mechanic(db: Session, mechanic_id: int, data: dict):
         )
     updated = mecanico_dao.update(db, mecanico, data)
     setattr(updated, "rol", "mecanico")
+    create_notification(db, "datos_actualizados", "Tus datos han sido actualizados por el administrador", mecanico_id=mechanic_id)
     return updated
 
 
@@ -125,6 +138,15 @@ def deactivate_mechanic(db: Session, mechanic_id: int):
         )
     nuevo_estado = not mecanico.activo
     return mecanico_dao.update(db, mecanico, {"activo": nuevo_estado})
+
+
+def get_my_motos(db: Session, current_user):
+    if current_user.rol != "cliente":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Solo clientes")
+    cliente = cliente_dao.get_with_motos(db, current_user.id)
+    if not cliente:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Cliente no encontrado")
+    return _build_motos(cliente)
 
 
 def register_mecanico(db: Session, nombre: str, email: str, password: str):

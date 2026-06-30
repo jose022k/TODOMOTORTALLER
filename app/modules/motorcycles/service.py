@@ -9,6 +9,14 @@ catalogo_dao = CatalogoMotoDAO()
 def get_catalog_items(db: Session, skip: int = 0, limit: int = 100):
     return catalogo_dao.get_all(db, skip=skip, limit=limit)
 
+def get_brands(db: Session):
+    rows = catalogo_dao.get_all_brands(db)
+    seen = {}
+    for marca, logo_url in rows:
+        if marca not in seen:
+            seen[marca] = logo_url
+    return [{"marca": m, "logo_url": u} for m, u in seen.items()]
+
 def get_catalog_item_by_id(db: Session, item_id: int):
     item = catalogo_dao.get_by_id(db, item_id)
     if not item:

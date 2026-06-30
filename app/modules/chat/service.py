@@ -1,12 +1,21 @@
-import aiofiles
+import cloudinary
+import cloudinary.uploader
 from datetime import datetime
 from fastapi import HTTPException, UploadFile, status
-from pathlib import Path
 from sqlalchemy.orm import Session
+from app.core.config import CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET
 from app.modules.chat.dao import MensajeDAO
 from app.modules.chat.schemas import MensajeResponse
 from app.modules.service_orders.dao import OrdenServicioDAO
 from app.modules.service_orders.models import Evidencia
+from app.modules.auth.models import Admin
+from app.modules.notifications.service import create_notification
+
+cloudinary.config(
+    cloud_name=CLOUDINARY_CLOUD_NAME,
+    api_key=CLOUDINARY_API_KEY,
+    api_secret=CLOUDINARY_API_SECRET,
+)
 
 mensaje_dao = MensajeDAO()
 orden_dao = OrdenServicioDAO()
@@ -87,6 +96,25 @@ def send_message(db: Session, orden_id: int, contenido: str, current_user):
     }
 
     msg = mensaje_dao.create(db, msg_data)
+
+    # Notificar a los otros participantes de la orden
+    sender_role = current_user.rol
+    if sender_role == "admin":
+        if order.cliente_id:
+            create_notification(db, "mensaje_recibido", f"Nuevo mensaje en la orden #{orden_id}", orden_servicio_id=orden_id, cliente_id=order.cliente_id, open_chat=True)
+        if order.mecanico_id:
+            create_notification(db, "mensaje_recibido", f"Nuevo mensaje en la orden #{orden_id}", orden_servicio_id=orden_id, mecanico_id=order.mecanico_id, open_chat=True)
+    elif sender_role == "mecanico":
+        if order.cliente_id:
+            create_notification(db, "mensaje_recibido", f"Nuevo mensaje en la orden #{orden_id}", orden_servicio_id=orden_id, cliente_id=order.cliente_id, open_chat=True)
+        for aid in [a.id for a in db.query(Admin.id).all()]:
+            create_notification(db, "mensaje_recibido", f"Nuevo mensaje en la orden #{orden_id}", orden_servicio_id=orden_id, admin_id=aid, open_chat=True)
+    elif sender_role == "cliente":
+        if order.mecanico_id:
+            create_notification(db, "mensaje_recibido", f"Nuevo mensaje en la orden #{orden_id}", orden_servicio_id=orden_id, mecanico_id=order.mecanico_id, open_chat=True)
+        for aid in [a.id for a in db.query(Admin.id).all()]:
+            create_notification(db, "mensaje_recibido", f"Nuevo mensaje en la orden #{orden_id}", orden_servicio_id=orden_id, admin_id=aid, open_chat=True)
+
     return _build_mensaje_response(msg)
 
 
@@ -184,20 +212,14 @@ async def create_evidencia(db: Session, orden_id: int, file: UploadFile, mensaje
             detail="Solo se pueden agregar evidencias en órdenes en proceso",
         )
 
-    ext = Path(file.filename).suffix if file.filename else ".jpg"
-    filename = f"evidencia_{orden_id}_{int(datetime.utcnow().timestamp())}{ext}"
-    upload_dir = Path("uploads") / "evidencias"
-    upload_dir.mkdir(parents=True, exist_ok=True)
-    filepath = upload_dir / filename
-
-    content = await file.read()
-    async with aiofiles.open(filepath, "wb") as f:
-        await f.write(content)
-
-    url = f"/uploads/evidencias/{filename}"
+    result = cloudinary.uploader.upload(
+        file.file,
+        folder="evidencias",
+        public_id=f"evidencia_{orden_id}_{int(datetime.utcnow().timestamp())}",
+    )
 
     evidencia = Evidencia(
-        url=url,
+        url=result["secure_url"],
         fecha=datetime.utcnow(),
         orden_servicio_id=orden_id,
         mensaje_id=mensaje_id,
@@ -205,6 +227,15 @@ async def create_evidencia(db: Session, orden_id: int, file: UploadFile, mensaje
     db.add(evidencia)
     db.commit()
     db.refresh(evidencia)
+
+    # Notificar a los participantes de la orden
+    if order.cliente_id:
+        create_notification(db, "evidencia_enviada", f"Nueva evidencia en la orden #{orden_id}", orden_servicio_id=orden_id, cliente_id=order.cliente_id, open_chat=True)
+    if order.mecanico_id:
+        create_notification(db, "evidencia_enviada", f"Nueva evidencia en la orden #{orden_id}", orden_servicio_id=orden_id, mecanico_id=order.mecanico_id, open_chat=True)
+    for aid in [a.id for a in db.query(Admin.id).all()]:
+        create_notification(db, "evidencia_enviada", f"Nueva evidencia en la orden #{orden_id}", orden_servicio_id=orden_id, admin_id=aid, open_chat=True)
+
     return evidencia
 
 
@@ -228,9 +259,10 @@ def delete_evidencia(db: Session, orden_id: int, evidencia_id: int, current_user
             detail="Evidencia no encontrada",
         )
 
-    filepath = Path("uploads") / evidencia.url.lstrip("/")
-    if filepath.exists():
-        filepath.unlink()
+    if "cloudinary" in evidencia.url:
+        public_id = evidencia.url.split("/v")[1].split(".")[0]
+        full_public_id = f"evidencias/{public_id.split('/')[-1]}"
+        cloudinary.uploader.destroy(full_public_id)
 
     db.delete(evidencia)
     db.commit()

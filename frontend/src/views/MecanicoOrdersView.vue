@@ -26,7 +26,7 @@
       <tbody>
         <tr v-for="o in orders" :key="o.id">
           <td>{{ o.id }}</td>
-          <td>{{ o.cliente_nombre }}</td>
+          <td>{{ capitalize(o.cliente_nombre) }}</td>
           <td>{{ o.moto_marca }} {{ o.moto_modelo }} ({{ o.moto_placa }})</td>
           <td class="desc-cell">{{ o.descripcion }}</td>
           <td><span :class="['badge', 'badge-' + o.estado]">{{ statusLabel(o.estado) }}</span></td>
@@ -41,58 +41,94 @@
 
     <!-- Modal Detalle -->
     <div v-if="showDetail" class="modal-overlay" @click.self="showDetail = false">
-      <div class="modal modal-lg">
-        <div class="modal-header">
-          <h2>Orden #{{ detail.id }}</h2>
-          <button class="modal-close" @click="showDetail = false">×</button>
+      <div class="modal modal-lg" :class="'modal--' + detail?.estado">
+        <div class="modal-topbar">
+          <div class="topbar-left">
+            <span :class="['badge', 'badge-' + detail?.estado]">{{ statusLabel(detail?.estado) }}</span>
+            <span class="topbar-id">#{{ detail?.id }}</span>
+          </div>
+          <button class="modal-close" @click="showDetail = false">&times;</button>
         </div>
         <div class="modal-body" v-if="detail">
           <div class="detail-grid">
-            <div class="detail-field">
-              <span class="detail-label">Estado</span>
-              <span :class="['badge', 'badge-' + detail.estado]">{{ statusLabel(detail.estado) }}</span>
+            <div class="detail-item">
+              <div class="detail-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              </div>
+              <div>
+                <span class="detail-label">Cliente</span>
+                <span class="detail-value">{{ capitalize(detail.cliente_nombre) }}</span>
+              </div>
             </div>
-            <div class="detail-field">
-              <span class="detail-label">Cliente</span>
-              <span>{{ detail.cliente_nombre }} ({{ detail.cliente_cedula }})</span>
+            <div class="detail-item">
+              <div class="detail-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5Z"/><circle cx="9" cy="9" r="1"/><path d="m5 15 4-4 2 2 4-4 4 4"/></svg>
+              </div>
+              <div>
+                <span class="detail-label">Moto</span>
+                <span class="detail-value">{{ detail.moto_marca }} {{ detail.moto_modelo }} ({{ detail.moto_placa }})<template v-if="detail.moto_anio"> · {{ detail.moto_anio }}</template></span>
+              </div>
             </div>
-            <div class="detail-field">
-              <span class="detail-label">Moto</span>
-              <span>{{ detail.moto_marca }} {{ detail.moto_modelo }} ({{ detail.moto_placa }}) - {{ detail.moto_anio }}</span>
+            <div class="detail-item">
+              <div class="detail-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><line x1="4.93" y1="4.93" x2="9.17" y2="9.17"/><line x1="14.83" y1="14.83" x2="19.07" y2="19.07"/><line x1="14.83" y1="9.17" x2="19.07" y2="4.93"/><line x1="4.93" y1="19.07" x2="9.17" y2="14.83"/></svg>
+              </div>
+              <div>
+                <span class="detail-label">Color</span>
+                <span class="detail-value">{{ detail.moto_color_especifico || detail.moto_color }}</span>
+              </div>
             </div>
-            <div class="detail-field">
-              <span class="detail-label">Color</span>
-              <span>{{ detail.moto_color_especifico || detail.moto_color }}</span>
+            <div class="detail-item">
+              <div class="detail-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              </div>
+              <div>
+                <span class="detail-label">Creada</span>
+                <span class="detail-value">{{ formatDate(detail.fecha_creacion) }}</span>
+              </div>
             </div>
-            <div class="detail-field">
-              <span class="detail-label">Fecha de Creación</span>
-              <span>{{ formatDate(detail.fecha_creacion) }}</span>
+            <div class="detail-item" v-if="detail.fecha_cierre">
+              <div class="detail-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+              </div>
+              <div>
+                <span class="detail-label">Cerrada</span>
+                <span class="detail-value">{{ formatDate(detail.fecha_cierre) }}</span>
+              </div>
             </div>
-            <div class="detail-field" v-if="detail.fecha_cierre">
-              <span class="detail-label">Fecha de Cierre</span>
-              <span>{{ formatDate(detail.fecha_cierre) }}</span>
-            </div>
-          </div>
-          <div class="detail-section">
-            <h3>Descripción</h3>
-            <p>{{ detail.descripcion }}</p>
           </div>
 
-          <!-- Cambiar estado -->
-          <div class="detail-section" v-if="detail.estado !== 'completada' && detail.estado !== 'cancelada'">
-            <h3>Cambiar Estado</h3>
-            <div class="status-actions" v-if="detail.estado === 'pendiente'">
-              <button class="btn-sm btn-start" @click="changeStatusFromDetail('en_proceso')">Iniciar</button>
-              <button class="btn-sm btn-cancel-order" @click="changeStatusFromDetail('cancelada')">Cancelar</button>
+          <div class="detail-card">
+            <div class="detail-card-header">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+              <span>Descripción</span>
             </div>
-            <div class="status-actions" v-else-if="detail.estado === 'en_proceso'">
-              <button class="btn-sm btn-complete" @click="changeStatusFromDetail('completada')">Completar</button>
-              <button class="btn-sm btn-cancel-order" @click="changeStatusFromDetail('cancelada')">Cancelar</button>
+            <p class="detail-card-body">{{ detail.descripcion }}</p>
+          </div>
+
+          <div class="detail-actions" v-if="detail.estado !== 'completada' && detail.estado !== 'cancelada'">
+            <span class="actions-title">Acciones</span>
+            <div class="actions-row" v-if="detail.estado === 'pendiente'">
+              <button class="action-btn action-btn--start" @click="changeStatusFromDetail('en_proceso')">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                Iniciar
+              </button>
+              <button class="action-btn action-btn--cancel" @click="changeStatusFromDetail('cancelada')">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                Cancelar
+              </button>
+            </div>
+            <div class="actions-row" v-else-if="detail.estado === 'en_proceso'">
+              <button class="action-btn action-btn--complete" @click="changeStatusFromDetail('completada')">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                Completar
+              </button>
+              <button class="action-btn action-btn--cancel" @click="changeStatusFromDetail('cancelada')">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                Cancelar
+              </button>
             </div>
           </div>
-        </div>
-        <div class="modal-footer">
-          <button class="btn-cancel" @click="showDetail = false">Cerrar</button>
         </div>
       </div>
     </div>
@@ -157,18 +193,20 @@ export default {
         this.loading = false;
       }
     },
+    capitalize(s) {
+      if (!s) return "";
+      return s.replace(/\b\w/g, c => c.toUpperCase());
+    },
     openChat(order) {
       this.chatOrdenId = order.id;
       this.showChatModal = true;
     },
-    async openDetail(o) {
-      try {
-        const { data } = await api.get(`/service-orders/${o.id}`);
+    openDetail(o) {
+      this.detail = { ...o };
+      this.showDetail = true;
+      api.get(`/service-orders/${o.id}`).then(({ data }) => {
         this.detail = data;
-        this.showDetail = true;
-      } catch (err) {
-        this.showAlert(err.response?.data?.detail || "Error al cargar detalle.", "error");
-      }
+      }).catch(() => {});
     },
     async changeStatus(orderId, newStatus) {
       const msgs = {
@@ -190,9 +228,30 @@ export default {
       await this.changeStatus(this.detail.id, newStatus);
       if (this.detail) this.detail.estado = newStatus;
     },
+    openOrderFromRoute() {
+      const orderId = this.$route.query.order_id;
+      if (!orderId) return;
+      if (this.$route.query.open_chat === "1") {
+        this.chatOrdenId = Number(orderId);
+        this.showChatModal = true;
+        return;
+      }
+      this.showDetail = true;
+      api.get(`/service-orders/${orderId}`).then(({ data }) => {
+        this.detail = data;
+      }).catch(() => {});
+    },
   },
   mounted() {
     this.fetchOrders();
+    this.openOrderFromRoute();
+  },
+  watch: {
+    $route() {
+      if (this.$route.query.order_id) {
+        this.openOrderFromRoute();
+      }
+    },
   },
 };
 </script>
@@ -261,29 +320,77 @@ export default {
 /* Modal */
 .modal-overlay {
   position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(15,23,42,0.4); backdrop-filter: blur(8px);
+  background: rgba(15,23,42,0.5); backdrop-filter: blur(6px);
   display: flex; justify-content: center; align-items: center; z-index: 1000;
 }
 .modal {
   background: #fff; border-radius: 20px; width: 90%; max-width: 640px;
-  padding: 28px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+  overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
   max-height: 90vh; overflow-y: auto;
 }
-.modal-header {
-  display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;
+.modal--pendiente { border-top: 4px solid #f59e0b; }
+.modal--en_proceso { border-top: 4px solid #3b82f6; }
+.modal-topbar {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 20px 28px; border-bottom: 1px solid #f1f5f9;
 }
-.modal-header h2 { font-size: 1.3rem; }
-.modal-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #94a3b8; }
-.detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
-.detail-field { font-size: 0.9rem; }
-.detail-label { display: block; font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 2px; }
-.detail-section { margin-top: 20px; }
-.detail-section h3 { font-size: 1rem; margin-bottom: 8px; color: #1a1a1a; }
-.status-actions { display: flex; gap: 8px; }
-.reassign-row { display: flex; gap: 8px; }
-.form-control { padding: 8px 12px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem; flex: 1; }
-.modal-footer { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; }
-.btn-cancel { padding: 10px 20px; background: #f1f5f9; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
+.topbar-left { display: flex; align-items: center; gap: 10px; }
+.topbar-left .badge { font-size: 13px; padding: 6px 16px; border-radius: 20px; }
+.topbar-id { font-size: 14px; font-weight: 700; color: #94a3b8; letter-spacing: 0.3px; }
+.modal-close {
+  background: none; border: none; width: 36px; height: 36px; border-radius: 8px;
+  cursor: pointer; color: #64748b; font-size: 24px; font-weight: 400; line-height: 1;
+  display: flex; align-items: center; justify-content: center; transition: all 0.2s;
+}
+.modal-close:hover { background: #fee2e2; color: #dc2626; }
+.modal-body { padding: 24px 28px 28px; }
+.detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+.detail-item {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 12px; background: #f8fafc; border-radius: 10px;
+}
+.detail-icon {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: #fff; color: #ffaa00;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.detail-label { display: block; font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 1px; }
+.detail-value { font-size: 13px; font-weight: 600; color: #1a1a1a; display: flex; align-items: center; gap: 6px; }
+.detail-card {
+  margin-bottom: 24px; padding: 16px; background: #f8fafc; border-radius: 12px;
+}
+.detail-card-header {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+.detail-card-body { margin: 0; font-size: 14px; color: #475569; line-height: 1.6; }
+.detail-actions { margin-top: 0; }
+.detail-actions + .detail-actions { margin-top: 20px; padding-top: 20px; border-top: 1px solid #f1f5f9; }
+.actions-title {
+  display: block; font-size: 12px; font-weight: 700; color: #64748b;
+  text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px;
+}
+.actions-row { display: flex; gap: 10px; }
+.action-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 10px 18px; border: none; border-radius: 10px;
+  font-size: 13px; font-weight: 700; cursor: pointer;
+  transition: all 0.2s;
+}
+.action-btn svg { flex-shrink: 0; }
+.action-btn--start { background: #dbeafe; color: #1e40af; }
+.action-btn--start:hover { background: #bfdbfe; }
+.action-btn--complete { background: #d1fae5; color: #065f46; }
+.action-btn--complete:hover { background: #a7f3d0; }
+.action-btn--cancel { background: #fef2f2; color: #991b1b; }
+.action-btn--cancel:hover { background: #fecaca; }
+.action-btn--assign { background: #ede9fe; color: #5b21b6; }
+.action-btn--assign:hover { background: #ddd6fe; }
+.action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.reassign-row { display: flex; gap: 10px; }
+.form-control { padding: 10px 12px; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 13px; flex: 1; background: #f8fafc; }
+.form-control:focus { outline: none; border-color: #ffaa00; box-shadow: 0 0 0 3px rgba(255,170,0,0.1); background: #fff; }
 .alert {
   padding: 12px 16px;
   border-radius: 8px;

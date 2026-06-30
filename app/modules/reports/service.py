@@ -6,8 +6,12 @@ from app.modules.motorcycles.models import MotoCliente, CatalogoMoto
 from app.modules.auth.models import Cliente, Mecanico
 
 
+def _to_dict(row, keys):
+    return dict(zip(keys, row))
+
+
 def get_mecanico_mas_servicios(db: Session, limite: int = 5):
-    return (
+    rows = (
         db.query(
             Mecanico.id,
             Mecanico.nombre,
@@ -20,10 +24,11 @@ def get_mecanico_mas_servicios(db: Session, limite: int = 5):
         .limit(limite)
         .all()
     )
+    return [_to_dict(r, ["id", "nombre", "total_servicios"]) for r in rows]
 
 
 def get_motos_mas_atendidas(db: Session, limite: int = 5):
-    return (
+    rows = (
         db.query(
             CatalogoMoto.marca,
             CatalogoMoto.modelo,
@@ -38,10 +43,11 @@ def get_motos_mas_atendidas(db: Session, limite: int = 5):
         .limit(limite)
         .all()
     )
+    return [_to_dict(r, ["marca", "modelo", "total_ordenes"]) for r in rows]
 
 
 def get_clientes_recurrentes(db: Session, limite: int = 5):
-    return (
+    rows = (
         db.query(
             Cliente.id,
             Cliente.nombre,
@@ -54,6 +60,7 @@ def get_clientes_recurrentes(db: Session, limite: int = 5):
         .limit(limite)
         .all()
     )
+    return [_to_dict(r, ["id", "nombre", "cedula", "total_ordenes"]) for r in rows]
 
 
 def get_tiempo_promedio_reparacion(db: Session):
@@ -61,8 +68,8 @@ def get_tiempo_promedio_reparacion(db: Session):
         db.query(
             func.avg(
                 func.extract("epoch", OrdenServicio.fecha_cierre - OrdenServicio.fecha_creacion)
-                / 3600
-            ).label("horas_promedio")
+                / 60
+            ).label("minutos_promedio")
         )
         .filter(
             OrdenServicio.estado == "completada",
@@ -70,19 +77,19 @@ def get_tiempo_promedio_reparacion(db: Session):
         )
         .scalar()
     )
-    return {"horas_promedio": round(result, 2) if result else 0}
+    return {"minutos_promedio": round(float(result), 1) if result else 0}
 
 
 def get_rendimiento_mecanicos(db: Session):
-    return (
+    rows = (
         db.query(
             Mecanico.id,
             Mecanico.nombre,
             func.count(OrdenServicio.id).label("total_ordenes"),
             func.avg(
                 func.extract("epoch", OrdenServicio.fecha_cierre - OrdenServicio.fecha_creacion)
-                / 3600
-            ).label("horas_promedio"),
+                / 60
+            ).label("minutos_promedio"),
         )
         .join(OrdenServicio, OrdenServicio.mecanico_id == Mecanico.id)
         .filter(
@@ -93,3 +100,4 @@ def get_rendimiento_mecanicos(db: Session):
         .order_by(func.count(OrdenServicio.id).desc())
         .all()
     )
+    return [_to_dict(r, ["id", "nombre", "total_ordenes", "minutos_promedio"]) for r in rows]

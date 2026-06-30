@@ -26,10 +26,12 @@ class ClienteDAO(BaseDAO[Cliente, ClienteCreate, UserUpdate]):
     def get_by_nombre(self, db: Session, nombre: str) -> Optional[Cliente]:
         return db.query(self.model).filter(self.model.nombre == nombre).first()
 
-    def get_all_with_motos(self, db: Session) -> List[Cliente]:
+    def get_all_with_motos(self, db: Session, skip: int = 0, limit: int = 100) -> List[Cliente]:
         return (
             db.query(self.model)
             .options(selectinload(Cliente.motos_cliente).selectinload(MotoCliente.catalogo_moto))
+            .offset(skip)
+            .limit(limit)
             .all()
         )
 
