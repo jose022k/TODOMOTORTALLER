@@ -92,7 +92,7 @@
             </div>
             <div class="detail-field">
               <span class="detail-label">Moto</span>
-              <span>{{ detail.moto_marca }} {{ detail.moto_modelo }} ({{ detail.moto_placa }}) - {{ detail.moto_anio }}</span>
+              <span class="moto-info">{{ detail.moto_marca }} {{ detail.moto_modelo }}<br>Placa: {{ detail.moto_placa }}<br>Año: {{ detail.moto_anio }}</span>
             </div>
             <div class="detail-field">
               <span class="detail-label">Mecánico</span>
@@ -433,6 +433,7 @@ export default {
 .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
 .detail-field { font-size: 0.9rem; }
 .detail-label { display: block; font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 2px; }
+.moto-info { line-height: 1.6; }
 .detail-section { margin-top: 20px; }
 .detail-section h3 { font-size: 1rem; margin-bottom: 8px; color: #1a1a1a; }
 .progress-tracker {

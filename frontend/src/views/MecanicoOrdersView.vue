@@ -66,7 +66,7 @@
               </div>
               <div>
                 <span class="detail-label">Moto</span>
-                <span class="detail-value">{{ detail.moto_marca }} {{ detail.moto_modelo }} ({{ detail.moto_placa }})<template v-if="detail.moto_anio"> · {{ detail.moto_anio }}</template></span>
+                <span class="detail-value moto-value"><span>{{ detail.moto_marca }} {{ detail.moto_modelo }}</span><span><span class="detail-sub">Placa:</span> {{ detail.moto_placa }}</span><span><span class="detail-sub">Año:</span> {{ detail.moto_anio }}</span></span>
               </div>
             </div>
             <div class="detail-item">
@@ -356,6 +356,8 @@ export default {
 }
 .detail-label { display: block; font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 1px; }
 .detail-value { font-size: 13px; font-weight: 600; color: #1a1a1a; display: flex; align-items: center; gap: 6px; }
+.detail-value.moto-value { flex-direction: column; align-items: flex-start; gap: 4px; }
+.detail-sub { font-weight: 700; color: #94a3b8; }
 .detail-card {
   margin-bottom: 24px; padding: 16px; background: #f8fafc; border-radius: 12px;
 }

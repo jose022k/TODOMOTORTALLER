@@ -48,7 +48,10 @@
       <div class="chat-footer">
         <div class="chat-input-row">
           <label class="upload-icon-btn" title="Adjuntar foto">
-            📷
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+              <circle cx="12" cy="13" r="4"/>
+            </svg>
             <input type="file" accept="image/*" capture="environment" @change="selectFile" />
           </label>
           <div class="input-wrap">
@@ -385,8 +388,17 @@ export default {
 }
 .upload-icon-btn {
   cursor: pointer;
-  font-size: 1.3rem;
-  line-height: 1;
+  color: #6b7280;
+  display: flex;
+  align-items: center;
+  align-self: center;
+  padding: 4px;
+  border-radius: 8px;
+  transition: all 0.15s;
+}
+.upload-icon-btn:hover {
+  color: #ffaa00;
+  background: #fff7e6;
 }
 .upload-icon-btn input { display: none; }
 .chat-input {
