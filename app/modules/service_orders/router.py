@@ -52,7 +52,7 @@ def create_order(
 @router.get("/", response_model=List[OrdenServicioListResponse])
 def list_orders(
     skip: int = Query(0, ge=0),
-    limit: int = Query(100, ge=1, le=500),
+    limit: int = Query(15, ge=1, le=500),
     estado: Optional[str] = None,
     cliente_id: Optional[int] = Query(None),
     mecanico_id: Optional[int] = Query(None),
@@ -61,6 +61,18 @@ def list_orders(
 ):
     """Lista órdenes de servicio. Filtra según el rol del usuario."""
     return service.get_orders(db, current_user, skip=skip, limit=limit, estado=estado, cliente_id=cliente_id, mecanico_id=mecanico_id)
+
+
+@router.get("/count")
+def count_orders(
+    estado: Optional[str] = None,
+    cliente_id: Optional[int] = Query(None),
+    mecanico_id: Optional[int] = Query(None),
+    db: Session = Depends(get_db),
+    current_user: AnyUser = Depends(get_current_user),
+):
+    """Cuenta órdenes de servicio con los mismos filtros."""
+    return {"total": service.count_orders(db, current_user, estado=estado, cliente_id=cliente_id, mecanico_id=mecanico_id)}
 
 
 @router.get("/{order_id}", response_model=OrdenServicioDetailResponse)

@@ -11,7 +11,7 @@
           Órdenes
         </button>
         <button :class="['nav-tab', { active: activeTab === 'motos' }]" @click="switchToMotos">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="1"/></svg>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="14" r="4"/><circle cx="18" cy="14" r="4"/><path d="M6 14h12"/><path d="M16 4h-4l-3 5h7l2 3"/><path d="M3 10h3l1-2"/></svg>
           Mis Motos
         </button>
       </div>
@@ -52,6 +52,13 @@
           </tr>
         </tbody>
       </table>
+
+      <!-- Paginación -->
+      <div v-if="!loading && totalPages > 1" class="pagination">
+        <button class="page-btn" :disabled="page <= 1" @click="goToPage(page - 1)" title="Página anterior">&#9664;</button>
+        <span class="page-info">{{ page }} / {{ totalPages }}</span>
+        <button class="page-btn" :disabled="page >= totalPages" @click="goToPage(page + 1)" title="Página siguiente">&#9654;</button>
+      </div>
     </div>
 
     <div v-if="activeTab === 'motos'">
@@ -66,7 +73,7 @@
           <div class="moto-card-body">
             <div class="moto-detail"><span class="moto-label">Placa:</span> {{ m.placa }}</div>
             <div class="moto-detail"><span class="moto-label">Año:</span> {{ m.anio }}</div>
-            <div class="moto-detail"><span class="moto-label">Color:</span> {{ m.color || m.gama_color }}</div>
+            <div class="moto-detail"><span class="moto-label">Color:</span> <span v-if="m.color" class="color-dot" :style="{ backgroundColor: colorHex(m.color) }"></span> {{ m.color || m.gama_color }}</div>
           </div>
           <div class="moto-card-actions">
             <button v-if="m.codigo_qr" class="btn-sm btn-view" @click="showMotoQR(m)">Ver QR</button>
@@ -93,6 +100,14 @@
             <div class="detail-field">
               <span class="detail-label">Moto</span>
               <span class="moto-info">{{ detail.moto_marca }} {{ detail.moto_modelo }}<br>Placa: {{ detail.moto_placa }}<br>Año: {{ detail.moto_anio }}</span>
+            </div>
+            <div class="detail-field" v-if="detail.moto_color_especifico">
+              <span class="detail-label">Color</span>
+              <span><span class="color-dot" :style="{ backgroundColor: colorHex(detail.moto_color_especifico) }"></span> {{ detail.moto_color_especifico }}</span>
+            </div>
+            <div class="detail-field" v-else-if="detail.moto_color">
+              <span class="detail-label">Color</span>
+              <span>{{ detail.moto_color }}</span>
             </div>
             <div class="detail-field">
               <span class="detail-label">Mecánico</span>
@@ -226,6 +241,10 @@ export default {
       historyMoto: null,
       motoHistory: [],
       historyLoading: false,
+      page: 1,
+      pageSize: 15,
+      totalItems: 0,
+      totalPages: 0,
     };
   },
   computed: {
@@ -264,13 +283,27 @@ export default {
     async fetchOrders() {
       this.loading = true;
       try {
-        const { data } = await api.get("/service-orders/");
+        const skip = (this.page - 1) * this.pageSize;
+        const { data } = await api.get("/service-orders/", { params: { skip, limit: this.pageSize } });
         this.orders = data;
       } catch (err) {
         this.showAlert(err.response?.data?.detail || "Error al cargar órdenes.", "error");
       } finally {
         this.loading = false;
       }
+    },
+    async fetchCount() {
+      try {
+        const { data } = await api.get("/service-orders/count");
+        this.totalItems = data.total;
+        this.totalPages = Math.ceil(this.totalItems / this.pageSize) || 1;
+      } catch (e) {
+        console.error("Error fetching count", e);
+      }
+    },
+    async goToPage(p) {
+      this.page = p;
+      await this.fetchOrders();
     },
     openChat(order) {
       this.chatOrdenId = order.id;
@@ -335,9 +368,19 @@ export default {
         this.showDetail = true;
       }).catch(() => {});
     },
+    colorHex(colorName) {
+      const map = {
+        Negro: "#1a1a1a", Azul: "#2563eb", Rojo: "#dc2626", Amarillo: "#eab308",
+        Morado: "#7c3aed", Rosa: "#ec4899", Gris: "#94a3b8", Vinotinto: "#831843",
+        Blanco: "#f8fafc", Verde: "#16a34a", Naranja: "#ea580c", Marrón: "#78350f",
+        Plateado: "#d1d5db", Dorado: "#ca8a04",
+      };
+      return map[colorName] || "#e2e8f0";
+    },
   },
   mounted() {
     this.fetchOrders();
+    this.fetchCount();
     this.openOrderFromRoute();
   },
   watch: {
@@ -483,6 +526,7 @@ export default {
 .moto-modelo { font-size: 0.85rem; color: #64748b; }
 .moto-card-body { padding: 14px 16px; }
 .moto-detail { font-size: 0.85rem; color: #334155; margin-bottom: 4px; }
+.color-dot { display: inline-block; width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; border: 1px solid #d1d5db; vertical-align: middle; margin-right: 3px; }
 .moto-label { color: #94a3b8; font-weight: 600; }
 .moto-card-actions { padding: 10px 16px; border-top: 1px solid #f1f5f9; display: flex; gap: 8px; }
 
@@ -506,4 +550,40 @@ export default {
 .history-id { font-weight: 700; font-size: 0.85rem; color: #1a1a1a; }
 .history-meta { font-size: 0.78rem; color: #94a3b8; margin-bottom: 4px; }
 .history-desc { font-size: 0.82rem; color: #475569; line-height: 1.4; }
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 20px;
+  padding: 12px 0;
+}
+.page-btn {
+  width: 36px;
+  height: 36px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #475569;
+  transition: all 0.15s;
+}
+.page-btn:hover:not(:disabled) {
+  border-color: #ffaa00;
+  color: #ffaa00;
+}
+.page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.page-info {
+  font-size: 14px;
+  font-weight: 600;
+  color: #64748b;
+  min-width: 60px;
+  text-align: center;
+}
 </style>

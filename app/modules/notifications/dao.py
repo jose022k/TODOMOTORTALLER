@@ -44,6 +44,18 @@ class NotificacionDAO(BaseDAO[Notificacion, NotificacionCreate, NotificacionCrea
             return None
         return self.update(db, notif, {"leido": True})
 
+    def delete_all(self, db: Session, user_id: int, role: str) -> int:
+        field = {"admin": "admin_id", "cliente": "cliente_id", "mecanico": "mecanico_id"}.get(role)
+        if not field:
+            return 0
+        count = (
+            db.query(self.model)
+            .filter(getattr(self.model, field) == user_id)
+            .delete(synchronize_session="fetch")
+        )
+        db.commit()
+        return count
+
     def mark_all_as_read(self, db: Session, user_id: int, role: str) -> int:
         field = {"admin": "admin_id", "cliente": "cliente_id", "mecanico": "mecanico_id"}.get(role)
         if not field:

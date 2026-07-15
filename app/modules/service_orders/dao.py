@@ -36,6 +36,27 @@ class OrdenServicioDAO(BaseDAO[OrdenServicio, OrdenServicioCreate, OrdenServicio
         mecanico_id: Optional[int] = None,
         moto_cliente_id: Optional[int] = None,
     ) -> List[OrdenServicio]:
+        query = self._build_filtered_query(
+            db, estado=estado, cliente_id=cliente_id,
+            mecanico_id=mecanico_id, moto_cliente_id=moto_cliente_id,
+        )
+        return query.offset(skip).limit(limit).all()
+
+    def count_all_with_relations(
+        self,
+        db: Session,
+        estado: Optional[str] = None,
+        cliente_id: Optional[int] = None,
+        mecanico_id: Optional[int] = None,
+        moto_cliente_id: Optional[int] = None,
+    ) -> int:
+        query = self._build_filtered_query(
+            db, estado=estado, cliente_id=cliente_id,
+            mecanico_id=mecanico_id, moto_cliente_id=moto_cliente_id,
+        )
+        return query.count()
+
+    def _build_filtered_query(self, db, estado=None, cliente_id=None, mecanico_id=None, moto_cliente_id=None):
         query = (
             db.query(self.model)
             .options(
@@ -53,8 +74,7 @@ class OrdenServicioDAO(BaseDAO[OrdenServicio, OrdenServicioCreate, OrdenServicio
             query = query.filter(self.model.mecanico_id == mecanico_id)
         if moto_cliente_id is not None:
             query = query.filter(self.model.moto_cliente_id == moto_cliente_id)
-
-        return query.offset(skip).limit(limit).all()
+        return query
 
 
 class EvidenciaDAO(BaseDAO[Evidencia, OrdenServicioCreate, OrdenServicioUpdate]):

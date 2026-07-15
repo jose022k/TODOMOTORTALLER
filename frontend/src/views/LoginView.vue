@@ -3,10 +3,7 @@
     <div class="auth-card">
       <div class="auth-header">
         <div class="auth-logo">
-          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ffaa00" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10"/>
-            <path d="M12 6v6l4 2"/>
-          </svg>
+          <img src="https://res.cloudinary.com/dorj3mvvr/image/upload/v1783609693/logos/logotaller01.png" alt="Todomotortaller" class="logo-img" />
         </div>
         <h1 class="auth-title">Inicio de Sesión</h1>
         <p class="auth-desc">Accede al sistema del taller</p>
@@ -82,7 +79,7 @@ export default {
 .auth-card {
   background: #fff;
   border-radius: 20px;
-  padding: 44px 40px 36px;
+  padding: 32px 40px 36px;
   width: 100%;
   max-width: 400px;
   box-shadow: 0 4px 24px rgba(0,0,0,0.06), 0 1px 4px rgba(0,0,0,0.04);
@@ -92,14 +89,15 @@ export default {
   margin-bottom: 28px;
 }
 .auth-logo {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
-  width: 56px;
-  height: 56px;
-  border-radius: 16px;
-  background: #fff7e6;
-  margin-bottom: 16px;
+  margin-bottom: 4px;
+}
+.logo-img {
+  height: 80px;
+  width: auto;
+  display: block;
 }
 .auth-title {
   font-size: 22px;

@@ -39,6 +39,10 @@ def mark_all_read(db: Session, current_user) -> int:
     return notificacion_dao.mark_all_as_read(db, current_user.id, current_user.rol)
 
 
+def delete_all(db: Session, current_user) -> int:
+    return notificacion_dao.delete_all(db, current_user.id, current_user.rol)
+
+
 def create_notification(
     db: Session,
     tipo: str,

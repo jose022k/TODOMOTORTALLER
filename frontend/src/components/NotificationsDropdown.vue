@@ -12,7 +12,10 @@
       <div v-if="open" class="notif-dropdown">
         <div class="notif-dropdown-header">
           <h3>Notificaciones</h3>
-          <button v-if="unread > 0" class="mark-all-btn" @click="markAllRead">Marcar todas leídas</button>
+          <div class="notif-header-actions">
+            <button v-if="unread > 0" class="mark-all-btn" @click="markAllRead">Leer todas</button>
+            <button v-if="notifications.length > 0" class="clear-all-btn" @click="clearAll">Limpiar</button>
+          </div>
         </div>
 
         <div v-if="loading" class="notif-loading">Cargando...</div>
@@ -126,6 +129,15 @@ export default {
         // silent
       }
     },
+    async clearAll() {
+      try {
+        await api.delete("/notifications/");
+        this.notifications = [];
+        this.unread = 0;
+      } catch {
+        // silent
+      }
+    },
     timeAgo(dateStr) {
       const now = new Date();
       const date = new Date(dateStr);
@@ -221,16 +233,31 @@ export default {
   color: #1a1a1a;
   margin: 0;
 }
-.mark-all-btn {
+.notif-header-actions {
+  display: flex;
+  gap: 8px;
+}
+.mark-all-btn, .clear-all-btn {
   background: none;
   border: none;
-  color: #ffaa00;
   font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: all 0.15s;
+}
+.mark-all-btn {
+  color: #ffaa00;
 }
 .mark-all-btn:hover {
-  text-decoration: underline;
+  background: #fff7e6;
+}
+.clear-all-btn {
+  color: #dc2626;
+}
+.clear-all-btn:hover {
+  background: #fee2e2;
 }
 .notif-loading,
 .notif-empty {

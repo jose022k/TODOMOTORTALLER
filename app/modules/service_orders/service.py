@@ -132,6 +132,25 @@ def get_orders(
     return [_build_list_response(o) for o in orders]
 
 
+def count_orders(
+    db: Session,
+    current_user,
+    estado: Optional[str] = None,
+    cliente_id: Optional[int] = None,
+    mecanico_id: Optional[int] = None,
+) -> int:
+    if current_user.rol == "mecanico":
+        mecanico_id = current_user.id
+        cliente_id = None
+    elif current_user.rol == "cliente":
+        cliente_id = current_user.id
+        mecanico_id = None
+
+    return orden_dao.count_all_with_relations(
+        db, estado=estado, cliente_id=cliente_id, mecanico_id=mecanico_id,
+    )
+
+
 def get_order_by_id(db: Session, order_id: int, current_user):
     """Obtiene una orden por ID con validación de acceso por rol."""
     order = orden_dao.get_by_id(db, order_id)
@@ -252,7 +271,7 @@ def _completar_orden(db: Session, order, moto_cliente_id: int, mecanico_id: int,
 
     # Generar QR con la URL del tracker
     from app.core.config import FRONTEND_URL
-    qr_data = f"{FRONTEND_URL}/tracker/{order.id}"
+    qr_data = f"{FRONTEND_URL}/tracker/moto/{moto_cliente_id}"
     qr_img = qrcode.make(qr_data)
     buf = BytesIO()
     qr_img.save(buf, format="PNG")

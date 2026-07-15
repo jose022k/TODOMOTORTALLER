@@ -91,6 +91,12 @@ const routes = [
   },
   // Tracker público (desde QR)
   {
+    path: "/tracker/moto/:motoClienteId",
+    name: "tracker-moto",
+    component: () =>
+      import(/* webpackChunkName: "tracker" */ "../views/TrackerView.vue"),
+  },
+  {
     path: "/tracker/:id",
     name: "tracker",
     component: () =>
@@ -108,7 +114,7 @@ router.beforeEach((to, from, next) => {
   const authStore = useAuthStore();
 
   // Tracker público (sin auth)
-  if (to.name === "tracker") return next();
+  if (to.name === "tracker" || to.name === "tracker-moto") return next();
 
   // Home page: redirigir según rol si está autenticado
   if (to.path === "/" && authStore.isAuthenticated) {
