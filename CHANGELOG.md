@@ -6,6 +6,34 @@ Todas las modificaciones siguen el estándar de versión semántica (https://sem
 
 ---
 
+## [1.7.0] - 2026-07-23
+
+### Added
+
+- Reportes: gráficos Chart.js con vue-chartjs (barras horizontales/verticales, paleta dorada) en AdminReportsView
+- Reportes: filtros por rango de fechas (`fecha_inicio`/`fecha_fin`) en todos los endpoints excepto ordenes/por-dia-semana
+- Reportes: selector de secciones con checkboxes para elegir qué incluir en el PDF
+- Reportes: generación de PDF vía `window.print()` con tablas en lugar de gráficos, logo en esquina superior derecha, numeración secuencial (`Reporte N° 0000001`) y nombre de archivo `Reporte 000000X.pdf`
+- Catálogo: modelo `Marca` (id, nombre único, logo_url) con migración automática desde marcas existentes
+- Catálogo: endpoint `POST /motorcycles/brands` con subida de logo a Cloudinary (multipart: nombre + logo)
+- Catálogo: botón "+ Nueva Marca" con modal drag & drop para subir logo PNG, vista previa y peso máximo 8 MB
+- Utilidad `app/core/cloudinary.py` con función `upload_image()` para subir archivos a Cloudinary
+
+### Changed
+
+- Reportes: las 7 secciones (Top Mecánicos, Top Motos, etc.) se muestran siempre en pantalla; los checkboxes solo controlan qué aparece en el PDF
+- Reportes: logo del PDF ahora se posiciona arriba a la derecha sin mover el contenido existente (flexbox en print-header)
+- Reportes: dropdown de selección de secciones con checkboxes centrados y ancho fijo para alineación perfecta
+- Catálogo: `GET /motorcycles/brands` ahora consulta la tabla `marca` en lugar de distinct de `catalogo_moto`
+- Catálogo: modal de nueva marca mejorado con zona de arrastre, feedback visual y botón para quitar imagen
+
+### Fixed
+
+- Reportes: logo del PDF no aparecía — corregido con precarga vía JS y renderizado en pantalla (1×1px visibility:hidden) en lugar de display:none
+- Reportes: nombre de archivo al guardar PDF ahora usa el título de página cambiado dinámicamente a "Reporte XXXXXXX"
+- Catálogo: modal de nueva marca no se cerraba por guardia `saving` — corregido cerrando el modal antes de refrescar marcas
+- Catálogo: migración de marcas existentes fallaba porque `create_all()` creaba la tabla vacía antes que `ensure_schema_updates()` — corregido moviendo la población fuera del bloque condicional
+
 ## [1.6.0] - 2026-06-30
 
 ### Added
