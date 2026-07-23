@@ -56,6 +56,15 @@ def mark_all_notifications_read(
     return {"marked": count}
 
 
+@router.delete("/")
+def delete_all_notifications(
+    db: Session = Depends(get_db),
+    current_user: AnyUser = Depends(get_current_user),
+):
+    count = service.delete_all(db, current_user)
+    return {"deleted": count}
+
+
 @router.get("/push/vapid-public-key")
 def get_vapid_public_key():
     return {"publicKey": VAPID_PUBLIC_KEY}

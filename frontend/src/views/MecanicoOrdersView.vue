@@ -39,6 +39,13 @@
       </tbody>
     </table>
 
+    <!-- Paginación -->
+    <div v-if="!loading && totalPages > 1" class="pagination">
+      <button class="page-btn" :disabled="page <= 1" @click="goToPage(page - 1)" title="Página anterior">&#9664;</button>
+      <span class="page-info">{{ page }} / {{ totalPages }}</span>
+      <button class="page-btn" :disabled="page >= totalPages" @click="goToPage(page + 1)" title="Página siguiente">&#9654;</button>
+    </div>
+
     <!-- Modal Detalle -->
     <div v-if="showDetail" class="modal-overlay" @click.self="showDetail = false">
       <div class="modal modal-lg" :class="'modal--' + detail?.estado">
@@ -62,20 +69,24 @@
             </div>
             <div class="detail-item">
               <div class="detail-icon">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5Z"/><circle cx="9" cy="9" r="1"/><path d="m5 15 4-4 2 2 4-4 4 4"/></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="14" r="4"/><circle cx="18" cy="14" r="4"/><path d="M6 14h12"/><path d="M16 4h-4l-3 5h7l2 3"/><path d="M3 10h3l1-2"/></svg>
               </div>
               <div>
                 <span class="detail-label">Moto</span>
-                <span class="detail-value">{{ detail.moto_marca }} {{ detail.moto_modelo }} ({{ detail.moto_placa }})<template v-if="detail.moto_anio"> · {{ detail.moto_anio }}</template></span>
+                <span class="detail-value moto-value"><span>{{ detail.moto_marca }} {{ detail.moto_modelo }}</span><span><span class="detail-sub">Placa:</span> {{ detail.moto_placa }}</span><span><span class="detail-sub">Año:</span> {{ detail.moto_anio }}</span></span>
               </div>
             </div>
             <div class="detail-item">
               <div class="detail-icon">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><line x1="4.93" y1="4.93" x2="9.17" y2="9.17"/><line x1="14.83" y1="14.83" x2="19.07" y2="19.07"/><line x1="14.83" y1="9.17" x2="19.07" y2="4.93"/><line x1="4.93" y1="19.07" x2="9.17" y2="14.83"/></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
               </div>
               <div>
                 <span class="detail-label">Color</span>
-                <span class="detail-value">{{ detail.moto_color_especifico || detail.moto_color }}</span>
+                <span class="detail-value" v-if="detail.moto_color_especifico">
+                  <span class="color-dot" :style="{ backgroundColor: colorHex(detail.moto_color_especifico) }"></span>
+                  {{ detail.moto_color_especifico }}
+                </span>
+                <span class="detail-value" v-else>{{ detail.moto_color }}</span>
               </div>
             </div>
             <div class="detail-item">
@@ -162,6 +173,10 @@ export default {
       detail: null,
       showChatModal: false,
       chatOrdenId: null,
+      page: 1,
+      pageSize: 15,
+      totalItems: 0,
+      totalPages: 0,
     };
   },
   computed: {
@@ -185,13 +200,27 @@ export default {
     async fetchOrders() {
       this.loading = true;
       try {
-        const { data } = await api.get("/service-orders/");
+        const skip = (this.page - 1) * this.pageSize;
+        const { data } = await api.get("/service-orders/", { params: { skip, limit: this.pageSize } });
         this.orders = data;
       } catch (err) {
         this.showAlert(err.response?.data?.detail || "Error al cargar órdenes.", "error");
       } finally {
         this.loading = false;
       }
+    },
+    async fetchCount() {
+      try {
+        const { data } = await api.get("/service-orders/count");
+        this.totalItems = data.total;
+        this.totalPages = Math.ceil(this.totalItems / this.pageSize) || 1;
+      } catch (e) {
+        console.error("Error fetching count", e);
+      }
+    },
+    async goToPage(p) {
+      this.page = p;
+      await this.fetchOrders();
     },
     capitalize(s) {
       if (!s) return "";
@@ -226,7 +255,7 @@ export default {
     async changeStatusFromDetail(newStatus) {
       if (!this.detail) return;
       await this.changeStatus(this.detail.id, newStatus);
-      if (this.detail) this.detail.estado = newStatus;
+      this.showDetail = false;
     },
     openOrderFromRoute() {
       const orderId = this.$route.query.order_id;
@@ -241,9 +270,19 @@ export default {
         this.detail = data;
       }).catch(() => {});
     },
+    colorHex(colorName) {
+      const map = {
+        Negro: "#1a1a1a", Azul: "#2563eb", Rojo: "#dc2626", Amarillo: "#eab308",
+        Morado: "#7c3aed", Rosa: "#ec4899", Gris: "#94a3b8", Vinotinto: "#831843",
+        Blanco: "#f8fafc", Verde: "#16a34a", Naranja: "#ea580c", Marrón: "#78350f",
+        Plateado: "#d1d5db", Dorado: "#ca8a04",
+      };
+      return map[colorName] || "#e2e8f0";
+    },
   },
   mounted() {
     this.fetchOrders();
+    this.fetchCount();
     this.openOrderFromRoute();
   },
   watch: {
@@ -356,6 +395,9 @@ export default {
 }
 .detail-label { display: block; font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 1px; }
 .detail-value { font-size: 13px; font-weight: 600; color: #1a1a1a; display: flex; align-items: center; gap: 6px; }
+.color-dot { display: inline-block; width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; border: 1px solid #d1d5db; }
+.detail-value.moto-value { flex-direction: column; align-items: flex-start; gap: 4px; }
+.detail-sub { font-weight: 700; color: #94a3b8; }
 .detail-card {
   margin-bottom: 24px; padding: 16px; background: #f8fafc; border-radius: 12px;
 }
@@ -403,4 +445,40 @@ export default {
 .alert-success { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
 .alert-error { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
 .alert-close { background: none; border: none; font-size: 1.3rem; cursor: pointer; color: inherit; padding: 0 4px; }
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 20px;
+  padding: 12px 0;
+}
+.page-btn {
+  width: 36px;
+  height: 36px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #475569;
+  transition: all 0.15s;
+}
+.page-btn:hover:not(:disabled) {
+  border-color: #ffaa00;
+  color: #ffaa00;
+}
+.page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.page-info {
+  font-size: 14px;
+  font-weight: 600;
+  color: #64748b;
+  min-width: 60px;
+  text-align: center;
+}
 </style>

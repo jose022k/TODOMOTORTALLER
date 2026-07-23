@@ -3,10 +3,7 @@
     <div class="auth-card">
       <div class="auth-header">
         <div class="auth-logo">
-          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ffaa00" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-            <circle cx="12" cy="7" r="4"/>
-          </svg>
+          <img src="https://res.cloudinary.com/dorj3mvvr/image/upload/v1783609693/logos/logotaller01.png" alt="Todomotortaller" class="logo-img" />
         </div>
         <h1 class="auth-title">Crear Cuenta</h1>
         <p class="auth-desc">Regístrate como cliente del taller</p>
@@ -150,31 +147,32 @@ export default {
 .auth-card {
   background: #fff;
   border-radius: 20px;
-  padding: 36px 36px 32px;
+  padding: 26px 36px 32px;
   width: 100%;
   max-width: 520px;
   box-shadow: 0 4px 24px rgba(0,0,0,0.06), 0 1px 4px rgba(0,0,0,0.04);
 }
 .auth-header {
   text-align: center;
-  margin-bottom: 24px;
+  margin-bottom: 16px;
 }
 .auth-logo {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
-  width: 52px;
-  height: 52px;
-  border-radius: 14px;
-  background: #fff7e6;
-  margin-bottom: 12px;
+  margin-bottom: 4px;
+}
+.logo-img {
+  height: 80px;
+  width: auto;
+  display: block;
 }
 .auth-title {
   font-size: 22px;
   font-weight: 800;
   color: #1a1a1a;
   letter-spacing: -0.3px;
-  margin-bottom: 2px;
+  margin-bottom: 0;
 }
 .auth-desc {
   font-size: 14px;

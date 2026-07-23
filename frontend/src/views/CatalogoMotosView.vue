@@ -3,14 +3,19 @@
     <div class="catalog-header">
       <div class="header-content">
         <h1>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px; vertical-align: middle;"><path d="M5 19a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5Z"/><path d="M9 9h.01"/><path d="M5 15l4-4 2 2 4-4 4 4"/></svg>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px; vertical-align: middle;"><path d="M3 4h8v16H3z"/><path d="M13 4h8v16H13z"/><path d="M11 4v16"/><line x1="4" y1="8" x2="10" y2="8"/><line x1="4" y1="11" x2="10" y2="11"/><line x1="4" y1="14" x2="10" y2="14"/><line x1="14" y1="8" x2="20" y2="8"/><line x1="14" y1="11" x2="20" y2="11"/><line x1="14" y1="14" x2="20" y2="14"/></svg>
           Catálogo de Motocicletas
         </h1>
         <p>Gestiona los modelos oficiales disponibles en el taller</p>
       </div>
-      <button class="btn-primary btn-add" @click="openCreateModal">
-        <span class="btn-icon">+</span> Nuevo Modelo
-      </button>
+      <div class="header-buttons">
+        <button class="btn-primary btn-add" @click="openCreateModal">
+          <span class="btn-icon">+</span> Nuevo Modelo
+        </button>
+        <button class="btn-secondary btn-add-brand" @click="openBrandModal">
+          <span class="btn-icon">+</span> Nueva Marca
+        </button>
+      </div>
     </div>
 
     <!-- Barra de búsqueda y filtrado -->
@@ -115,6 +120,54 @@
         </div>
       </div>
     </transition>
+
+    <!-- Modal Nueva Marca -->
+    <transition name="fade">
+      <div v-if="brandModal.show" class="modal-backdrop" @click.self="closeBrandModal">
+        <div class="modal-card">
+          <div class="modal-header">
+            <h2>Nueva Marca</h2>
+            <button class="btn-close" @click="closeBrandModal">×</button>
+          </div>
+          <form @submit.prevent="saveBrand">
+            <div class="form-group">
+              <label for="brand-nombre">Nombre de la Marca</label>
+              <input id="brand-nombre" v-model="brandModal.nombre" type="text" placeholder="Ej. Yamaha, Suzuki, Honda" required />
+            </div>
+            <div class="form-group">
+              <label>Logo <span class="label-optional">(PNG recomendado)</span></label>
+              <div
+                class="brand-drop-zone"
+                :class="{ 'brand-dragging': brandModal.dragging, 'brand-has-file': brandModal.preview }"
+                @click="$refs.brandLogoInput.click()"
+                @dragover.prevent="brandModal.dragging = true"
+                @dragleave.prevent="brandModal.dragging = false"
+                @drop.prevent="onBrandDrop"
+              >
+                <input ref="brandLogoInput" type="file" accept="image/png,image/jpeg,image/webp" @change="onBrandLogoChange" hidden />
+                <div v-if="!brandModal.preview" class="brand-drop-content">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                  <p class="brand-drop-text">{{ brandModal.dragging ? 'Suelta la imagen aquí' : 'Haz clic o arrastra una imagen' }}</p>
+                  <span class="brand-drop-hint">Peso máximo: 8 MB</span>
+                </div>
+                <div v-else class="brand-logo-preview">
+                  <img :src="brandModal.preview" alt="Vista previa" />
+                  <button type="button" class="brand-remove-btn" @click.stop="removeBrandLogo" title="Quitar imagen">×</button>
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn-secondary" @click="closeBrandModal" :disabled="brandModal.saving">
+                Cancelar
+              </button>
+              <button type="submit" class="btn-primary" :disabled="brandModal.saving || !brandModal.file">
+                {{ brandModal.saving ? 'Agregando...' : 'Agregar Marca' }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </transition>
   </div>
 </template>
 
@@ -145,6 +198,14 @@ export default {
           gama_color: "",
           logo_url: "",
         },
+      },
+      brandModal: {
+        show: false,
+        saving: false,
+        nombre: "",
+        file: null,
+        preview: "",
+        dragging: false,
       },
     };
   },
@@ -225,6 +286,61 @@ export default {
     closeModal() {
       if (this.modal.saving) return;
       this.modal.show = false;
+    },
+    openBrandModal() {
+      this.brandModal.show = true;
+      this.brandModal.nombre = "";
+      this.brandModal.file = null;
+      this.brandModal.preview = "";
+      this.brandModal.saving = false;
+      this.brandModal.dragging = false;
+    },
+    closeBrandModal() {
+      this.brandModal.show = false;
+    },
+    setBrandFile(file) {
+      if (!file) return;
+      this.brandModal.file = file;
+      const reader = new FileReader();
+      reader.onload = (ev) => { this.brandModal.preview = ev.target.result; };
+      reader.readAsDataURL(file);
+    },
+    onBrandLogoChange(e) {
+      this.setBrandFile(e.target.files[0]);
+    },
+    onBrandDrop(e) {
+      this.brandModal.dragging = false;
+      const file = e.dataTransfer.files[0];
+      if (file && file.type.startsWith("image/")) {
+        this.setBrandFile(file);
+      }
+    },
+    removeBrandLogo() {
+      this.brandModal.file = null;
+      this.brandModal.preview = "";
+      if (this.$refs.brandLogoInput) this.$refs.brandLogoInput.value = "";
+    },
+    async saveBrand() {
+      this.brandModal.saving = true;
+      this.clearAlert();
+      try {
+        const formData = new FormData();
+        formData.append("nombre", this.brandModal.nombre);
+        formData.append("logo", this.brandModal.file);
+        await api.post("/motorcycles/brands", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+        this.brandModal.show = false;
+        await this.fetchBrands();
+        this.showAlert("Marca agregada exitosamente.");
+      } catch (err) {
+        this.showAlert(
+          err.response?.data?.detail || "Error al agregar la marca.",
+          "error"
+        );
+      } finally {
+        this.brandModal.saving = false;
+      }
     },
     async saveModel() {
       this.modal.saving = true;
@@ -317,6 +433,122 @@ export default {
 .btn-add:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(255, 170, 0, 0.4);
+}
+
+.header-buttons {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.btn-add-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #f1f5f9;
+  color: #1a1a1a;
+  padding: 12px 24px;
+  font-size: 1rem;
+  border-radius: 8px;
+  border: 1.5px solid #d1d5db;
+  font-weight: 600;
+  transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+.btn-add-brand:hover {
+  background: #e2e8f0;
+  border-color: #94a3b8;
+  transform: translateY(-2px);
+}
+
+.brand-drop-zone {
+  border: 2px dashed #d1d5db;
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  background: #fafafa;
+  min-height: 110px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.brand-drop-zone:hover {
+  border-color: #ffaa00;
+  background: #fffcf5;
+}
+
+.brand-drop-zone.brand-dragging {
+  border-color: #ffaa00;
+  background: #fff7e6;
+  border-style: solid;
+  transform: scale(1.02);
+}
+
+.brand-drop-zone.brand-has-file {
+  border-style: solid;
+  border-color: #10b981;
+  background: #f0fdf4;
+  padding: 10px;
+}
+
+.brand-drop-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.brand-drop-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: #475569;
+  margin: 0;
+}
+
+.brand-drop-hint {
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.brand-logo-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  width: 100%;
+}
+
+.brand-logo-preview img {
+  max-height: 65px;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+.brand-remove-btn {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #ef4444;
+  color: #fff;
+  border: 2px solid #fff;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+.brand-remove-btn:hover {
+  background: #dc2626;
 }
 
 .btn-icon {

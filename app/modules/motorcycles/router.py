@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, UploadFile, File, Form
 from sqlalchemy.orm import Session
 from typing import List
 
@@ -9,6 +9,7 @@ from app.modules.motorcycles.schemas import (
     CatalogoMotoCreate,
     CatalogoMotoUpdate,
     CatalogoMotoResponse,
+    MarcaResponse,
 )
 from app.modules.motorcycles.service import (
     get_brands,
@@ -17,18 +18,29 @@ from app.modules.motorcycles.service import (
     create_catalog_item,
     update_catalog_item,
     delete_catalog_item,
+    create_brand,
 )
 
 router = APIRouter(prefix="/motorcycles", tags=["motorcycles"])
+
 
 @router.get("/brands", response_model=List[BrandResponse])
 def list_brands(
     db: Session = Depends(get_db),
     current_user: AnyUser = Depends(get_current_user),
 ):
-    """Obtiene todas las marcas disponibles en el catálogo.
-    Cualquier usuario autenticado puede consultarlo."""
     return get_brands(db)
+
+
+@router.post("/brands", response_model=MarcaResponse, status_code=status.HTTP_201_CREATED)
+def create_brand_endpoint(
+    nombre: str = Form(...),
+    logo: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    admin: AnyUser = Depends(get_current_admin),
+):
+    return create_brand(db, nombre, logo.file)
+
 
 @router.get("/catalog", response_model=List[CatalogoMotoResponse])
 def list_catalog(
@@ -37,9 +49,8 @@ def list_catalog(
     db: Session = Depends(get_db),
     current_user: AnyUser = Depends(get_current_user),
 ):
-    """Obtiene todos los modelos de moto registrados en el catálogo.
-    Cualquier usuario autenticado puede consultarlo."""
     return get_catalog_items(db, skip=skip, limit=limit)
+
 
 @router.get("/catalog/{item_id}", response_model=CatalogoMotoResponse)
 def get_catalog_item(
@@ -47,9 +58,8 @@ def get_catalog_item(
     db: Session = Depends(get_db),
     current_user: AnyUser = Depends(get_current_user),
 ):
-    """Obtiene un modelo específico del catálogo por su ID.
-    Cualquier usuario autenticado puede consultarlo."""
     return get_catalog_item_by_id(db, item_id)
+
 
 @router.post("/catalog", response_model=CatalogoMotoResponse, status_code=status.HTTP_201_CREATED)
 def create_catalog(
@@ -57,9 +67,8 @@ def create_catalog(
     db: Session = Depends(get_db),
     admin: AnyUser = Depends(get_current_admin),
 ):
-    """Crea un nuevo modelo de moto en el catálogo.
-    Solo accesible para administradores."""
     return create_catalog_item(db, data)
+
 
 @router.put("/catalog/{item_id}", response_model=CatalogoMotoResponse)
 def update_catalog(
@@ -68,9 +77,8 @@ def update_catalog(
     db: Session = Depends(get_db),
     admin: AnyUser = Depends(get_current_admin),
 ):
-    """Actualiza un modelo de moto en el catálogo.
-    Solo accesible para administradores."""
     return update_catalog_item(db, item_id, data)
+
 
 @router.delete("/catalog/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_catalog(
@@ -78,7 +86,5 @@ def delete_catalog(
     db: Session = Depends(get_db),
     admin: AnyUser = Depends(get_current_admin),
 ):
-    """Elimina un modelo de moto del catálogo.
-    Solo accesible para administradores. No se puede eliminar si ya está asociado a motos de clientes."""
     delete_catalog_item(db, item_id)
     return

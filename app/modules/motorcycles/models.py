@@ -33,6 +33,14 @@ class MotoCliente(Base):
     historial_mantenimiento = relationship("HistorialMantenimiento", back_populates="moto_cliente")
 
 
+class Marca(Base):
+    __tablename__ = "marca"
+
+    id = Column(Integer, primary_key=True, index=True)
+    nombre = Column(String(100), unique=True, nullable=False)
+    logo_url = Column(Text, nullable=True)
+
+
 class HistorialMantenimiento(Base):
     __tablename__ = "historial_mantenimiento"
 

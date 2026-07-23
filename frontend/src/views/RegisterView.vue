@@ -1,7 +1,10 @@
 <template>
   <div class="auth-container">
     <div class="auth-card">
-      <h1 class="auth-title">Registrar Mecánico</h1>
+      <div class="auth-logo">
+        <img src="https://res.cloudinary.com/dorj3mvvr/image/upload/v1783609693/logos/logotaller01.png" alt="Todomotortaller" class="logo-img" />
+      </div>
+      <h1 class="auth-title">Crear Cuenta</h1>
       <form @submit.prevent="handleRegister">
         <div class="form-group">
           <label for="nombre">Nombre Completo</label>
@@ -83,14 +86,25 @@ export default {
   background: var(--color-light);
   border: 1px solid var(--color-muted);
   border-radius: 8px;
-  padding: 40px;
+  padding: 20px 40px 40px;
   width: 100%;
   max-width: 400px;
+}
+.auth-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 2px;
+}
+.logo-img {
+  height: 50px;
+  width: auto;
+  display: block;
 }
 .auth-title {
   color: var(--color-dark);
   font-size: 24px;
-  margin-bottom: 24px;
+  margin-bottom: 12px;
   text-align: center;
 }
 .form-group { margin-bottom: 16px; }

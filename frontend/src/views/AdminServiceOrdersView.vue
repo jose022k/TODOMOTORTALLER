@@ -15,18 +15,18 @@
 
     <!-- Barra de herramientas -->
     <div class="toolbar">
-      <select v-model="filterEstado" class="filter-select" @change="fetchOrders">
+      <select v-model="filterEstado" class="filter-select" @change="onFilterChange">
         <option value="">Todos los estados</option>
         <option value="pendiente">Pendiente</option>
         <option value="en_proceso">En Proceso</option>
         <option value="completada">Completada</option>
         <option value="cancelada">Cancelada</option>
       </select>
-      <select v-model="filterClienteId" class="filter-select" @change="fetchOrders">
+      <select v-model="filterClienteId" class="filter-select" @change="onFilterChange">
         <option value="">Todos los clientes</option>
         <option v-for="c in clients" :key="c.id" :value="c.id">{{ capitalize(c.nombre) }}</option>
       </select>
-      <select v-model="filterMecanicoId" class="filter-select" @change="fetchOrders">
+      <select v-model="filterMecanicoId" class="filter-select" @change="onFilterChange">
         <option value="">Todos los mecánicos</option>
         <option v-for="m in mechanics" :key="m.id" :value="m.id">{{ capitalize(m.nombre) }}</option>
       </select>
@@ -63,6 +63,13 @@
         </tr>
       </tbody>
     </table>
+
+    <!-- Paginación -->
+    <div v-if="!loading && totalPages > 1" class="pagination">
+      <button class="page-btn" :disabled="page <= 1" @click="goToPage(page - 1)" title="Página anterior">&#9664;</button>
+      <span class="page-info">{{ page }} / {{ totalPages }}</span>
+      <button class="page-btn" :disabled="page >= totalPages" @click="goToPage(page + 1)" title="Página siguiente">&#9654;</button>
+    </div>
 
     <!-- Modal Crear Orden -->
     <div v-if="showCreateModal" class="modal-overlay" @click.self="showCreateModal = false">
@@ -187,16 +194,16 @@
             </div>
             <div class="detail-item">
               <div class="detail-icon">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5Z"/><circle cx="9" cy="9" r="1"/><path d="m5 15 4-4 2 2 4-4 4 4"/></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="14" r="4"/><circle cx="18" cy="14" r="4"/><path d="M6 14h12"/><path d="M16 4h-4l-3 5h7l2 3"/><path d="M3 10h3l1-2"/></svg>
               </div>
               <div>
                 <span class="detail-label">Moto</span>
-                <span class="detail-value">{{ detail.moto_marca }} {{ detail.moto_modelo }} ({{ detail.moto_placa }})<template v-if="detail.moto_anio"> · {{ detail.moto_anio }}</template></span>
+                <span class="detail-value moto-value"><span>{{ detail.moto_marca }} {{ detail.moto_modelo }}</span><span><span class="detail-sub">Placa:</span> {{ detail.moto_placa }}</span><span><span class="detail-sub">Año:</span> {{ detail.moto_anio }}</span></span>
               </div>
             </div>
             <div class="detail-item">
               <div class="detail-icon">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><line x1="4.93" y1="4.93" x2="9.17" y2="9.17"/><line x1="14.83" y1="14.83" x2="19.07" y2="19.07"/><line x1="14.83" y1="9.17" x2="19.07" y2="4.93"/><line x1="4.93" y1="19.07" x2="9.17" y2="14.83"/></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
               </div>
               <div>
                 <span class="detail-label">Color</span>
@@ -332,6 +339,10 @@ export default {
       reassignMecanicoId: "",
       showChatModal: false,
       chatOrdenId: null,
+      page: 1,
+      pageSize: 15,
+      totalItems: 0,
+      totalPages: 0,
     };
   },
   computed: {
@@ -388,7 +399,7 @@ export default {
     async fetchOrders() {
       this.loading = true;
       try {
-        const params = {};
+        const params = { skip: (this.page - 1) * this.pageSize, limit: this.pageSize };
         if (this.filterEstado) params.estado = this.filterEstado;
         if (this.filterClienteId) params.cliente_id = this.filterClienteId;
         if (this.filterMecanicoId) params.mecanico_id = this.filterMecanicoId;
@@ -399,6 +410,28 @@ export default {
       } finally {
         this.loading = false;
       }
+    },
+    async fetchCount() {
+      try {
+        const params = {};
+        if (this.filterEstado) params.estado = this.filterEstado;
+        if (this.filterClienteId) params.cliente_id = this.filterClienteId;
+        if (this.filterMecanicoId) params.mecanico_id = this.filterMecanicoId;
+        const { data } = await api.get("/service-orders/count", { params });
+        this.totalItems = data.total;
+        this.totalPages = Math.ceil(this.totalItems / this.pageSize) || 1;
+      } catch (e) {
+        console.error("Error fetching count", e);
+      }
+    },
+    async goToPage(p) {
+      this.page = p;
+      await this.fetchOrders();
+    },
+    onFilterChange() {
+      this.page = 1;
+      this.fetchOrders();
+      this.fetchCount();
     },
     async fetchClients() {
       try {
@@ -547,6 +580,7 @@ export default {
   },
   mounted() {
     this.fetchOrders();
+    this.fetchCount();
     this.fetchClients();
     this.fetchMechanics();
     this.fetchCatalog();
@@ -785,6 +819,8 @@ export default {
 }
 .detail-label { display: block; font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 1px; }
 .detail-value { font-size: 13px; font-weight: 600; color: #1a1a1a; display: flex; align-items: center; gap: 6px; }
+.detail-value.moto-value { flex-direction: column; align-items: flex-start; gap: 4px; }
+.detail-sub { font-weight: 700; color: #94a3b8; }
 .detail-card {
   margin-bottom: 24px;
   padding: 16px;
@@ -1031,4 +1067,40 @@ textarea.form-control {
 .alert-success { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
 .alert-error { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
 .alert-close { background: none; border: none; font-size: 1.3rem; cursor: pointer; color: inherit; padding: 0 4px; }
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 20px;
+  padding: 12px 0;
+}
+.page-btn {
+  width: 36px;
+  height: 36px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #475569;
+  transition: all 0.15s;
+}
+.page-btn:hover:not(:disabled) {
+  border-color: #ffaa00;
+  color: #ffaa00;
+}
+.page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.page-info {
+  font-size: 14px;
+  font-weight: 600;
+  color: #64748b;
+  min-width: 60px;
+  text-align: center;
+}
 </style>
