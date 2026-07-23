@@ -1,8 +1,9 @@
 from typing import Optional
 from sqlalchemy.orm import Session
 from app.core.base_dao import BaseDAO
-from app.modules.motorcycles.models import CatalogoMoto
+from app.modules.motorcycles.models import CatalogoMoto, Marca
 from app.modules.motorcycles.schemas import CatalogoMotoCreate, CatalogoMotoUpdate
+
 
 class CatalogoMotoDAO(BaseDAO[CatalogoMoto, CatalogoMotoCreate, CatalogoMotoUpdate]):
     def __init__(self):
@@ -27,3 +28,11 @@ class CatalogoMotoDAO(BaseDAO[CatalogoMoto, CatalogoMotoCreate, CatalogoMotoUpda
             )
             .first()
         )
+
+
+class MarcaDAO(BaseDAO[Marca, dict, dict]):
+    def __init__(self):
+        super().__init__(Marca)
+
+    def get_by_nombre(self, db: Session, nombre: str):
+        return db.query(self.model).filter(self.model.nombre == nombre).first()

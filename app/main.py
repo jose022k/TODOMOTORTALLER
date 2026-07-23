@@ -4,7 +4,7 @@ from app.core.database import engine, Base, ensure_schema_updates
 
 # Import models so SQLAlchemy discovers them for create_all
 from app.modules.auth.models import Admin, Cliente, Mecanico
-from app.modules.motorcycles.models import CatalogoMoto, MotoCliente, HistorialMantenimiento
+from app.modules.motorcycles.models import CatalogoMoto, MotoCliente, HistorialMantenimiento, Marca
 from app.modules.service_orders.models import OrdenServicio, Evidencia
 from app.modules.notifications.models import Notificacion, PushSubscription
 from app.modules.chat.models import Mensaje
@@ -21,6 +21,10 @@ from app.modules.chat.router import router as chat_router
 
 Base.metadata.create_all(bind=engine)
 ensure_schema_updates()
+
+from app.core.cloudinary import init_cloudinary
+
+init_cloudinary()
 
 app = FastAPI(
     title="Todomotortaller API",

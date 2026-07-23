@@ -56,6 +56,28 @@ def ensure_schema_updates():
             )"""))
             conn.commit()
 
+        # Crear tabla marca si no existe
+        if "marca" not in tables:
+            conn.execute(text("""CREATE TABLE marca (
+                id SERIAL PRIMARY KEY,
+                nombre VARCHAR(100) NOT NULL UNIQUE,
+                logo_url TEXT
+            )"""))
+            conn.commit()
+
+        # Poblar desde marcas existentes en catalogo_moto (siempre, por si create_all ya la creó)
+        existing = conn.execute(
+            text("SELECT DISTINCT marca, logo_url FROM catalogo_moto")
+        ).fetchall()
+        for row in existing:
+            nm = row._mapping["marca"]
+            lu = row._mapping["logo_url"]
+            conn.execute(
+                text("INSERT INTO marca (nombre, logo_url) VALUES (:n, :l) ON CONFLICT (nombre) DO NOTHING"),
+                {"n": nm, "l": lu}
+            )
+        conn.commit()
+
         for table, col_def in _MIGRATIONS:
             if table not in tables:
                 continue
