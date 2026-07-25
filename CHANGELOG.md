@@ -6,6 +6,25 @@ Todas las modificaciones siguen el estándar de versión semántica (https://sem
 
 ---
 
+## [1.8.0] - 2026-07-25
+
+### Added
+
+- WebSocket para actualizaciones en tiempo real de órdenes de servicio
+- `ConnectionManager` en backend con broadcast por roles (admin, cliente, mecánico)
+- Endpoint `GET /ws/orders?token=<jwt>` autenticado
+- `orderSocket.js` — cliente WebSocket singleton con reconexión automática
+- Proxy `/ws` en Vue dev server con `ws: true` para WebSocket same-origin
+- Las 3 vistas (`AdminServiceOrdersView`, `MecanicoOrdersView`, `ClienteOrdersView`) escuchan eventos `order-updated` y actualizan lista + contador al instante
+
+### Changed
+
+- `app/main.py` — startup event para inicializar `ws_manager`
+- `app/modules/service_orders/service.py` — broadcast en `create_order`, `update_order_status`, `assign_mechanic`
+- `frontend/vue.config.js` — proxy `/ws` añadido con soporte WebSocket
+
+---
+
 ## [1.7.0] - 2026-07-23
 
 ### Added
@@ -33,6 +52,8 @@ Todas las modificaciones siguen el estándar de versión semántica (https://sem
 - Reportes: nombre de archivo al guardar PDF ahora usa el título de página cambiado dinámicamente a "Reporte XXXXXXX"
 - Catálogo: modal de nueva marca no se cerraba por guardia `saving` — corregido cerrando el modal antes de refrescar marcas
 - Catálogo: migración de marcas existentes fallaba porque `create_all()` creaba la tabla vacía antes que `ensure_schema_updates()` — corregido moviendo la población fuera del bloque condicional
+
+---
 
 ## [1.6.0] - 2026-06-30
 
@@ -90,6 +111,8 @@ Todas las modificaciones siguen el estándar de versión semántica (https://sem
 - `DOCUMENTACION_TECNICA.md` con arquitectura completa, flujo de datos, descripción de módulos
 - `SETUP.md` con guía de instalación paso a paso
 
+---
+
 ## [1.5.0] - 2026-06-21
 
 ### Changed
@@ -98,6 +121,8 @@ Todas las modificaciones siguen el estándar de versión semántica (https://sem
 - Eliminación de dependencia aiofiles y montaje estático de uploads
 - URLs de evidencias actualizadas en base de datos a secure_url de Cloudinary
 - .gitignore actualizado: uploads/ añadido
+
+---
 
 ## [1.4.0] - 2026-06-21
 
@@ -118,6 +143,8 @@ Todas las modificaciones siguen el estándar de versión semántica (https://sem
 
 - Eliminación de módulo evidencias como módulo independiente (integrado en chat)
 
+---
+
 ## [1.3.0] - 2026-06-14
 
 ### Added
@@ -136,6 +163,8 @@ Todas las modificaciones siguen el estándar de versión semántica (https://sem
 - Optimizaciones en ClienteDAO con selectinload para motos
 - Eliminación de campo gama_color del modal de creación de catálogo
 
+---
+
 ## [1.2.0] - 2026-06-09
 
 ### Added
@@ -143,6 +172,8 @@ Todas las modificaciones siguen el estándar de versión semántica (https://sem
 - Módulo Motorcycles: CRUD de catálogo de motos con 287 modelos
 - Vista frontend CatalogoMotosView con grid, búsqueda reactiva y modal
 - Logos de marcas desde Cloudinary en vista de catálogo
+
+---
 
 ## [1.1.0] - 2026-06-01
 
@@ -156,6 +187,8 @@ Todas las modificaciones siguen el estándar de versión semántica (https://sem
 - Registro público de clientes
 - Route guards y vistas de login independientes
 - Pinia auth store y API service
+
+---
 
 ## [1.0.0] - 2026-05-24
 

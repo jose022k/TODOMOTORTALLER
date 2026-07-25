@@ -2,6 +2,7 @@ const { defineConfig } = require("@vue/cli-service");
 module.exports = defineConfig({
   transpileDependencies: true,
   devServer: {
+    allowedHosts: "all",
     proxy: {
       "/uploads": {
         target: "http://localhost:8000",
@@ -9,6 +10,11 @@ module.exports = defineConfig({
       },
       "/notifications": {
         target: "http://localhost:8000",
+        changeOrigin: true,
+      },
+      "/ws": {
+        target: "http://localhost:8000",
+        ws: true,
         changeOrigin: true,
       },
     },

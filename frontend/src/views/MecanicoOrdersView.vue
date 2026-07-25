@@ -160,6 +160,7 @@
 import api from "@/services/api";
 import { useAuthStore } from "@/stores/auth";
 import ChatModal from "@/components/ChatModal.vue";
+import orderSocket from "@/services/orderSocket";
 
 export default {
   name: "MecanicoOrders",
@@ -177,6 +178,7 @@ export default {
       pageSize: 15,
       totalItems: 0,
       totalPages: 0,
+      pollTimer: null,
     };
   },
   computed: {
@@ -270,6 +272,10 @@ export default {
         this.detail = data;
       }).catch(() => {});
     },
+    onOrderUpdated() {
+      this.fetchOrders();
+      this.fetchCount();
+    },
     colorHex(colorName) {
       const map = {
         Negro: "#1a1a1a", Azul: "#2563eb", Rojo: "#dc2626", Amarillo: "#eab308",
@@ -284,6 +290,11 @@ export default {
     this.fetchOrders();
     this.fetchCount();
     this.openOrderFromRoute();
+    orderSocket.enable();
+    window.addEventListener("order-updated", this.onOrderUpdated);
+  },
+  beforeUnmount() {
+    window.removeEventListener("order-updated", this.onOrderUpdated);
   },
   watch: {
     $route() {

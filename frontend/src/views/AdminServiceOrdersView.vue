@@ -306,6 +306,7 @@
 import api from "@/services/api";
 import { useAuthStore } from "@/stores/auth";
 import ChatModal from "@/components/ChatModal.vue";
+import orderSocket from "@/services/orderSocket";
 
 export default {
   name: "AdminServiceOrders",
@@ -343,6 +344,7 @@ export default {
       pageSize: 15,
       totalItems: 0,
       totalPages: 0,
+      pollTimer: null,
     };
   },
   computed: {
@@ -577,6 +579,10 @@ export default {
         this.detail = data;
       }).catch(() => {});
     },
+    onOrderUpdated() {
+      this.fetchOrders();
+      this.fetchCount();
+    },
   },
   mounted() {
     this.fetchOrders();
@@ -585,6 +591,11 @@ export default {
     this.fetchMechanics();
     this.fetchCatalog();
     this.openOrderFromRoute();
+    orderSocket.enable();
+    window.addEventListener("order-updated", this.onOrderUpdated);
+  },
+  beforeUnmount() {
+    window.removeEventListener("order-updated", this.onOrderUpdated);
   },
   watch: {
     $route() {
