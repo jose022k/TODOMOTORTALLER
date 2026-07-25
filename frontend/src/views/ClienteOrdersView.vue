@@ -219,6 +219,7 @@
 import api from "@/services/api";
 import { useAuthStore } from "@/stores/auth";
 import ChatModal from "@/components/ChatModal.vue";
+import orderSocket from "@/services/orderSocket";
 
 export default {
   name: "ClienteOrders",
@@ -368,6 +369,10 @@ export default {
         this.showDetail = true;
       }).catch(() => {});
     },
+    onOrderUpdated() {
+      this.fetchOrders();
+      this.fetchCount();
+    },
     colorHex(colorName) {
       const map = {
         Negro: "#1a1a1a", Azul: "#2563eb", Rojo: "#dc2626", Amarillo: "#eab308",
@@ -382,6 +387,11 @@ export default {
     this.fetchOrders();
     this.fetchCount();
     this.openOrderFromRoute();
+    orderSocket.enable();
+    window.addEventListener("order-updated", this.onOrderUpdated);
+  },
+  beforeUnmount() {
+    window.removeEventListener("order-updated", this.onOrderUpdated);
   },
   watch: {
     $route() {

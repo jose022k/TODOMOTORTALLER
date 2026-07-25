@@ -16,6 +16,7 @@ from app.modules.service_orders.schemas import (
 from app.modules.motorcycles.models import HistorialMantenimiento, MotoCliente, CatalogoMoto
 from app.modules.auth.models import Admin
 from app.modules.notifications.service import create_notification
+from app.core.ws_manager import manager
 
 orden_dao = OrdenServicioDAO()
 
@@ -103,6 +104,13 @@ def create_order(db: Session, data: OrdenServicioCreate, admin_user):
     admin_ids = [a.id for a in db.query(Admin.id).all()]
     for aid in admin_ids:
         create_notification(db, "orden_creada", f"Se ha creado la orden #{order.id}", orden_servicio_id=order.id, admin_id=aid)
+
+    # Broadcast WebSocket
+    manager.schedule_broadcast_order_event(
+        "orden_creada", order.id, "pendiente",
+        cliente_id=data.cliente_id, mecanico_id=data.mecanico_id,
+        admin_ids=admin_ids,
+    )
 
     return order
 
@@ -254,6 +262,13 @@ def update_order_status(db: Session, order_id: int, new_status: str, current_use
     if new_status == "completada":
         _completar_orden(db, updated, moto_cliente_id, mecanico_id, descripcion)
 
+    # Broadcast WebSocket
+    manager.schedule_broadcast_order_event(
+        "orden_actualizada", order_id, new_status,
+        cliente_id=order.cliente_id, mecanico_id=order.mecanico_id,
+        admin_ids=admin_ids,
+    )
+
     return updated
 
 
@@ -301,7 +316,17 @@ def assign_mechanic(db: Session, order_id: int, mecanico_id: int, admin_user):
             detail=f"No se puede reasignar mecánico en una orden '{order.estado}'",
         )
 
-    return orden_dao.update(db, order, {"mecanico_id": mecanico_id})
+    updated = orden_dao.update(db, order, {"mecanico_id": mecanico_id})
+
+    # Broadcast WebSocket
+    admin_ids = [a.id for a in db.query(Admin.id).all()]
+    manager.schedule_broadcast_order_event(
+        "orden_actualizada", order_id, updated.estado,
+        cliente_id=updated.cliente_id, mecanico_id=mecanico_id,
+        admin_ids=admin_ids,
+    )
+
+    return updated
 
 
 def get_order_tracker(db: Session, order_id: int):
