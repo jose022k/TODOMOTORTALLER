@@ -2,9 +2,7 @@ import axios from 'axios'
 
 const api = axios.create({
   baseURL: process.env.VUE_APP_API_URL || `http://${window.location.hostname}:8000`,
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  timeout: 15000,
 })
 
 api.interceptors.request.use((config) => {

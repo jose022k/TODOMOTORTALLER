@@ -2,7 +2,10 @@
   <div class="catalog-container">
     <div class="catalog-header">
       <div class="header-content">
-        <h1>Catálogo de Motocicletas</h1>
+        <h1>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px; vertical-align: middle;"><path d="M3 4h8v16H3z"/><path d="M13 4h8v16H13z"/><path d="M11 4v16"/><line x1="4" y1="8" x2="10" y2="8"/><line x1="4" y1="11" x2="10" y2="11"/><line x1="4" y1="14" x2="10" y2="14"/><line x1="14" y1="8" x2="20" y2="8"/><line x1="14" y1="11" x2="20" y2="11"/><line x1="14" y1="14" x2="20" y2="14"/></svg>
+          Catálogo de Motocicletas
+        </h1>
         <p>Gestiona los modelos oficiales disponibles en el taller</p>
       </div>
       <button class="btn-primary btn-add" @click="openCreateModal">
@@ -78,7 +81,7 @@
                 required
               >
                 <option value="" disabled>Selecciona una marca</option>
-                <option v-for="b in brands" :key="b" :value="b">{{ b }}</option>
+                <option v-for="b in brandNames" :key="b" :value="b">{{ b }}</option>
               </select>
             </div>
             <div class="form-group">
@@ -123,6 +126,7 @@ export default {
   data() {
     return {
       catalog: [],
+      brands: [],
       searchQuery: "",
       loading: false,
       alert: {
@@ -145,8 +149,8 @@ export default {
     };
   },
   computed: {
-    brands() {
-      return [...new Set(this.catalog.map((item) => item.marca))].sort();
+    brandNames() {
+      return this.brands.map((b) => b.marca).sort();
     },
     filteredCatalog() {
       const query = this.searchQuery.toLowerCase().trim();
@@ -161,6 +165,7 @@ export default {
   },
   mounted() {
     this.fetchCatalog();
+    this.fetchBrands();
   },
   watch: {
     "modal.form.marca"(newMarca) {
@@ -168,7 +173,7 @@ export default {
         this.modal.form.logo_url = "";
         return;
       }
-      const found = this.catalog.find((item) => item.marca === newMarca);
+      const found = this.brands.find((b) => b.marca === newMarca);
       this.modal.form.logo_url = found?.logo_url || "";
     },
   },
@@ -176,7 +181,7 @@ export default {
     async fetchCatalog() {
       this.loading = true;
       try {
-        const { data } = await api.get("/motorcycles/catalog");
+        const { data } = await api.get("/motorcycles/catalog", { params: { limit: 500 } });
         this.catalog = data;
       } catch (err) {
         this.showAlert(
@@ -185,6 +190,14 @@ export default {
         );
       } finally {
         this.loading = false;
+      }
+    },
+    async fetchBrands() {
+      try {
+        const { data } = await api.get("/motorcycles/brands");
+        this.brands = data;
+      } catch (err) {
+        console.error("Error al cargar marcas:", err);
       }
     },
     showAlert(message, type = "success") {
@@ -474,11 +487,22 @@ export default {
 }
 
 .btn-close {
-  background: transparent;
-  color: #64748b;
-  font-size: 1.5rem;
-  padding: 0;
+  background: none;
   border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+.btn-close:hover {
+  background: #fee2e2;
+  color: #dc2626;
 }
 
 .form-group {

@@ -2,6 +2,10 @@ from sqlalchemy import Column, Integer, String, Text, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
 from app.core.database import Base
 
+# Importaciones necesarias para resolver relaciones con string
+import app.modules.chat.models  # noqa: F401 — Mensaje
+import app.modules.notifications.models  # noqa: F401 — Notificacion
+
 
 class OrdenServicio(Base):
     __tablename__ = "orden_servicio"

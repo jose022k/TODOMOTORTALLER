@@ -18,8 +18,17 @@ uml/
 sql/
 docs/
 
+# Documentos de proyecto (trackeados con git rm --cached)
+SETUP.md
+DOCUMENTACION_TECNICA.md
+
 # Configuración
 .cursorrules
+.windsurfrules
 
 # Scripts de una sola ejecución
-scripts/
+scripts/*
+!scripts/start_servers.bat
+
+# Uploads (migrado a Cloudinary)
+uploads/

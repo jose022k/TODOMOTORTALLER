@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
 import HomeView from "../views/HomeView.vue";
+import LoginView from "../views/LoginView.vue";
 
 const routes = [
   {
@@ -14,26 +15,20 @@ const routes = [
     component: () =>
       import(/* webpackChunkName: "about" */ "../views/AboutView.vue"),
   },
-  // Login Admin
+  // Login unificado
   {
     path: "/login",
     name: "login",
-    component: () =>
-      import(/* webpackChunkName: "login-admin" */ "../views/AdminLoginView.vue"),
+    component: LoginView,
   },
-  // Login Mecánico
+  // Redirecciones de rutas antiguas de login
   {
     path: "/loginMecanico",
-    name: "login-mecanico",
-    component: () =>
-      import(/* webpackChunkName: "login-mecanico" */ "../views/MecanicoLoginView.vue"),
+    redirect: "/login",
   },
-  // Login Cliente
   {
     path: "/loginCliente",
-    name: "login-cliente",
-    component: () =>
-      import(/* webpackChunkName: "login-cliente" */ "../views/ClienteLoginView.vue"),
+    redirect: "/login",
   },
   // Registro público de clientes
   {
@@ -71,6 +66,13 @@ const routes = [
       import(/* webpackChunkName: "admin-service-orders" */ "../views/AdminServiceOrdersView.vue"),
     meta: { requiresAuth: true, rol: "admin" },
   },
+  {
+    path: "/admin/reports",
+    name: "admin-reports",
+    component: () =>
+      import(/* webpackChunkName: "admin-reports" */ "../views/AdminReportsView.vue"),
+    meta: { requiresAuth: true, rol: "admin" },
+  },
   // Mecánico
   {
     path: "/mecanico/orders",
@@ -87,6 +89,19 @@ const routes = [
       import(/* webpackChunkName: "cliente-orders" */ "../views/ClienteOrdersView.vue"),
     meta: { requiresAuth: true, rol: "cliente" },
   },
+  // Tracker público (desde QR)
+  {
+    path: "/tracker/moto/:motoClienteId",
+    name: "tracker-moto",
+    component: () =>
+      import(/* webpackChunkName: "tracker" */ "../views/TrackerView.vue"),
+  },
+  {
+    path: "/tracker/:id",
+    name: "tracker",
+    component: () =>
+      import(/* webpackChunkName: "tracker" */ "../views/TrackerView.vue"),
+  },
 ];
 
 const router = createRouter({
@@ -95,27 +110,22 @@ const router = createRouter({
 });
 
 router.beforeEach((to, from, next) => {
-  const publicPages = ["/login", "/loginMecanico", "/loginCliente", "/register/cliente"];
+  const publicPages = ["/login", "/register/cliente"];
   const authStore = useAuthStore();
+
+  // Tracker público (sin auth)
+  if (to.name === "tracker" || to.name === "tracker-moto") return next();
+
+  // Home page: redirigir según rol si está autenticado
+  if (to.path === "/" && authStore.isAuthenticated) {
+    if (authStore.isAdmin) return next("/admin");
+    if (authStore.isMecanico) return next("/mecanico/orders");
+    if (authStore.isCliente) return next("/cliente/orders");
+  }
 
   // Page requires auth
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
     return next("/login");
-  }
-
-  // Page requires admin role
-  if (to.meta.rol === "admin" && authStore.isAuthenticated && !authStore.isAdmin) {
-    return next("/");
-  }
-
-  // Page requires mecanico role
-  if (to.meta.rol === "mecanico" && authStore.isAuthenticated && !authStore.isMecanico) {
-    return next("/");
-  }
-
-  // Page requires cliente role
-  if (to.meta.rol === "cliente" && authStore.isAuthenticated && !authStore.isCliente) {
-    return next("/");
   }
 
   // Public pages only for non-authenticated

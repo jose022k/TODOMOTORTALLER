@@ -54,7 +54,6 @@ Todas las modificaciones siguen el estándar de versión semántica (https://sem
 - Catálogo: migración de marcas existentes fallaba porque `create_all()` creaba la tabla vacía antes que `ensure_schema_updates()` — corregido moviendo la población fuera del bloque condicional
 
 ---
-
 ## [1.6.0] - 2026-06-30
 
 ### Added

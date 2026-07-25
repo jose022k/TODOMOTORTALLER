@@ -27,6 +27,11 @@ class CatalogoMotoResponse(CatalogoMotoBase):
     model_config = {"from_attributes": True}
 
 
+class BrandResponse(BaseModel):
+    marca: str
+    logo_url: Optional[str] = None
+
+
 class MotoClienteBase(BaseModel):
     placa: str
     anio: int
