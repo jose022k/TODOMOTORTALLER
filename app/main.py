@@ -1,12 +1,13 @@
+import asyncio
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.database import engine, Base, ensure_schema_updates
 
 # Import models so SQLAlchemy discovers them for create_all
 from app.modules.auth.models import Admin, Cliente, Mecanico
-from app.modules.motorcycles.models import CatalogoMoto, MotoCliente, HistorialMantenimiento
+from app.modules.motorcycles.models import CatalogoMoto, MotoCliente, HistorialMantenimiento, Marca
 from app.modules.service_orders.models import OrdenServicio, Evidencia
-from app.modules.notifications.models import Notificacion
+from app.modules.notifications.models import Notificacion, PushSubscription
 from app.modules.chat.models import Mensaje
 
 # Import routers
@@ -18,9 +19,14 @@ from app.modules.notifications.router import router as notifications_router
 from app.modules.reports.router import router as reports_router
 from app.modules.admin.router import router as admin_router
 from app.modules.chat.router import router as chat_router
+from app.modules.ws.router import router as ws_router
 
 Base.metadata.create_all(bind=engine)
 ensure_schema_updates()
+
+from app.core.cloudinary import init_cloudinary
+
+init_cloudinary()
 
 app = FastAPI(
     title="Todomotortaller API",
@@ -45,6 +51,12 @@ app.include_router(notifications_router)
 app.include_router(reports_router)
 app.include_router(admin_router)
 app.include_router(chat_router)
+app.include_router(ws_router)
+
+@app.on_event("startup")
+async def startup():
+    from app.core.ws_manager import init_ws
+    init_ws()
 
 @app.get("/")
 def root():
