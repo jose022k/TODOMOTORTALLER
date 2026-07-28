@@ -37,7 +37,7 @@
           </router-link>
           <NotificationsDropdown />
           <span class="user-info">{{ authStore.user?.nombre }}</span>
-          <button class="btn-logout" @click="handleLogout">Cerrar Sesión</button>
+          <button class="btn-logout" @click="handleLogout" :disabled="loggingOut">{{ loggingOut ? "Cerrando sesión..." : "Cerrar Sesión" }}</button>
         </template>
         <template v-else>
           <router-link v-if="$route.path !== '/login'" to="/login" class="nav-text-link">
@@ -50,17 +50,29 @@
     <main class="app-main">
       <router-view />
     </main>
+    <ConfirmModal
+      :visible="showLogoutModal"
+      title="Cerrar Sesión"
+      message="¿Deseas cerrar sesión?"
+      confirmText="Cerrar Sesión"
+      cancelText="Cancelar"
+      @confirm="confirmLogout"
+      @cancel="showLogoutModal = false"
+    />
+    <LoadingOverlay :visible="loggingOut" text="Cerrando sesión..." />
   </div>
 </template>
 
 <script>
 import { useAuthStore } from "@/stores/auth";
 import NotificationsDropdown from "@/components/NotificationsDropdown.vue";
+import ConfirmModal from "@/components/ConfirmModal.vue";
+import LoadingOverlay from "@/components/LoadingOverlay.vue";
 import { setupPush } from "@/services/push";
 
 export default {
   name: "App",
-  components: { NotificationsDropdown },
+  components: { NotificationsDropdown, ConfirmModal, LoadingOverlay },
   setup() {
     const authStore = useAuthStore();
     if (authStore.isAuthenticated && !authStore.user) {
@@ -87,10 +99,24 @@ export default {
       return "/";
     },
   },
+  data() {
+    return {
+      showLogoutModal: false,
+      loggingOut: false,
+    };
+  },
   methods: {
     handleLogout() {
-      this.authStore.logout();
-      this.$router.push("/login");
+      this.showLogoutModal = true;
+    },
+    confirmLogout() {
+      this.showLogoutModal = false;
+      this.loggingOut = true;
+      setTimeout(() => {
+        this.authStore.logout();
+        this.loggingOut = false;
+        this.$router.push("/login");
+      }, 3000);
     },
   },
 };
@@ -194,6 +220,10 @@ export default {
 .btn-logout:hover {
   border-color: #ffaa00;
   color: #ffaa00;
+}
+.btn-logout:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 .app-main {
   padding: 12px 20px;

@@ -25,6 +25,34 @@ Todas las modificaciones siguen el estándar de versión semántica (https://sem
 
 ---
 
+## [1.8.1] - 2026-07-28
+
+### Added
+
+- Carrusel de imágenes en vista Taller (HomeView) con fotos taller1-4 subidas a Cloudinary
+- Paginación (30/pág.) y búsqueda por prefijo en catálogo de motos
+- Paginación (15/pág.) en tabla de usuarios (clientes y mecánicos)
+- Subtítulos descriptivos debajo del título en vistas de admin
+- Componente `LoadingOverlay` con animación de rueda de moto girando
+- Componente `ConfirmModal` para confirmación de cierre de sesión
+- Iconos SVG profesionales en navegación (Taller, Ubicación, Iniciar Sesión)
+
+### Changed
+
+- Vista Taller: nuevo carrusel con auto-slide, botones anterior/siguiente y puntos
+- Vista Ubicación: mapa de Google Maps embebido + tarjeta de contacto flotante (WhatsApp y llamadas) + botón "Abrir en Maps"
+- Navegación: "Home" → "Taller", "About" → "Ubicación"
+- Cierre de sesión: ahora muestra modal de confirmación y overlay de carga de 3s
+- Inicio de sesión: spinner reemplazado por overlay full-screen con rueda de moto
+- Placa en órdenes de servicio: mayúsculas automáticas, solo alfanumérico, máx 7 caracteres
+
+### Fixed
+
+- Flash de enlaces Taller/Ubicación al cargar sesión de admin — corregida condición en App.vue
+- Subtítulo "Visualiza y descarga reportes" aparecía en PDF — oculto con @media print
+
+---
+
 ## [1.7.0] - 2026-07-23
 
 ### Added

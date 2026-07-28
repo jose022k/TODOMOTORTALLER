@@ -1,15 +1,18 @@
 <template>
   <div class="about">
-    <h1>Ubicación</h1>
     <div class="map-wrapper">
       <iframe
-        src="https://www.google.com/maps?q=10.338461,-67.038735&output=embed"
+        src="https://maps.google.com/maps?q=10.338461,-67.038735&z=16&output=embed"
         width="100%"
         height="480"
         style="border:0; border-radius: 16px;"
         allowfullscreen=""
         loading="lazy"
       ></iframe>
+      <a href="https://goo.gl/maps/tJmdf4q8x6SjhfM7A?g_st=am" target="_blank" class="maps-btn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        Abrir en Maps
+      </a>
       <div class="contact-card">
         <div class="contact-header">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffaa00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
@@ -49,11 +52,9 @@ export default {
 }
 .map-wrapper {
   position: relative;
-}
-.map-wrapper {
-  position: relative;
   border-radius: 16px;
   box-shadow: 0 8px 40px rgba(0,0,0,0.35);
+  margin-top: 48px;
 }
 .map-wrapper iframe {
   display: block;
@@ -63,6 +64,7 @@ export default {
   position: absolute;
   bottom: 24px;
   right: 24px;
+  z-index: 10;
   background: rgba(255, 255, 255, 0.88);
   backdrop-filter: blur(10px);
   border-radius: 14px;
@@ -108,5 +110,28 @@ export default {
 }
 .contact-row.whatsapp .contact-number {
   color: #25D366;
+}
+.maps-btn {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 10;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255,255,255,0.9);
+  backdrop-filter: blur(6px);
+  color: #1a1a1a;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 14px;
+  border-radius: 8px;
+  text-decoration: none;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+  transition: background 0.2s;
+}
+.maps-btn:hover {
+  background: #fff;
+  color: #ffaa00;
 }
 </style>

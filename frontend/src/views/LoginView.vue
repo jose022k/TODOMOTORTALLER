@@ -37,14 +37,17 @@
         ¿Eres cliente? <router-link to="/register/cliente">Regístrate aquí</router-link>
       </div>
     </div>
+    <LoadingOverlay :visible="loading" text="Entrando al sistema..." />
   </div>
 </template>
 
 <script>
 import { useAuthStore } from "@/stores/auth";
+import LoadingOverlay from "@/components/LoadingOverlay.vue";
 
 export default {
   name: "LoginView",
+  components: { LoadingOverlay },
   data() {
     return { email: "", password: "", error: "", loading: false, showPassword: false };
   },
