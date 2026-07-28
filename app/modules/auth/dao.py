@@ -43,6 +43,9 @@ class ClienteDAO(BaseDAO[Cliente, ClienteCreate, UserUpdate]):
             .first()
         )
 
+    def count_all(self, db: Session) -> int:
+        return db.query(self.model.id).count()
+
 
 class MecanicoDAO(BaseDAO[Mecanico, MecanicoCreate, UserUpdate]):
     def __init__(self):
@@ -53,3 +56,6 @@ class MecanicoDAO(BaseDAO[Mecanico, MecanicoCreate, UserUpdate]):
 
     def get_by_nombre(self, db: Session, nombre: str) -> Optional[Mecanico]:
         return db.query(self.model).filter(self.model.nombre == nombre).first()
+
+    def count_all(self, db: Session) -> int:
+        return db.query(self.model.id).count()

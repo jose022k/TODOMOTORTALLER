@@ -1,10 +1,13 @@
 <template>
   <div class="admin-orders">
     <div class="orders-header">
-      <h1>
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px; vertical-align: middle;"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M9 14l2 2 4-4"/></svg>
-        Órdenes de Servicio
-      </h1>
+      <div class="header-content">
+        <h1>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px; vertical-align: middle;"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M9 14l2 2 4-4"/></svg>
+          Órdenes de Servicio
+        </h1>
+        <p class="page-subtitle">Gestiona las órdenes de servicio de los clientes</p>
+      </div>
     </div>
 
     <!-- Alerta -->
@@ -143,7 +146,7 @@
             <div class="form-row">
               <div class="form-group half">
                 <label>Placa</label>
-                <input v-model="form.placa" type="text" class="form-control" placeholder="ABC-123" maxlength="20" />
+                <input v-model="form.placa" type="text" class="form-control" placeholder="ABC-123" maxlength="7" @input="filterPlaca" />
               </div>
               <div class="form-group half">
                 <label>Año</label>
@@ -429,6 +432,9 @@ export default {
     async goToPage(p) {
       this.page = p;
       await this.fetchOrders();
+    },
+    filterPlaca() {
+      this.form.placa = this.form.placa.replace(/[^a-zA-Z0-9]/g, "").toUpperCase().slice(0, 7);
     },
     onFilterChange() {
       this.page = 1;

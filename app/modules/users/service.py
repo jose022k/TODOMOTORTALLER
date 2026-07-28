@@ -99,6 +99,14 @@ def deactivate_client(db: Session, client_id: int):
     return cliente_dao.update(db, cliente, {"activo": nuevo_estado})
 
 
+def count_clients(db: Session):
+    return cliente_dao.count_all(db)
+
+
+def count_mechanics(db: Session):
+    return mecanico_dao.count_all(db)
+
+
 def get_all_mechanics(db: Session, activo_only: bool = False, skip: int = 0, limit: int = 100):
     query = mecanico_dao.get_all(db, skip=skip, limit=limit)
     if activo_only:

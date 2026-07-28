@@ -3,9 +3,15 @@
     <header class="app-header">
       <router-link :to="homeRoute" class="logo">Todomotortaller</router-link>
       <nav class="app-nav">
-        <template v-if="!authStore.isAuthenticated || !authStore.isAdmin">
-          <router-link v-if="!authStore.isMecanico && !authStore.isCliente" to="/">Home</router-link>
-          <router-link v-if="!authStore.isMecanico && !authStore.isCliente" to="/about">About</router-link>
+        <template v-if="!authStore.isAuthenticated">
+          <router-link v-if="!authStore.isMecanico && !authStore.isCliente" to="/" class="nav-text-link">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>
+            Taller
+          </router-link>
+          <router-link v-if="!authStore.isMecanico && !authStore.isCliente" to="/about" class="nav-text-link">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            Ubicación
+          </router-link>
         </template>
         <template v-if="authStore.isAuthenticated">
           <router-link v-if="authStore.isAdmin" to="/admin" class="nav-icon-btn" data-tooltip="Panel Admin">
@@ -34,7 +40,8 @@
           <button class="btn-logout" @click="handleLogout">Cerrar Sesión</button>
         </template>
         <template v-else>
-          <router-link v-if="$route.path !== '/login'" to="/login">
+          <router-link v-if="$route.path !== '/login'" to="/login" class="nav-text-link">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
             Iniciar Sesión
           </router-link>
         </template>
@@ -125,6 +132,11 @@ export default {
   text-decoration: none;
   font-weight: 600;
   font-size: 14px;
+}
+.nav-text-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 .app-nav a:hover {
   color: #ffaa00;

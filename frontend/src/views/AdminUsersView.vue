@@ -1,10 +1,13 @@
 <template>
   <div class="admin-users">
     <div class="users-header">
-      <h1>
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px; vertical-align: middle;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-        Gestión de Usuarios
-      </h1>
+      <div class="header-content">
+        <h1>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px; vertical-align: middle;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Gestión de Usuarios
+        </h1>
+        <p class="page-subtitle" style="margin-top: -8px;">Administra los clientes y mecánicos registrados</p>
+      </div>
     </div>
 
     <!-- Alert -->
@@ -22,7 +25,7 @@
     <!-- Tab: Mecánicos -->
     <div v-if="activeTab === 'mechanics'" class="tab-content">
       <div class="toolbar">
-        <input v-model="mechSearch" type="text" class="search-input" placeholder="Buscar por nombre o email..." />
+        <input v-model="mechSearch" type="text" class="search-input" placeholder="Buscar por nombre o email..." @input="onMechSearchInput" />
         <button class="btn-primary" @click="openCreateMechModal">+ Nuevo Mecánico</button>
       </div>
 
@@ -38,7 +41,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="m in filteredMechanics" :key="m.id">
+          <tr v-for="m in paginatedMechanics" :key="m.id">
             <td>{{ m.nombre }}</td>
             <td>{{ m.email }}</td>
             <td>
@@ -55,12 +58,17 @@
           </tr>
         </tbody>
       </table>
+      <div v-if="mechTotalPages > 1" class="pagination">
+        <button class="page-btn" :disabled="mechPage <= 1" @click="goToMechPage(mechPage - 1)">&#9664;</button>
+        <span class="page-info">{{ mechPage }} / {{ mechTotalPages }}</span>
+        <button class="page-btn" :disabled="mechPage >= mechTotalPages" @click="goToMechPage(mechPage + 1)">&#9654;</button>
+      </div>
     </div>
 
     <!-- Tab: Clientes -->
     <div v-if="activeTab === 'clients'" class="tab-content">
       <div class="toolbar">
-        <input v-model="clientSearch" type="text" class="search-input" placeholder="Buscar por nombre, email o cédula..." />
+        <input v-model="clientSearch" type="text" class="search-input" placeholder="Buscar por nombre, email o cédula..." @input="onClientSearchInput" />
       </div>
 
       <div v-if="loading" class="loading-state">Cargando...</div>
@@ -77,7 +85,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="c in filteredClients" :key="c.id">
+          <tr v-for="c in paginatedClients" :key="c.id">
             <td>{{ c.cedula }}</td>
             <td>{{ c.nombre }}</td>
             <td>{{ c.email }}</td>
@@ -97,6 +105,11 @@
           </tr>
         </tbody>
       </table>
+      <div v-if="clientTotalPages > 1" class="pagination">
+        <button class="page-btn" :disabled="clientPage <= 1" @click="goToClientPage(clientPage - 1)">&#9664;</button>
+        <span class="page-info">{{ clientPage }} / {{ clientTotalPages }}</span>
+        <button class="page-btn" :disabled="clientPage >= clientTotalPages" @click="goToClientPage(clientPage + 1)">&#9654;</button>
+      </div>
     </div>
 
     <!-- Modal Nuevo Mecánico -->
@@ -254,6 +267,9 @@ export default {
       // Mechanics
       mechanics: [],
       mechSearch: "",
+      mechPage: 1,
+      mechPageSize: 15,
+      mechSearchTimer: null,
       showCreateMech: false,
       showEditMech: false,
       mechForm: { nombre: "", email: "", password: "" },
@@ -261,6 +277,9 @@ export default {
       // Clients
       clients: [],
       clientSearch: "",
+      clientPage: 1,
+      clientPageSize: 15,
+      clientSearchTimer: null,
       showEditClient: false,
       showDetailClient: false,
       clientEditForm: { id: null, nombre: "", email: "", telefono: "", direccion: "" },
@@ -275,6 +294,9 @@ export default {
         (m) => m.nombre?.toLowerCase().includes(q) || m.email?.toLowerCase().includes(q)
       );
     },
+    mechTotalPages() {
+      return Math.ceil(this.filteredMechanics.length / this.mechPageSize) || 1;
+    },
     filteredClients() {
       const q = this.clientSearch.toLowerCase().trim();
       if (!q) return this.clients;
@@ -284,6 +306,17 @@ export default {
           c.email?.toLowerCase().includes(q) ||
           c.cedula?.toLowerCase().includes(q)
       );
+    },
+    clientTotalPages() {
+      return Math.ceil(this.filteredClients.length / this.clientPageSize) || 1;
+    },
+    paginatedMechanics() {
+      const start = (this.mechPage - 1) * this.mechPageSize;
+      return this.filteredMechanics.slice(start, start + this.mechPageSize);
+    },
+    paginatedClients() {
+      const start = (this.clientPage - 1) * this.clientPageSize;
+      return this.filteredClients.slice(start, start + this.clientPageSize);
     },
   },
   mounted() {
@@ -306,6 +339,15 @@ export default {
       } finally {
         this.loading = false;
       }
+    },
+    async goToMechPage(p) {
+      this.mechPage = p;
+    },
+    onMechSearchInput() {
+      if (this.mechSearchTimer) clearTimeout(this.mechSearchTimer);
+      this.mechSearchTimer = setTimeout(() => {
+        this.mechPage = 1;
+      }, 300);
     },
     openCreateMechModal() {
       this.mechForm = { nombre: "", email: "", password: "" };
@@ -368,6 +410,15 @@ export default {
         this.loading = false;
       }
     },
+    async goToClientPage(p) {
+      this.clientPage = p;
+    },
+    onClientSearchInput() {
+      if (this.clientSearchTimer) clearTimeout(this.clientSearchTimer);
+      this.clientSearchTimer = setTimeout(() => {
+        this.clientPage = 1;
+      }, 300);
+    },
     openEditClientModal(c) {
       this.clientEditForm = {
         id: c.id,
@@ -423,6 +474,10 @@ export default {
       this.clientDetail = c;
       this.showDetailClient = true;
     },
+  },
+  beforeUnmount() {
+    if (this.mechSearchTimer) clearTimeout(this.mechSearchTimer);
+    if (this.clientSearchTimer) clearTimeout(this.clientSearchTimer);
   },
 };
 </script>
@@ -742,5 +797,42 @@ export default {
   padding: 40px;
   color: #94a3b8;
   font-size: 0.95rem;
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 20px;
+  padding: 12px 0;
+}
+.page-btn {
+  width: 36px;
+  height: 36px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #475569;
+  transition: all 0.15s;
+}
+.page-btn:hover:not(:disabled) {
+  border-color: #ffaa00;
+  color: #ffaa00;
+}
+.page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.page-info {
+  font-size: 14px;
+  font-weight: 600;
+  color: #64748b;
+  min-width: 60px;
+  text-align: center;
 }
 </style>

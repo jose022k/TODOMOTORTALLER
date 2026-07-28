@@ -1,10 +1,13 @@
 <template>
   <div class="reports-page">
     <div class="reports-header">
-      <h1>
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px; vertical-align: middle;"><path d="M4 20h16"/><path d="M4 20V4"/><path d="M8 14V8"/><path d="M12 14v-4"/><path d="M16 14v-6"/><path d="M20 14V6"/></svg>
-        Reportes y Estadísticas
-      </h1>
+      <div class="header-content">
+        <h1>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px; vertical-align: middle;"><path d="M4 20h16"/><path d="M4 20V4"/><path d="M8 14V8"/><path d="M12 14v-4"/><path d="M16 14v-6"/><path d="M20 14V6"/></svg>
+          Reportes y Estadísticas
+        </h1>
+        <p class="page-subtitle">Visualiza y descarga reportes detallados del taller</p>
+      </div>
       <div class="print-header">
         <div class="print-header-spacer"></div>
         <div class="print-title-text">
@@ -529,7 +532,8 @@ export default {
     margin-bottom: 12px !important;
   }
 
-  .reports-header h1 {
+  .reports-header h1,
+  .reports-header .page-subtitle {
     display: none !important;
   }
 
