@@ -251,6 +251,20 @@ async def create_evidencia(db: Session, orden_id: int, file: UploadFile, mensaje
     return evidencia
 
 
+def link_evidencia(db: Session, orden_id: int, evidencia_id: int, mensaje_id: int, current_user):
+    order = orden_dao.get_by_id(db, orden_id)
+    if not order:
+        raise HTTPException(status_code=404, detail="Orden no encontrada")
+    _validar_acceso_orden(order, current_user)
+    evidencia = db.query(Evidencia).filter(Evidencia.id == evidencia_id, Evidencia.orden_servicio_id == orden_id).first()
+    if not evidencia:
+        raise HTTPException(status_code=404, detail="Evidencia no encontrada")
+    evidencia.mensaje_id = mensaje_id
+    db.commit()
+    db.refresh(evidencia)
+    return evidencia
+
+
 def delete_evidencia(db: Session, orden_id: int, evidencia_id: int, current_user):
     order = orden_dao.get_by_id(db, orden_id)
     if not order:

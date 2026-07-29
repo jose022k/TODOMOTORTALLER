@@ -58,6 +58,17 @@ def edit_message(
     return service.edit_message(db, orden_id, mensaje_id, data.contenido, current_user)
 
 
+@router.patch("/{orden_id}/evidencias/{evidencia_id}/link")
+def link_evidencia(
+    orden_id: int,
+    evidencia_id: int,
+    mensaje_id: int,
+    db: Session = Depends(get_db),
+    current_user: AnyUser = Depends(get_current_user),
+):
+    return service.link_evidencia(db, orden_id, evidencia_id, mensaje_id, current_user)
+
+
 @router.delete("/{orden_id}/evidencias/{evidencia_id}", status_code=204)
 def delete_evidencia(
     orden_id: int,
