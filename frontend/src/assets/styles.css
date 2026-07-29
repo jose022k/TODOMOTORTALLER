@@ -332,8 +332,8 @@ html.dark .chat-close:hover { background: #450a0a; color: #fca5a5; }
 html.dark .notif-bell { color: #cbd5e1; }
 html.dark .notif-bell:hover { background: rgba(255,170,0,0.12); }
 html.dark .notif-dropdown { background: var(--modal-bg); }
-html.dark .notif-header { border-bottom-color: var(--border-default); }
-html.dark .notif-header h3 { color: var(--text-default); }
+html.dark .notif-dropdown-header { border-bottom-color: var(--border-default); }
+html.dark .notif-dropdown-header h3 { color: var(--text-default); }
 html.dark .notif-item { border-bottom-color: var(--border-light); }
 html.dark .notif-item:hover { background: var(--bg-hover); }
 html.dark .notif-unread { background: #422006; }
