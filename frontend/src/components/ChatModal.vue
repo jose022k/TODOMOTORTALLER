@@ -12,7 +12,7 @@
         </div>
 
         <template v-for="item in timeline" :key="item.key">
-          <!-- Evidencia -->
+          <!-- Evidencia suelta (sin mensaje) -->
           <div v-if="item.type === 'evidencia'" class="evidencia-bubble">
             <img :src="imageUrl(item.url)" class="evidencia-img" @click="openLightbox(imageUrl(item.url))" />
           </div>
@@ -28,7 +28,16 @@
                 </div>
               </template>
               <template v-else>
-                <div class="msg-text">{{ item.contenido }}</div>
+                <div v-if="item.contenido" class="msg-text">{{ item.contenido }}</div>
+                <div v-if="item.evidencias.length" class="msg-attached-imgs">
+                  <img
+                    v-for="ev in item.evidencias"
+                    :key="ev.id"
+                    :src="imageUrl(ev.url)"
+                    class="attached-img"
+                    @click="openLightbox(imageUrl(ev.url))"
+                  />
+                </div>
                 <div class="msg-footer">
                   <span class="msg-time">{{ formatTime(item.fecha_hora) }}<span v-if="item.editado" class="editado-badge"> · editado</span></span>
                   <button v-if="item.mine && item.canEdit" class="btn-edit" title="Editar mensaje" @click.stop="startEdit(item)">✏️</button>
@@ -104,15 +113,25 @@ export default {
   },
   computed: {
     timeline() {
+      const now = new Date();
+      const evidenciasByMsg = {};
+      this.evidencias.forEach((e) => {
+        if (e.mensaje_id) {
+          if (!evidenciasByMsg[e.mensaje_id]) evidenciasByMsg[e.mensaje_id] = [];
+          evidenciasByMsg[e.mensaje_id].push(e);
+        }
+      });
       const items = [];
       this.evidencias.forEach((e) => {
-        items.push({ type: "evidencia", key: "ev" + e.id, url: e.url, fecha: e.fecha });
+        if (!e.mensaje_id) {
+          items.push({ type: "evidencia", key: "ev" + e.id, url: e.url, fecha: e.fecha });
+        }
       });
-      const now = new Date();
       this.messages.forEach((m) => {
         const mine = m.remitente_id === this.myId && m.remitente_rol === this.myRole;
         const msgDate = new Date(m.fecha_hora);
         const canEdit = mine && (now - msgDate) < 600000;
+        const attached = evidenciasByMsg[m.id] || [];
         items.push({
           type: "mensaje",
           key: "msg" + m.id,
@@ -123,6 +142,7 @@ export default {
           remitente_rol: m.remitente_rol,
           mine,
           canEdit,
+          evidencias: attached,
         });
       });
       items.sort((a, b) => new Date(a.fecha || a.fecha_hora) - new Date(b.fecha || b.fecha_hora));
@@ -167,14 +187,22 @@ export default {
         });
       }
       try {
-        if (file) {
+        if (textContent && file) {
+          const msgRes = await api.post(`/chat/${this.ordenId}`, { contenido: textContent, orden_servicio_id: this.ordenId });
+          if (tempMsg) Object.assign(tempMsg, msgRes.data);
+          const fd = new FormData();
+          fd.append("file", file);
+          fd.append("mensaje_id", msgRes.data.id);
+          const evRes = await api.post(`/chat/${this.ordenId}/evidencias`, fd);
+          this.evidencias.unshift(evRes.data);
+          this.clearPreview();
+        } else if (file) {
           const fd = new FormData();
           fd.append("file", file);
           const evRes = await api.post(`/chat/${this.ordenId}/evidencias`, fd);
           this.evidencias.unshift(evRes.data);
           this.clearPreview();
-        }
-        if (textContent) {
+        } else if (textContent) {
           const msgRes = await api.post(`/chat/${this.ordenId}`, { contenido: textContent, orden_servicio_id: this.ordenId });
           if (tempMsg) Object.assign(tempMsg, msgRes.data);
         }
@@ -320,6 +348,19 @@ export default {
   cursor: pointer;
   border: 2px solid #fff;
   box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+}
+.msg-attached-imgs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+}
+.attached-img {
+  width: 100%;
+  max-height: 200px;
+  object-fit: cover;
+  border-radius: 8px;
+  cursor: pointer;
 }
 .msg-row {
   display: flex;
