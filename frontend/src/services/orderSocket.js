@@ -30,9 +30,9 @@ function onClose() {
 }
 
 function onMessage(event) {
+  if (event.data === 'pong') return
   try {
     const data = JSON.parse(event.data)
-    if (data.tipo === 'pong') return
     if (data.tipo === 'orden_creada' || data.tipo === 'orden_actualizada') {
       window.dispatchEvent(new CustomEvent('order-updated', { detail: data }))
     }
