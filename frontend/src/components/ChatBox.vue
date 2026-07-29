@@ -63,7 +63,10 @@ export default {
         this.messages = data;
         this.$nextTick(() => {
           const el = this.$refs.messagesContainer;
-          if (el) el.scrollTop = el.scrollHeight;
+          if (!el) return;
+          const threshold = 50;
+          const nearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < threshold;
+          if (nearBottom) el.scrollTop = el.scrollHeight;
         });
       } catch (e) { /* polling error silently */ }
     },

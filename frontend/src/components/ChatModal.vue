@@ -143,7 +143,10 @@ export default {
     },
     scrollDown() {
       const el = this.$refs.chatBody;
-      if (el) el.scrollTop = el.scrollHeight;
+      if (!el) return;
+      const threshold = 50;
+      const nearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < threshold;
+      if (nearBottom) el.scrollTop = el.scrollHeight;
     },
     async send() {
       const textContent = this.text.trim();

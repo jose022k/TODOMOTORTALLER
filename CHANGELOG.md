@@ -53,6 +53,16 @@ Todas las modificaciones siguen el estándar de versión semántica (https://sem
 
 ---
 
+## [1.8.2] - 2026-07-28
+
+### Fixed
+
+- Chat: auto-scroll ya no baja cuando el usuario está leyendo mensajes antiguos
+- Chat: mensajes y evidencias bloqueados cuando la orden está completada o cancelada
+- Notificaciones: al hacer clic en una notificación de mensaje/evidencia de orden completada/cancelada, muestra aviso "La orden ya fue completada/cancelada"
+
+---
+
 ## [1.7.0] - 2026-07-23
 
 ### Added

@@ -164,6 +164,12 @@ def get_messages(db: Session, orden_id: int, current_user):
 
     _validar_acceso_orden(order, current_user)
 
+    if order.estado != "en_proceso":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Los mensajes solo están disponibles mientras la orden está en proceso",
+        )
+
     mensajes = mensaje_dao.get_by_orden(db, orden_id)
     return [_build_mensaje_response(m) for m in mensajes]
 
@@ -177,6 +183,12 @@ def get_evidencias(db: Session, orden_id: int, current_user):
         )
 
     _validar_acceso_orden(order, current_user)
+
+    if order.estado != "en_proceso":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Las evidencias solo están disponibles mientras la orden está en proceso",
+        )
 
     evidencias = (
         db.query(Evidencia)
