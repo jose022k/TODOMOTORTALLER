@@ -205,9 +205,9 @@ export default {
           ]);
           Object.assign(tempMsg, msgRes.data);
           const evIdx = this.evidencias.indexOf(tempEv);
-          if (evIdx !== -1) this.evidencias.splice(evIdx, 1, evRes.data);
+          const realEv = { ...evRes.data, mensaje_id: msgRes.data.id || null };
+          if (evIdx !== -1) this.evidencias.splice(evIdx, 1, realEv);
           if (msgRes.data.id) {
-            evRes.data.mensaje_id = msgRes.data.id;
             api.patch(`/chat/${this.ordenId}/evidencias/${evRes.data.id}/link?mensaje_id=${msgRes.data.id}`).catch(() => {});
           }
         } else if (file) {
