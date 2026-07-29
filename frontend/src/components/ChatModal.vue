@@ -28,7 +28,6 @@
                 </div>
               </template>
               <template v-else>
-                <div v-if="item.contenido" class="msg-text">{{ item.contenido }}</div>
                 <div v-if="item.evidencias.length" class="msg-attached-imgs">
                   <img
                     v-for="ev in item.evidencias"
@@ -38,6 +37,7 @@
                     @click="openLightbox(imageUrl(ev.url))"
                   />
                 </div>
+                <div v-if="item.contenido" class="msg-text">{{ item.contenido }}</div>
                 <div class="msg-footer">
                   <span class="msg-time">{{ formatTime(item.fecha_hora) }}<span v-if="item.editado" class="editado-badge"> · editado</span></span>
                   <button v-if="item.mine && item.canEdit" class="btn-edit" title="Editar mensaje" @click.stop="startEdit(item)">✏️</button>
