@@ -37,7 +37,6 @@
           </router-link>
           <NotificationsDropdown />
           <span class="user-info">{{ authStore.user?.nombre }}</span>
-          <SettingsDropdown @theme-change="onThemeChange" />
           <button class="btn-logout" @click="handleLogout" :disabled="loggingOut">{{ loggingOut ? "Cerrando sesión..." : "Cerrar Sesión" }}</button>
         </template>
         <template v-else>
@@ -46,6 +45,7 @@
             Iniciar Sesión
           </router-link>
         </template>
+        <SettingsDropdown @theme-change="onThemeChange" />
       </nav>
     </header>
     <main class="app-main">

@@ -88,6 +88,7 @@ html.dark {
   --settings-muted: #64748b;
   --settings-text: #e2e8f0;
 }
+html.dark .settings-trigger { color: #94a3b8; }
 
 /* ── Cards ── */
 html.dark .card,
@@ -141,9 +142,14 @@ html.dark .modal-btn.confirm:hover { background: #e69900 !important; }
 
 /* ── Detail sections inside modals ── */
 html.dark .detail-grid { background: transparent; }
+html.dark .detail-grid div { color: #f1f5f9 !important; }
+html.dark .detail-grid strong { color: #94a3b8 !important; }
 html.dark .detail-item { background: var(--bg-muted) !important; }
 html.dark .detail-label { color: var(--text-muted) !important; }
 html.dark .detail-value { color: var(--text-default) !important; }
+html.dark .client-detail { color: #f1f5f9; }
+html.dark .motos-title { color: #f1f5f9 !important; }
+html.dark .client-detail .empty-state { color: var(--text-muted) !important; }
 
 /* ── Form groups inside modals ── */
 html.dark .form-group label { color: var(--text-secondary) !important; }
