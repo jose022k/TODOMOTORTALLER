@@ -157,7 +157,9 @@ export default {
           api.get(`/chat/${this.ordenId}/evidencias`),
         ]);
         this.messages = msgRes.data;
-        this.evidencias = evRes.data;
+        const localLinks = {};
+        this.evidencias.forEach(e => { if (e.id && e.mensaje_id) localLinks[e.id] = e.mensaje_id; });
+        this.evidencias = evRes.data.map(ev => { if (localLinks[ev.id]) ev.mensaje_id = localLinks[ev.id]; return ev; });
         await this.$nextTick();
         this.scrollDown();
       } catch (e) { /* polling error silently */ }
