@@ -362,52 +362,58 @@ export default {
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
-  margin-top: 6px;
+  margin-bottom: 6px;
 }
 .attached-img {
   width: 100%;
   max-height: 200px;
   object-fit: cover;
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 .msg-row {
   display: flex;
+  margin-bottom: 2px;
 }
 .msg-mine { justify-content: flex-end; }
 .msg-other { justify-content: flex-start; }
 .msg-bubble {
   max-width: 75%;
   padding: 8px 12px;
-  border-radius: 10px;
+  border-radius: 14px;
   font-size: 0.9rem;
   position: relative;
   word-wrap: break-word;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.06);
 }
 .bubble-mine {
-  background: #fef3c7;
-  border-bottom-right-radius: 2px;
+  background: #fff3cd;
+  border-bottom-right-radius: 4px;
 }
 .bubble-other {
   background: #fff;
-  border-bottom-left-radius: 2px;
+  border-bottom-left-radius: 4px;
 }
 .msg-author {
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: #1a1a1a;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #9ca3af;
   margin-bottom: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
 }
-.msg-text { line-height: 1.4; }
+.msg-text { line-height: 1.45; color: #1f2937; }
 .msg-footer {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
+  gap: 6px;
   margin-top: 4px;
 }
 .msg-time {
-  font-size: 0.65rem;
-  color: #6b7280;
+  font-size: 0.6rem;
+  color: #9ca3af;
 }
 .editado-badge {
   color: #d97706;
@@ -416,15 +422,24 @@ export default {
 .btn-edit {
   background: none;
   border: none;
-  font-size: 0.75rem;
   cursor: pointer;
-  padding: 0;
+  padding: 3px;
   line-height: 1;
-  opacity: 0.4;
-  transition: opacity 0.15s;
+  opacity: 0;
+  color: #9ca3af;
+  border-radius: 6px;
+  transition: all 0.15s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.btn-edit:hover {
+  opacity: 1 !important;
+  color: #ffaa00;
+  background: rgba(255,170,0,0.1);
 }
 .msg-bubble:hover .btn-edit {
-  opacity: 1;
+  opacity: 0.5;
 }
 .edit-input {
   width: 100%;
