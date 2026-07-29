@@ -152,7 +152,6 @@ html.dark .motos-title { color: #f1f5f9 !important; }
 html.dark .client-detail .empty-state { color: var(--text-muted) !important; }
 
 /* ── Form groups inside modals ── */
-html.dark .form-group label { color: var(--text-secondary) !important; }
 html.dark .form-group input,
 html.dark .form-group select,
 html.dark .form-group textarea { background: var(--bg-input) !important; border-color: var(--border-input) !important; color: var(--text-default) !important; }
@@ -460,7 +459,8 @@ html.dark .form-control,
 html.dark [class*="form-control"] { background: var(--bg-input); border-color: var(--border-strong); color: var(--text-default); }
 html.dark .form-control:focus,
 html.dark [class*="form-control"]:focus { border-color: var(--color-primary); }
-html.dark .form-group label { color: var(--text-secondary); }
+html.dark .form-group label { color: #f1f5f9 !important; }
+html.dark .input-group label { color: #f1f5f9 !important; }
 
 /* ── Cliente / Mecanico orders ── */
 html.dark .cliente-orders,
