@@ -10,7 +10,7 @@ function getWebSocketUrl() {
   const token = localStorage.getItem('access_token')
   if (!token) return null
   const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-  return `${protocol}//${window.location.host}/ws/orders?token=${encodeURIComponent(token)}`
+  return `${protocol}//${window.location.host}/socket/orders?token=${encodeURIComponent(token)}`
 }
 
 function onOpen() {

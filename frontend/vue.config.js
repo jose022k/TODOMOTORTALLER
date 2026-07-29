@@ -12,7 +12,7 @@ module.exports = defineConfig({
         target: "http://localhost:8000",
         changeOrigin: true,
       },
-      "/ws": {
+      "/socket": {
         target: "http://localhost:8000",
         ws: true,
         changeOrigin: true,
