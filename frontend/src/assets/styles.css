@@ -226,6 +226,16 @@ html.dark select:focus,
 html.dark textarea:focus {
   border-color: var(--color-primary);
 }
+html.dark .search-input {
+  border-color: var(--border-input) !important;
+  background-color: var(--bg-input) !important;
+  color: var(--text-default) !important;
+}
+html.dark .search-input:focus {
+  border-color: var(--color-primary) !important;
+  background-color: var(--bg-input) !important;
+  color: var(--text-default) !important;
+}
 html.dark input::placeholder { color: var(--text-placeholder); }
 html.dark select:disabled { background: var(--bg-muted); color: var(--text-muted); }
 html.dark label,
