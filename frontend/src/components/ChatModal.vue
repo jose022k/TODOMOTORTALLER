@@ -148,6 +148,10 @@ export default {
       const nearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < threshold;
       if (nearBottom) el.scrollTop = el.scrollHeight;
     },
+    scrollToBottom() {
+      const el = this.$refs.chatBody;
+      if (el) el.scrollTop = el.scrollHeight;
+    },
     async send() {
       const textContent = this.text.trim();
       const file = this.selectedFile;
@@ -158,7 +162,7 @@ export default {
         tempMsg = { id: -Date.now(), contenido: textContent, fecha_hora: new Date().toISOString(), remitente_id: this.myId, remitente_rol: this.myRole, editado: false };
         this.messages.push(tempMsg);
         this.text = "";
-        this.$nextTick(() => this.scrollDown());
+        this.$nextTick(() => this.scrollToBottom());
       }
       try {
         const promises = [];
@@ -173,6 +177,7 @@ export default {
         await Promise.all(promises);
         if (file) this.clearPreview();
         this.fetchAll();
+        this.$nextTick(() => this.scrollToBottom());
       } catch (err) {
         if (tempMsg) this.messages = this.messages.filter(m => m.id !== tempMsg.id);
         alert("Error al enviar: " + (err.response?.data?.detail || err.message));

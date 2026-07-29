@@ -70,12 +70,17 @@ export default {
         });
       } catch (e) { /* polling error silently */ }
     },
+    scrollToBottom() {
+      const el = this.$refs.messagesContainer;
+      if (el) el.scrollTop = el.scrollHeight;
+    },
     async send() {
       if (!this.text.trim()) return;
       try {
         await api.post(`/chat/${this.ordenId}`, { contenido: this.text, orden_servicio_id: this.ordenId });
         this.text = "";
         await this.fetchMessages();
+        this.$nextTick(() => this.scrollToBottom());
       } catch (err) {
         alert(err.response?.data?.detail || "Error al enviar mensaje");
       }
