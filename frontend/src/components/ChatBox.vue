@@ -49,8 +49,9 @@ export default {
       polling: null,
     };
   },
-  mounted() {
-    this.fetchMessages();
+  async mounted() {
+    await this.fetchMessages();
+    this.$nextTick(() => this.forceScrollDown());
     this.polling = setInterval(() => this.fetchMessages(), 5000);
   },
   beforeUnmount() {
@@ -70,7 +71,7 @@ export default {
         });
       } catch (e) { /* polling error silently */ }
     },
-    scrollToBottom() {
+    forceScrollDown() {
       const el = this.$refs.messagesContainer;
       if (el) el.scrollTop = el.scrollHeight;
     },
@@ -80,11 +81,14 @@ export default {
       this.text = "";
       const tempMsg = { id: -Date.now(), contenido: text, fecha_hora: new Date().toISOString(), remitente_id: this.myId, remitente_rol: this.myRole, editado: false };
       this.messages.push(tempMsg);
-      this.$nextTick(() => this.scrollToBottom());
+      await this.$nextTick();
+      this.forceScrollDown();
       try {
         const { data } = await api.post(`/chat/${this.ordenId}`, { contenido: text, orden_servicio_id: this.ordenId });
         const idx = this.messages.indexOf(tempMsg);
         if (idx !== -1) this.messages.splice(idx, 1, data);
+        await this.$nextTick();
+        this.forceScrollDown();
       } catch (err) {
         this.messages = this.messages.filter(m => m.id !== tempMsg.id);
         alert(err.response?.data?.detail || "Error al enviar mensaje");
