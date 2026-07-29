@@ -40,7 +40,7 @@
                 <div v-if="item.contenido" class="msg-text">{{ item.contenido }}</div>
                 <div class="msg-footer">
                   <span class="msg-time">{{ formatTime(item.fecha_hora) }}<span v-if="item.editado" class="editado-badge"> · editado</span></span>
-                  <button v-if="item.mine && item.canEdit" class="btn-edit" title="Editar mensaje" @click.stop="startEdit(item)">✏️</button>
+                  <button v-if="item.mine && item.canEdit" class="btn-edit" title="Editar mensaje" @click.stop="startEdit(item)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>
                 </div>
               </template>
             </div>
