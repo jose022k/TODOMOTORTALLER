@@ -349,7 +349,13 @@ html.dark .catalog-logo-preview { background: var(--bg-subtle) !important; borde
 html.dark .catalog-header { background: transparent; }
 
 /* ── Home / About ── */
-html.dark .home-page { background: var(--bg-page); }
+html.dark .home-page,
+html.dark .home { background: var(--bg-page) !important; }
+html.dark .carousel-container { box-shadow: 0 8px 40px rgba(0,0,0,0.6); }
+html.dark .carousel-btn { background: rgba(0,0,0,0.6); color: #f1f5f9; }
+html.dark .carousel-btn:hover { background: rgba(0,0,0,0.8); }
+html.dark .carousel-dots span { background: rgba(255,255,255,0.25); }
+html.dark .carousel-dots span.active { background: #ffaa00; }
 html.dark .about-page { background: var(--bg-page); }
 html.dark .contact-card { background: rgba(30,41,59,0.92); }
 html.dark .contact-header { color: var(--text-default); }
