@@ -109,16 +109,51 @@ html.dark td,
 html.dark [class*="table"] td { border-bottom-color: var(--border-light) !important; color: var(--text-default) !important; }
 html.dark tr:hover td { background: var(--bg-hover) !important; color: var(--text-default) !important; }
 
-/* ── Modals ── */
-html.dark [class*="modal"]:not([class*="btn-"]):not([class*="badge"]) {
-  background: var(--modal-bg);
-}
-html.dark [class*="modal"] h2,
-html.dark [class*="modal"] h3 { color: var(--text-default); }
-html.dark [class*="modal-overlay"],
-html.dark [class*="overlay"] { background: var(--modal-overlay); }
-html.dark [class*="modal"] [class*="section"],
-html.dark [class*="modal-section"] { border-bottom-color: var(--border-light); }
+/* ── Modals (all views) ── */
+html.dark .modal-overlay,
+html.dark .modal-backdrop { background: rgba(0,0,0,0.7) !important; backdrop-filter: blur(6px); }
+html.dark .modal,
+html.dark .modal-card { background: var(--modal-bg) !important; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5) !important; }
+html.dark .modal-topbar { border-bottom-color: var(--border-light) !important; }
+html.dark .topbar-id { color: var(--text-subtle) !important; }
+html.dark .modal-close { color: var(--text-muted) !important; }
+html.dark .modal-close:hover { background: #450a0a !important; color: #fca5a5 !important; }
+html.dark .btn-close { color: var(--text-muted) !important; }
+html.dark .btn-close:hover { background: #450a0a !important; color: #fca5a5 !important; }
+html.dark .modal-header { border-bottom-color: var(--border-light) !important; }
+html.dark .modal-header h2 { color: #f1f5f9 !important; }
+html.dark .modal-body { color: var(--text-default); }
+html.dark .modal-footer { border-top-color: var(--border-light) !important; }
+html.dark .modal--pendiente { border-top-color: #f59e0b !important; }
+html.dark .modal--en_proceso { border-top-color: #3b82f6 !important; }
+html.dark .modal-sm { background: var(--modal-bg) !important; }
+html.dark .qr-body { color: var(--text-default); }
+
+/* ── Confirm Modal ── */
+html.dark .modal-icon { color: var(--color-primary); } /* SVG stroke via currentColor */
+html.dark .modal-title { color: #f1f5f9 !important; }
+html.dark .modal-message { color: var(--text-secondary) !important; }
+html.dark .modal-actions { background: transparent; }
+html.dark .modal-btn.cancel { background: #334155 !important; color: #cbd5e1 !important; }
+html.dark .modal-btn.cancel:hover { background: #475569 !important; }
+html.dark .modal-btn.confirm { background: var(--color-primary) !important; color: #1a1a1a !important; }
+html.dark .modal-btn.confirm:hover { background: #e69900 !important; }
+
+/* ── Detail sections inside modals ── */
+html.dark .detail-grid { background: transparent; }
+html.dark .detail-item { background: var(--bg-muted) !important; }
+html.dark .detail-label { color: var(--text-muted) !important; }
+html.dark .detail-value { color: var(--text-default) !important; }
+
+/* ── Form groups inside modals ── */
+html.dark .form-group label { color: var(--text-secondary) !important; }
+html.dark .form-group input,
+html.dark .form-group select,
+html.dark .form-group textarea { background: var(--bg-input) !important; border-color: var(--border-input) !important; color: var(--text-default) !important; }
+html.dark .form-group input:focus,
+html.dark .form-group select:focus,
+html.dark .form-group textarea:focus { border-color: var(--color-primary) !important; }
+html.dark .form-group textarea { background: var(--bg-input); color: var(--text-default); }
 
 /* ── Badges / Status ── */
 html.dark .badge-pendiente,
@@ -212,8 +247,8 @@ html.dark [class*="detail-card-header"] { color: var(--text-muted); }
 html.dark [class*="detail-card-body"] { color: var(--text-secondary); }
 
 /* ── Chat Modal ── */
-html.dark .chat-overlay { background: var(--modal-overlay); }
-html.dark .chat-modal { background: var(--modal-bg); }
+html.dark .chat-overlay { background: rgba(0,0,0,0.7) !important; }
+html.dark .chat-modal { background: var(--modal-bg) !important; box-shadow: 0 20px 60px rgba(0,0,0,0.5) !important; }
 html.dark .chat-container { background: var(--modal-bg); }
 html.dark .chat-header { background: var(--color-primary); }
 html.dark .chat-body { background: #1a1a1a; }
@@ -286,23 +321,27 @@ html.dark .auth-toggle { color: var(--text-muted); }
 html.dark .auth-toggle:hover { background: rgba(255,170,0,0.1); }
 
 /* ── Catalog ── */
-html.dark .catalog-card { background: var(--bg-card); border-color: var(--border-default); }
-html.dark .catalog-card:hover { border-color: rgba(255,170,0,0.4); }
-html.dark .catalog-card-title { color: var(--text-default); }
-html.dark .catalog-card-subtitle { color: var(--text-muted); }
-html.dark .catalog-icon-wrap { background: rgba(255,170,0,0.1); border-color: rgba(255,170,0,0.2); }
+html.dark .catalog-container { background: var(--bg-page); }
+html.dark .catalog-card { background: var(--bg-card) !important; border-color: var(--border-default) !important; }
+html.dark .catalog-card:hover { border-color: rgba(255,170,0,0.4) !important; }
+html.dark .catalog-card-title { color: #f1f5f9 !important; }
+html.dark .catalog-card-subtitle { color: var(--text-muted) !important; }
+html.dark .catalog-icon-wrap { background: rgba(255,170,0,0.1) !important; border-color: rgba(255,170,0,0.2) !important; }
 html.dark .catalog-empty { color: var(--text-muted); }
 html.dark .catalog-dropzone { background: var(--bg-subtle); border-color: var(--border-strong); }
 html.dark .catalog-dropzone:hover { border-color: var(--color-primary); background: rgba(255,170,0,0.05); }
 html.dark .catalog-dropzone.has-file { border-color: #10b981; background: rgba(16,185,129,0.05); }
 html.dark .catalog-drop-text { color: var(--text-secondary); }
 html.dark .catalog-drop-hint { color: var(--text-muted); }
-html.dark .catalog-search { background: var(--bg-input); border-color: var(--border-default); }
-html.dark .catalog-modal-backdrop { background: var(--modal-overlay); }
-html.dark .catalog-modal { background: var(--modal-bg); }
-html.dark .catalog-modal-title { color: var(--text-default); }
-html.dark .catalog-form-label { color: var(--text-secondary); }
-html.dark .catalog-logo-preview { background: var(--bg-subtle); border-color: var(--border-default); }
+html.dark .catalog-search { background: var(--bg-input); border-color: var(--border-default); color: var(--text-default); }
+html.dark .catalog-header h1 { color: #f1f5f9; }
+html.dark .catalog-header h1 svg { color: #f1f5f9; }
+html.dark .catalog-modal-backdrop { background: var(--modal-overlay) !important; }
+html.dark .catalog-modal { background: var(--modal-bg) !important; }
+html.dark .catalog-modal-title { color: #f1f5f9 !important; }
+html.dark .catalog-form-label { color: var(--text-secondary) !important; }
+html.dark .catalog-logo-preview { background: var(--bg-subtle) !important; border-color: var(--border-default) !important; }
+html.dark .catalog-header { background: transparent; }
 
 /* ── Home / About ── */
 html.dark .home-page { background: var(--bg-page); }
