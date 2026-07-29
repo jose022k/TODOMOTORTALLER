@@ -82,8 +82,10 @@ export default {
       const tempMsg = { id: -Date.now(), contenido: text, fecha_hora: new Date().toISOString(), remitente_id: this.myId, remitente_rol: this.myRole, editado: false };
       this.messages.push(tempMsg);
       this.$nextTick(() => {
-        const el = this.$refs.messagesContainer;
-        if (el) el.scrollTop = el.scrollHeight;
+        requestAnimationFrame(() => {
+          const el = this.$refs.messagesContainer;
+          if (el) el.scrollTop = el.scrollHeight;
+        });
       });
       try {
         const { data } = await api.post(`/chat/${this.ordenId}`, { contenido: text, orden_servicio_id: this.ordenId });
@@ -91,6 +93,13 @@ export default {
       } catch (err) {
         this.messages = this.messages.filter(m => m.id !== tempMsg.id);
         alert(err.response?.data?.detail || "Error al enviar mensaje");
+      } finally {
+        this.$nextTick(() => {
+          requestAnimationFrame(() => {
+            const el = this.$refs.messagesContainer;
+            if (el) el.scrollTop = el.scrollHeight;
+          });
+        });
       }
     },
     formatTime(dt) {

@@ -160,8 +160,10 @@ export default {
         this.messages.push(tempMsg);
         this.text = "";
         this.$nextTick(() => {
-          const el = this.$refs.chatBody;
-          if (el) el.scrollTop = el.scrollHeight;
+          requestAnimationFrame(() => {
+            const el = this.$refs.chatBody;
+            if (el) el.scrollTop = el.scrollHeight;
+          });
         });
       }
       try {
@@ -181,6 +183,12 @@ export default {
         alert("Error al enviar: " + (err.response?.data?.detail || err.message));
       } finally {
         this.uploading = false;
+        this.$nextTick(() => {
+          requestAnimationFrame(() => {
+            const el = this.$refs.chatBody;
+            if (el) el.scrollTop = el.scrollHeight;
+          });
+        });
       }
     },
     selectFile(e) {
