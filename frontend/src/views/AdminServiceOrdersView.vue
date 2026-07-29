@@ -118,7 +118,7 @@
             </div>
             <div class="form-group">
               <label>Modelo</label>
-              <select v-model="form.catalogoModelo" @change="onModeloChange" class="form-control" :disabled="!form.catalogoMarca">
+              <select v-model="form.catalogoModelo" @change="onModeloChange" class="form-control">
                 <option value="">Seleccionar modelo...</option>
                 <option v-for="m in modelosFiltrados" :key="m.id" :value="m.modelo">{{ m.modelo }}</option>
               </select>
@@ -365,19 +365,23 @@ export default {
       });
     },
     coloresPorModelo() {
-      if (!this.form.catalogoMarca || !this.form.catalogoModelo) return [];
+      if (!this.form.catalogoModelo) return [];
       const colores = new Set();
       this.catalog
-        .filter((m) => m.marca === this.form.catalogoMarca && m.modelo === this.form.catalogoModelo)
+        .filter((m) => {
+          if (this.form.catalogoMarca && m.marca !== this.form.catalogoMarca) return false;
+          return m.modelo === this.form.catalogoModelo;
+        })
         .forEach((m) => {
           (m.gama_color || "").split(",").map((c) => c.trim()).filter(Boolean).forEach((c) => colores.add(c));
         });
       return [...colores];
     },
     modeloSeleccionado() {
-      return this.catalog.find(
-        (m) => m.marca === this.form.catalogoMarca && m.modelo === this.form.catalogoModelo
-      );
+      return this.catalog.find((m) => {
+        if (this.form.catalogoMarca && m.marca !== this.form.catalogoMarca) return false;
+        return m.modelo === this.form.catalogoModelo;
+      });
     },
     coloresDisponibles() {
       return this.coloresPorModelo;
@@ -385,7 +389,7 @@ export default {
     canCreate() {
       if (!this.form.cliente_id || !this.form.mecanico_id || !this.form.descripcion.trim()) return false;
       if (this.motoMode === "existente") return !!this.form.moto_cliente_id;
-      return !!(this.form.catalogoMarca && this.form.catalogoModelo && this.form.color && this.form.placa && this.form.anio);
+      return !!(this.form.catalogoModelo && this.modeloSeleccionado && this.form.color && this.form.placa && this.form.anio);
     },
     canChangeStatus() {
       return this.detail && this.detail.estado !== "completada" && this.detail.estado !== "cancelada";
@@ -496,6 +500,10 @@ export default {
     },
     onModeloChange() {
       this.form.color = "";
+      if (!this.form.catalogoMarca) {
+        const match = this.catalog.find((m) => m.modelo === this.form.catalogoModelo);
+        if (match) this.form.catalogoMarca = match.marca;
+      }
     },
     colorHex(colorName) {
       const map = {
