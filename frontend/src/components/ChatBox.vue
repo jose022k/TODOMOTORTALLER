@@ -49,9 +49,13 @@ export default {
       polling: null,
     };
   },
-  async mounted() {
-    await this.fetchMessages();
-    this.$nextTick(() => this.forceScrollDown());
+  mounted() {
+    this.fetchMessages().then(() => {
+      this.$nextTick(() => {
+        const el = this.$refs.messagesContainer;
+        if (el) el.scrollTop = el.scrollHeight;
+      });
+    });
     this.polling = setInterval(() => this.fetchMessages(), 5000);
   },
   beforeUnmount() {
@@ -71,24 +75,24 @@ export default {
         });
       } catch (e) { /* polling error silently */ }
     },
-    forceScrollDown() {
-      const el = this.$refs.messagesContainer;
-      if (el) el.scrollTop = el.scrollHeight;
-    },
     async send() {
       if (!this.text.trim()) return;
       const text = this.text;
       this.text = "";
       const tempMsg = { id: -Date.now(), contenido: text, fecha_hora: new Date().toISOString(), remitente_id: this.myId, remitente_rol: this.myRole, editado: false };
       this.messages.push(tempMsg);
-      await this.$nextTick();
-      this.forceScrollDown();
+      this.$nextTick(() => {
+        const el = this.$refs.messagesContainer;
+        if (el) el.scrollTop = el.scrollHeight;
+      });
       try {
         const { data } = await api.post(`/chat/${this.ordenId}`, { contenido: text, orden_servicio_id: this.ordenId });
         const idx = this.messages.indexOf(tempMsg);
         if (idx !== -1) this.messages.splice(idx, 1, data);
-        await this.$nextTick();
-        this.forceScrollDown();
+        this.$nextTick(() => {
+          const el = this.$refs.messagesContainer;
+          if (el) el.scrollTop = el.scrollHeight;
+        });
       } catch (err) {
         this.messages = this.messages.filter(m => m.id !== tempMsg.id);
         alert(err.response?.data?.detail || "Error al enviar mensaje");

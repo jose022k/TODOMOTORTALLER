@@ -149,11 +149,6 @@ export default {
       const nearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < threshold;
       if (nearBottom) el.scrollTop = el.scrollHeight;
     },
-    async forceScrollDown() {
-      await this.$nextTick();
-      const el = this.$refs.chatBody;
-      if (el) el.scrollTop = el.scrollHeight;
-    },
     async send() {
       const textContent = this.text.trim();
       const file = this.selectedFile;
@@ -164,7 +159,10 @@ export default {
         tempMsg = { id: -Date.now(), contenido: textContent, fecha_hora: new Date().toISOString(), remitente_id: this.myId, remitente_rol: this.myRole, editado: false };
         this.messages.push(tempMsg);
         this.text = "";
-        this.forceScrollDown();
+        this.$nextTick(() => {
+          const el = this.$refs.chatBody;
+          if (el) el.scrollTop = el.scrollHeight;
+        });
       }
       try {
         if (file) {
@@ -178,8 +176,11 @@ export default {
           const msgRes = await api.post(`/chat/${this.ordenId}`, { contenido: textContent, orden_servicio_id: this.ordenId });
           const idx = this.messages.indexOf(tempMsg);
           if (idx !== -1) this.messages.splice(idx, 1, msgRes.data);
+          this.$nextTick(() => {
+            const el = this.$refs.chatBody;
+            if (el) el.scrollTop = el.scrollHeight;
+          });
         }
-        await this.forceScrollDown();
       } catch (err) {
         if (tempMsg) this.messages = this.messages.filter(m => m.id !== tempMsg.id);
         alert("Error al enviar: " + (err.response?.data?.detail || err.message));
@@ -241,9 +242,13 @@ export default {
       return new Date(d).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" });
     },
   },
-  async mounted() {
-    await this.fetchAll();
-    this.forceScrollDown();
+  mounted() {
+    this.fetchAll().then(() => {
+      this.$nextTick(() => {
+        const el = this.$refs.chatBody;
+        if (el) el.scrollTop = el.scrollHeight;
+      });
+    });
     this.polling = setInterval(() => this.fetchAll(), 2000);
     document.addEventListener("visibilitychange", this.onVisible);
   },
