@@ -174,40 +174,50 @@ export default {
       const file = this.selectedFile;
       if (!textContent && !file) return;
       this.uploading = true;
+      const tempId = -Date.now();
       let tempMsg = null;
+      let tempEv = null;
       if (textContent) {
-        tempMsg = { id: -Date.now(), contenido: textContent, fecha_hora: new Date().toISOString(), remitente_id: this.myId, remitente_rol: this.myRole, editado: false };
+        tempMsg = { id: tempId, contenido: textContent, fecha_hora: new Date().toISOString(), remitente_id: this.myId, remitente_rol: this.myRole, editado: false };
         this.messages.push(tempMsg);
         this.text = "";
-        this.$nextTick(() => {
-          requestAnimationFrame(() => {
-            const el = this.$refs.chatBody;
-            if (el) el.scrollTop = el.scrollHeight;
-          });
-        });
       }
+      if (file) {
+        tempEv = { id: tempId, url: this.previewUrl, mensaje_id: tempId, fecha: new Date().toISOString() };
+        this.evidencias.push(tempEv);
+        this.clearPreview();
+      }
+      this.$nextTick(() => {
+        requestAnimationFrame(() => {
+          const el = this.$refs.chatBody;
+          if (el) el.scrollTop = el.scrollHeight;
+        });
+      });
       try {
         if (textContent && file) {
           const msgRes = await api.post(`/chat/${this.ordenId}`, { contenido: textContent, orden_servicio_id: this.ordenId });
-          if (tempMsg) Object.assign(tempMsg, msgRes.data);
+          const realMsgId = msgRes.data.id;
+          Object.assign(tempMsg, msgRes.data);
           const fd = new FormData();
           fd.append("file", file);
-          fd.append("mensaje_id", msgRes.data.id);
+          fd.append("mensaje_id", realMsgId);
           const evRes = await api.post(`/chat/${this.ordenId}/evidencias`, fd);
-          this.evidencias.unshift(evRes.data);
-          this.clearPreview();
+          evRes.data.mensaje_id = realMsgId;
+          const evIdx = this.evidencias.indexOf(tempEv);
+          if (evIdx !== -1) this.evidencias.splice(evIdx, 1, evRes.data);
         } else if (file) {
           const fd = new FormData();
           fd.append("file", file);
           const evRes = await api.post(`/chat/${this.ordenId}/evidencias`, fd);
-          this.evidencias.unshift(evRes.data);
-          this.clearPreview();
+          const evIdx = this.evidencias.indexOf(tempEv);
+          if (evIdx !== -1) this.evidencias.splice(evIdx, 1, evRes.data);
         } else if (textContent) {
           const msgRes = await api.post(`/chat/${this.ordenId}`, { contenido: textContent, orden_servicio_id: this.ordenId });
-          if (tempMsg) Object.assign(tempMsg, msgRes.data);
+          Object.assign(tempMsg, msgRes.data);
         }
       } catch (err) {
         if (tempMsg) this.messages = this.messages.filter(m => m.id !== tempMsg.id);
+        if (tempEv) this.evidencias = this.evidencias.filter(e => e.id !== tempEv.id);
         alert("Error al enviar: " + (err.response?.data?.detail || err.message));
       } finally {
         this.uploading = false;
