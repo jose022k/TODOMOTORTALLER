@@ -356,8 +356,23 @@ export default {
       return [...set].sort();
     },
     modelosFiltrados() {
-      if (!this.form.catalogoMarca) return [];
-      return this.catalog.filter((m) => m.marca === this.form.catalogoMarca);
+      const seen = new Set();
+      return this.catalog.filter((m) => {
+        if (this.form.catalogoMarca && m.marca !== this.form.catalogoMarca) return false;
+        if (seen.has(m.modelo)) return false;
+        seen.add(m.modelo);
+        return true;
+      });
+    },
+    coloresPorModelo() {
+      if (!this.form.catalogoMarca || !this.form.catalogoModelo) return [];
+      const colores = new Set();
+      this.catalog
+        .filter((m) => m.marca === this.form.catalogoMarca && m.modelo === this.form.catalogoModelo)
+        .forEach((m) => {
+          (m.gama_color || "").split(",").map((c) => c.trim()).filter(Boolean).forEach((c) => colores.add(c));
+        });
+      return [...colores];
     },
     modeloSeleccionado() {
       return this.catalog.find(
@@ -365,8 +380,7 @@ export default {
       );
     },
     coloresDisponibles() {
-      if (!this.modeloSeleccionado) return [];
-      return this.modeloSeleccionado.gama_color.split(",").map((c) => c.trim()).filter(Boolean);
+      return this.coloresPorModelo;
     },
     canCreate() {
       if (!this.form.cliente_id || !this.form.mecanico_id || !this.form.descripcion.trim()) return false;
@@ -459,7 +473,7 @@ export default {
     },
     async fetchCatalog() {
       try {
-        const { data } = await api.get("/motorcycles/catalog", { params: { limit: 500 } });
+        const { data } = await api.get("/motorcycles/catalog", { params: { limit: 9999 } });
         this.catalog = data;
       } catch (err) {
         console.error("Error loading catalog", err);

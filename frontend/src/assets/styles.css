@@ -147,6 +147,8 @@ html.dark .detail-grid strong { color: #94a3b8 !important; }
 html.dark .detail-item { background: var(--bg-muted) !important; }
 html.dark .detail-label { color: var(--text-muted) !important; }
 html.dark .detail-value { color: var(--text-default) !important; }
+html.dark .detail-sub { color: var(--text-muted) !important; }
+html.dark .detail-icon { background: var(--bg-muted) !important; color: var(--color-primary) !important; }
 html.dark .client-detail { color: #f1f5f9; }
 html.dark .motos-title { color: #f1f5f9 !important; }
 html.dark .client-detail .empty-state { color: var(--text-muted) !important; }
@@ -161,14 +163,19 @@ html.dark .form-group textarea:focus { border-color: var(--color-primary) !impor
 html.dark .form-group textarea { background: var(--bg-input); color: var(--text-default); }
 
 /* ── Badges / Status ── */
-html.dark .badge-pendiente,
-html.dark [class*="pendiente"] { background: #422006 !important; color: #fbbf24 !important; }
-html.dark .badge-en_proceso,
-html.dark [class*="en_proceso"] { background: #1e3a5f !important; color: #93c5fd !important; }
-html.dark .badge-completada,
-html.dark [class*="completada"] { background: #064e3b !important; color: #6ee7b7 !important; }
-html.dark .badge-cancelada,
-html.dark [class*="cancelada"] { background: #450a0a !important; color: #fca5a5 !important; }
+html.dark .badge-pendiente { background: #422006 !important; color: #fbbf24 !important; }
+html.dark .badge-en_proceso { background: #1e3a5f !important; color: #93c5fd !important; }
+html.dark .badge-completada { background: #064e3b !important; color: #6ee7b7 !important; }
+html.dark .badge-cancelada { background: #450a0a !important; color: #fca5a5 !important; }
+html.dark .history-pendiente .history-icon { background: #422006 !important; color: #fbbf24 !important; }
+html.dark .history-en_proceso .history-icon { background: #1e3a5f !important; color: #93c5fd !important; }
+html.dark .history-completada .history-icon { background: #064e3b !important; color: #6ee7b7 !important; }
+html.dark .history-cancelada .history-icon { background: #450a0a !important; color: #fca5a5 !important; }
+html.dark .history-item { border-bottom-color: var(--border-light) !important; }
+html.dark .history-icon { background: var(--bg-muted) !important; color: var(--text-muted) !important; }
+html.dark .history-id { color: #f1f5f9 !important; }
+html.dark .history-meta { color: var(--text-muted) !important; }
+html.dark .history-desc { color: var(--text-secondary) !important; }
 
 /* ── Buttons (action) ── */
 html.dark .btn-view { background: #1e3a5f !important; color: #93c5fd !important; }
@@ -190,6 +197,17 @@ html.dark .btn-close-modal:hover { background: #450a0a !important; color: #fca5a
 html.dark .btn-cancel { background: #334155 !important; color: #cbd5e1 !important; }
 html.dark .btn-recolor { background: #422006; color: #fbbf24; }
 html.dark .btn-primary { background: #ffaa00; color: #1a1a1a; }
+html.dark .action-btn--start { background: #1e3a5f !important; color: #93c5fd !important; }
+html.dark .action-btn--start:hover { background: #2563eb !important; }
+html.dark .action-btn--complete { background: #064e3b !important; color: #6ee7b7 !important; }
+html.dark .action-btn--complete:hover { background: #059669 !important; }
+html.dark .action-btn--cancel { background: #450a0a !important; color: #fca5a5 !important; }
+html.dark .action-btn--cancel:hover { background: #991b1b !important; }
+html.dark .action-btn--assign { background: #2e1065 !important; color: #c4b5fd !important; }
+html.dark .action-btn--assign:hover { background: #5b21b6 !important; }
+html.dark .action-btn:disabled { opacity: 0.5; }
+html.dark .actions-title { color: var(--text-muted) !important; }
+html.dark .detail-actions { border-top-color: var(--border-light) !important; }
 
 /* ── Alerts ── */
 html.dark .alert-success { background: #064e3b !important; color: #6ee7b7 !important; border-color: #065f46 !important; }
@@ -228,12 +246,43 @@ html.dark [class*="pagination"] button:hover {
 }
 html.dark [class*="page-info"] { color: var(--text-muted); }
 
+/* ── Cliente detail modal ── */
+html.dark .detail-field { color: var(--text-default) !important; }
+html.dark .moto-info { color: var(--text-default) !important; }
+html.dark .detail-section h3 { color: #f1f5f9 !important; }
+html.dark .detail-section p { color: var(--text-secondary) !important; }
+
+/* ── Moto catalog (create order modal) ── */
+html.dark .moto-toggle { border-color: var(--border-strong) !important; }
+html.dark .toggle-btn { background: var(--bg-muted) !important; color: var(--text-muted) !important; }
+html.dark .toggle-btn.active { background: #ffaa00 !important; color: #1a1a1a !important; }
+html.dark .toggle-btn:not(.active):hover { background: #334155 !important; }
+html.dark .new-moto-section { background: var(--bg-muted) !important; }
+html.dark .color-chip { border-color: var(--border-strong) !important; color: #f1f5f9 !important; text-shadow: 0 0 3px rgba(0,0,0,0.8) !important; }
+html.dark .color-chip:hover { border-color: #ffaa00 !important; }
+html.dark .color-selected .color-chip { border-color: var(--text-default) !important; box-shadow: 0 0 0 2px #ffaa00 !important; }
+html.dark .reassign-inline .form-control { background: var(--bg-input) !important; border-color: var(--border-strong) !important; color: var(--text-default) !important; }
+html.dark .btn-recolor { border-color: var(--border-strong) !important; color: var(--text-muted) !important; }
+html.dark .btn-recolor:hover { border-color: #ffaa00 !important; color: #f1f5f9 !important; background: transparent !important; }
+
+/* ── Cliente moto cards ── */
+html.dark .moto-marca { color: #f1f5f9 !important; }
+html.dark .moto-modelo { color: var(--text-muted) !important; }
+html.dark .moto-detail { color: var(--text-secondary) !important; }
+html.dark .moto-label { color: var(--text-muted) !important; }
+
 /* ── Progress / Steps ── */
-html.dark .progress-step.active { background: #ffaa00 !important; color: #1a1a1a !important; }
-html.dark .progress-step.completed { background: #065f46 !important; color: #f1f5f9 !important; }
-html.dark .progress-step.cancelled { background: #7f1d1d !important; color: #f1f5f9 !important; }
-html.dark [class*="step-label"] { color: var(--text-muted); }
-html.dark [class*="progress-line"] { background: var(--border-default); }
+html.dark .progress-step .step-icon { background: var(--bg-muted) !important; color: var(--text-muted) !important; }
+html.dark .progress-step.active .step-icon { background: #ffaa00 !important; color: #1a1a1a !important; box-shadow: 0 0 0 4px rgba(255,170,0,0.2) !important; }
+html.dark .progress-step.completed .step-icon { background: #064e3b !important; color: #6ee7b7 !important; }
+html.dark .progress-step.cancelled .step-icon { background: #450a0a !important; color: #fca5a5 !important; }
+html.dark .progress-step .step-label { color: var(--text-muted) !important; }
+html.dark .progress-step.active .step-label { color: #ffaa00 !important; }
+html.dark .progress-step.completed .step-label { color: #6ee7b7 !important; }
+html.dark .progress-step.cancelled .step-label { color: #fca5a5 !important; }
+html.dark .progress-line { background: var(--border-strong) !important; }
+html.dark .progress-line.completed { background: #064e3b !important; }
+html.dark .progress-line.cancelled { background: #450a0a !important; }
 
 /* ── Tabs / Nav ── */
 html.dark [class*="nav-tab"] { color: var(--text-muted); }
@@ -404,8 +453,26 @@ html.dark .reports-header { background: transparent; }
 html.dark .reports-header h1 { color: #f1f5f9; }
 html.dark .reports-header h1 svg { color: #f1f5f9; }
 html.dark .report-card { background: var(--bg-card) !important; border-color: var(--border-default) !important; }
-html.dark .report-card-header { color: var(--text-default) !important; }
+html.dark .report-card-header { color: #f1f5f9 !important; }
+html.dark .report-card-header svg { color: #f1f5f9 !important; }
 html.dark .report-empty { color: var(--text-muted); }
+html.dark .highlight-value { color: #f1f5f9 !important; }
+html.dark .highlight-label { color: #cbd5e1 !important; }
+
+html.dark .report-card-header h3 { color: #f1f5f9 !important; }
+html.dark .filter-group { color: var(--text-secondary) !important; }
+html.dark .filter-date { background: var(--bg-input) !important; border-color: var(--border-strong) !important; color: var(--text-default) !important; }
+html.dark .btn-clear { background: var(--bg-muted) !important; border-color: var(--border-strong) !important; color: var(--text-secondary) !important; }
+html.dark .btn-pdf { background: #334155 !important; color: #f1f5f9 !important; }
+html.dark .btn-pdf:hover { background: #475569 !important; }
+html.dark .pdf-dropdown-content { background: var(--bg-card) !important; border-color: var(--border-default) !important; }
+html.dark .pdf-dropdown-header { color: var(--text-muted) !important; border-bottom-color: var(--border-light) !important; }
+html.dark .pdf-check { color: #f1f5f9 !important; }
+html.dark .pdf-check:hover { background: var(--bg-hover) !important; }
+html.dark .pdf-dropdown-actions { border-top-color: var(--border-light) !important; }
+html.dark .btn-pdf-generate { background: #ffaa00 !important; color: #1a1a1a !important; }
+html.dark .btn-pdf-generate:hover { background: #e69900 !important; }
+html.dark .reports-toolbar { background: transparent; }
 
 /* ── Admin users tabs ── */
 html.dark .tabs { border-bottom-color: var(--border-default) !important; }
@@ -485,9 +552,9 @@ html.dark [class*="history-id"] { color: var(--text-default); }
 /* ── Reports ── */
 html.dark .report-card { background: var(--bg-card); border-color: var(--border-default); }
 html.dark .report-card-title { color: var(--text-default); }
-html.dark .report-highlight { background: linear-gradient(135deg, #422006, #78350f); border-color: #ffaa00; }
-html.dark .report-highlight-value { color: #fbbf24; }
-html.dark .report-highlight-label { color: var(--text-muted); }
+html.dark .highlight-value { color: #f1f5f9 !important; }
+html.dark .highlight-label { color: #cbd5e1 !important; }
+html.dark .report-card-header h3 { color: #f1f5f9 !important; }
 html.dark .report-filter-date { background: var(--bg-input); border-color: var(--border-strong); color: var(--text-default); }
 html.dark .report-pdf-dropdown { background: var(--bg-card); border-color: var(--border-default); }
 html.dark .report-check-label { color: var(--text-default); }
