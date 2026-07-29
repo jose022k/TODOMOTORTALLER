@@ -165,18 +165,18 @@ export default {
         this.$nextTick(() => this.scrollToBottom());
       }
       try {
-        const promises = [];
         if (file) {
           const fd = new FormData();
           fd.append("file", file);
-          promises.push(api.post(`/chat/${this.ordenId}/evidencias`, fd));
+          const evRes = await api.post(`/chat/${this.ordenId}/evidencias`, fd);
+          this.evidencias.unshift(evRes.data);
+          this.clearPreview();
         }
         if (textContent) {
-          promises.push(api.post(`/chat/${this.ordenId}`, { contenido: textContent, orden_servicio_id: this.ordenId }));
+          const msgRes = await api.post(`/chat/${this.ordenId}`, { contenido: textContent, orden_servicio_id: this.ordenId });
+          const idx = this.messages.indexOf(tempMsg);
+          if (idx !== -1) this.messages.splice(idx, 1, msgRes.data);
         }
-        await Promise.all(promises);
-        if (file) this.clearPreview();
-        this.fetchAll();
         this.$nextTick(() => this.scrollToBottom());
       } catch (err) {
         if (tempMsg) this.messages = this.messages.filter(m => m.id !== tempMsg.id);
@@ -213,8 +213,13 @@ export default {
       if (!this.editText.trim()) return;
       try {
         await api.put(`/chat/${this.ordenId}/${msgId}`, { contenido: this.editText });
+        const msg = this.messages.find(m => m.id === msgId);
+        if (msg) {
+          msg.contenido = this.editText;
+          msg.editado = true;
+          msg.fecha_edicion = new Date().toISOString();
+        }
         this.cancelEdit();
-        await this.fetchAll();
       } catch (err) {
         alert("Error al editar: " + (err.response?.data?.detail || err.message));
       }
