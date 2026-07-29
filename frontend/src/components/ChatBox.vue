@@ -89,10 +89,6 @@ export default {
         const { data } = await api.post(`/chat/${this.ordenId}`, { contenido: text, orden_servicio_id: this.ordenId });
         const idx = this.messages.indexOf(tempMsg);
         if (idx !== -1) this.messages.splice(idx, 1, data);
-        this.$nextTick(() => {
-          const el = this.$refs.messagesContainer;
-          if (el) el.scrollTop = el.scrollHeight;
-        });
       } catch (err) {
         this.messages = this.messages.filter(m => m.id !== tempMsg.id);
         alert(err.response?.data?.detail || "Error al enviar mensaje");

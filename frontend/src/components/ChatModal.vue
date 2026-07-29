@@ -176,10 +176,6 @@ export default {
           const msgRes = await api.post(`/chat/${this.ordenId}`, { contenido: textContent, orden_servicio_id: this.ordenId });
           const idx = this.messages.indexOf(tempMsg);
           if (idx !== -1) this.messages.splice(idx, 1, msgRes.data);
-          this.$nextTick(() => {
-            const el = this.$refs.chatBody;
-            if (el) el.scrollTop = el.scrollHeight;
-          });
         }
       } catch (err) {
         if (tempMsg) this.messages = this.messages.filter(m => m.id !== tempMsg.id);
