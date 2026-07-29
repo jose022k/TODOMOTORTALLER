@@ -189,12 +189,6 @@ export default {
         this.evidencias.push(tempEv);
         this.clearPreview();
       }
-      this.$nextTick(() => {
-        requestAnimationFrame(() => {
-          const el = this.$refs.chatBody;
-          if (el) el.scrollTop = el.scrollHeight;
-        });
-      });
       try {
         if (textContent && file) {
           const fd = new FormData();
