@@ -31,7 +31,7 @@
                 <div v-if="item.evidencias.length" class="msg-attached-imgs">
                   <img
                     v-for="ev in item.evidencias"
-                    :key="ev.id"
+                    :key="ev._key || ev.id"
                     :src="imageUrl(ev.url)"
                     class="attached-img"
                     @click="openLightbox(imageUrl(ev.url))"
@@ -124,7 +124,7 @@ export default {
       const items = [];
       this.evidencias.forEach((e) => {
         if (!e.mensaje_id) {
-          items.push({ type: "evidencia", key: "ev" + e.id, url: e.url, fecha: e.fecha });
+          items.push({ type: "evidencia", key: "ev" + (e._key || e.id), url: e.url, fecha: e.fecha });
         }
       });
       this.messages.forEach((m) => {
@@ -134,7 +134,7 @@ export default {
         const attached = evidenciasByMsg[m.id] || [];
         items.push({
           type: "mensaje",
-          key: "msg" + m.id,
+          key: "msg" + (m._key || m.id),
           id: m.id,
           contenido: m.contenido,
           fecha_hora: m.fecha_hora,
@@ -180,12 +180,12 @@ export default {
       let tempMsg = null;
       let tempEv = null;
       if (textContent) {
-        tempMsg = { id: tempId, contenido: textContent, fecha_hora: new Date().toISOString(), remitente_id: this.myId, remitente_rol: this.myRole, editado: false };
+        tempMsg = { _key: tempId, id: tempId, contenido: textContent, fecha_hora: new Date().toISOString(), remitente_id: this.myId, remitente_rol: this.myRole, editado: false };
         this.messages.push(tempMsg);
         this.text = "";
       }
       if (file) {
-        tempEv = { id: tempId, url: this.previewUrl, mensaje_id: tempId, fecha: new Date().toISOString() };
+        tempEv = { _key: tempId, id: tempId, url: this.previewUrl, mensaje_id: tempId, fecha: new Date().toISOString() };
         this.evidencias.push(tempEv);
         this.clearPreview();
       }
@@ -199,7 +199,7 @@ export default {
           ]);
           Object.assign(tempMsg, msgRes.data);
           const evIdx = this.evidencias.indexOf(tempEv);
-          const realEv = { ...evRes.data, mensaje_id: msgRes.data.id || null };
+          const realEv = { _key: tempEv._key, ...evRes.data, mensaje_id: msgRes.data.id || null };
           if (evIdx !== -1) this.evidencias.splice(evIdx, 1, realEv);
           if (msgRes.data.id) {
             api.patch(`/chat/${this.ordenId}/evidencias/${evRes.data.id}/link?mensaje_id=${msgRes.data.id}`).catch(() => {});
@@ -209,14 +209,14 @@ export default {
           fd.append("file", file);
           const evRes = await api.post(`/chat/${this.ordenId}/evidencias`, fd);
           const evIdx = this.evidencias.indexOf(tempEv);
-          if (evIdx !== -1) this.evidencias.splice(evIdx, 1, evRes.data);
+          if (evIdx !== -1) this.evidencias.splice(evIdx, 1, { _key: tempEv._key, ...evRes.data });
         } else if (textContent) {
           const msgRes = await api.post(`/chat/${this.ordenId}`, { contenido: textContent, orden_servicio_id: this.ordenId });
           Object.assign(tempMsg, msgRes.data);
         }
       } catch (err) {
-        if (tempMsg) this.messages = this.messages.filter(m => m.id !== tempMsg.id);
-        if (tempEv) this.evidencias = this.evidencias.filter(e => e.id !== tempEv.id);
+        if (tempMsg) this.messages = this.messages.filter(m => (m._key || m.id) !== (tempMsg._key || tempMsg.id));
+        if (tempEv) this.evidencias = this.evidencias.filter(e => (e._key || e.id) !== (tempEv._key || tempEv.id));
         alert("Error al enviar: " + (err.response?.data?.detail || err.message));
       } finally {
         this.uploading = false;
