@@ -78,6 +78,19 @@ def ensure_schema_updates():
             )
         conn.commit()
 
+        # Crear tabla user_preference si no existe
+        if "user_preference" not in tables:
+            conn.execute(text("""CREATE TABLE user_preference (
+                id SERIAL PRIMARY KEY,
+                user_role VARCHAR(20) NOT NULL,
+                user_id INTEGER NOT NULL,
+                notify_messages BOOLEAN NOT NULL DEFAULT TRUE,
+                notify_orders BOOLEAN NOT NULL DEFAULT TRUE,
+                dark_mode BOOLEAN NOT NULL DEFAULT FALSE,
+                UNIQUE (user_role, user_id)
+            )"""))
+            conn.commit()
+
         for table, col_def in _MIGRATIONS:
             if table not in tables:
                 continue

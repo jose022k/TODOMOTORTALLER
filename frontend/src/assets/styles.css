@@ -5,6 +5,38 @@
   --color-muted: #B0B5B9;
 }
 
+html.dark {
+  --color-dark: #f1f5f9;
+  --color-light: #0f172a;
+  --color-muted: #64748b;
+}
+
+html.dark body {
+  background-color: var(--color-light);
+  color: var(--color-dark);
+}
+
+html.dark .app-header {
+  background-color: #1e293b;
+}
+html.dark .user-info {
+  color: #94a3b8;
+}
+html.dark .btn-logout {
+  border-color: #475569;
+  color: #94a3b8;
+}
+html.dark .btn-logout:hover {
+  border-color: #ffaa00;
+  color: #ffaa00;
+}
+html.dark {
+  --settings-bg: #1e293b;
+  --settings-border: #334155;
+  --settings-muted: #64748b;
+  --settings-text: #e2e8f0;
+}
+
 * {
   margin: 0;
   padding: 0;

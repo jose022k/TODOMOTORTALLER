@@ -37,6 +37,7 @@
           </router-link>
           <NotificationsDropdown />
           <span class="user-info">{{ authStore.user?.nombre }}</span>
+          <SettingsDropdown @theme-change="onThemeChange" />
           <button class="btn-logout" @click="handleLogout" :disabled="loggingOut">{{ loggingOut ? "Cerrando sesión..." : "Cerrar Sesión" }}</button>
         </template>
         <template v-else>
@@ -66,13 +67,14 @@
 <script>
 import { useAuthStore } from "@/stores/auth";
 import NotificationsDropdown from "@/components/NotificationsDropdown.vue";
+import SettingsDropdown from "@/components/SettingsDropdown.vue";
 import ConfirmModal from "@/components/ConfirmModal.vue";
 import LoadingOverlay from "@/components/LoadingOverlay.vue";
 import { setupPush } from "@/services/push";
 
 export default {
   name: "App",
-  components: { NotificationsDropdown, ConfirmModal, LoadingOverlay },
+  components: { NotificationsDropdown, SettingsDropdown, ConfirmModal, LoadingOverlay },
   setup() {
     const authStore = useAuthStore();
     if (authStore.isAuthenticated && !authStore.user) {
@@ -106,6 +108,9 @@ export default {
     };
   },
   methods: {
+    onThemeChange(dark) {
+      document.documentElement.classList.toggle("dark", dark);
+    },
     handleLogout() {
       this.showLogoutModal = true;
     },

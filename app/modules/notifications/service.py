@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from app.modules.notifications.dao import NotificacionDAO
 from app.modules.notifications.schemas import NotificacionResponse
 from app.modules.notifications.push_service import notify_user
+from app.modules.preferences.service import should_notify
 
 notificacion_dao = NotificacionDAO()
 
@@ -63,9 +64,20 @@ def create_notification(
         "cliente_id": cliente_id,
         "mecanico_id": mecanico_id,
     }
-    result = notificacion_dao.create(db, data)
-
     extra = "&open_chat=1" if open_chat else ""
+
+    # Verificar preferencias antes de notificar
+    try:
+        if admin_id and not should_notify(db, "admin", admin_id, tipo):
+            return result
+        if cliente_id and not should_notify(db, "cliente", cliente_id, tipo):
+            return result
+        if mecanico_id and not should_notify(db, "mecanico", mecanico_id, tipo):
+            return result
+    except Exception:
+        pass
+
+    result = notificacion_dao.create(db, data)
 
     # También enviar Web Push si hay un destinatario
     try:
