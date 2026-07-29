@@ -104,10 +104,10 @@ html.dark [class*="card-description"] { color: var(--text-muted); }
 html.dark table,
 html.dark [class*="table"] { background: var(--bg-card); }
 html.dark th,
-html.dark [class*="table"] th { background: var(--bg-muted); color: var(--text-secondary); border-bottom-color: var(--border-default); }
+html.dark [class*="table"] th { background: var(--bg-muted) !important; color: var(--text-secondary) !important; border-bottom-color: var(--border-default) !important; }
 html.dark td,
-html.dark [class*="table"] td { border-bottom-color: var(--border-light); color: var(--text-default); }
-html.dark tr:hover td { background: var(--bg-hover); }
+html.dark [class*="table"] td { border-bottom-color: var(--border-light) !important; color: var(--text-default) !important; }
+html.dark tr:hover td { background: var(--bg-hover) !important; color: var(--text-default) !important; }
 
 /* ── Modals ── */
 html.dark [class*="modal"]:not([class*="btn-"]):not([class*="badge"]) {
@@ -337,12 +337,37 @@ html.dark .btn-chat-send { background: #ffaa00; color: #1a1a1a; }
 html.dark .btn-chat-send:disabled { background: var(--bg-muted); color: var(--text-muted); }
 
 /* ── Admin dashboard ── */
-html.dark .admin-card { background: var(--bg-card); border-color: var(--border-default); }
-html.dark .admin-card:hover { border-color: var(--color-primary); }
-html.dark .admin-card-title { color: var(--text-default); }
-html.dark .admin-card-desc { color: var(--text-muted); }
-html.dark .admin-card-icon { background: rgba(255,170,0,0.1); }
-html.dark .admin-card-footer { border-top-color: var(--border-light); }
+html.dark .admin-panel { background: var(--bg-page); }
+html.dark .welcome-section h1 { color: #f1f5f9; }
+html.dark .dash-card { background: var(--bg-card) !important; border-color: var(--border-default) !important; }
+html.dark .dash-card:hover { border-color: var(--color-primary) !important; }
+html.dark .dash-icon-wrap { background: rgba(255,170,0,0.1) !important; }
+html.dark .dash-info h2 { color: #f1f5f9 !important; }
+html.dark .dash-card p { color: #cbd5e1 !important; }
+html.dark .dash-footer { border-top-color: var(--border-light) !important; color: var(--color-primary) !important; }
+html.dark .dash-badge { background: var(--color-primary) !important; color: #1a1a1a !important; }
+html.dark .dashboard-grid { background: transparent; }
+
+/* ── Reports page ── */
+html.dark .reports-page { background: var(--bg-page); }
+html.dark .reports-header { background: transparent; }
+html.dark .reports-header h1 { color: #f1f5f9; }
+html.dark .reports-header h1 svg { color: #f1f5f9; }
+html.dark .report-card { background: var(--bg-card) !important; border-color: var(--border-default) !important; }
+html.dark .report-card-header { color: var(--text-default) !important; }
+html.dark .report-empty { color: var(--text-muted); }
+
+/* ── Admin users tabs ── */
+html.dark .tabs { border-bottom-color: var(--border-default) !important; }
+html.dark .tab { color: var(--text-muted) !important; }
+html.dark .tab.active { color: #f1f5f9 !important; border-bottom-color: var(--color-primary) !important; }
+html.dark .tab:hover { color: #f1f5f9 !important; }
+
+/* ── Admin / Cliente / Mecanico tables ── */
+html.dark .data-table { background: var(--bg-card) !important; }
+html.dark .data-table th { background: var(--bg-muted) !important; color: var(--text-secondary) !important; border-bottom-color: var(--border-default) !important; }
+html.dark .data-table td { border-bottom-color: var(--border-light) !important; color: var(--text-default) !important; }
+html.dark .data-table tr:hover td { background: var(--bg-hover) !important; color: var(--text-default) !important; }
 
 /* ── Evidence gallery ── */
 html.dark .evidence-gallery,
@@ -380,7 +405,7 @@ html.dark .admin-users h1,
 html.dark .admin-orders h2,
 html.dark .admin-users h2,
 html.dark .admin-orders h3,
-html.dark .admin-users h3 { color: var(--text-default); }
+html.dark .admin-users h3 { color: #f1f5f9; }
 html.dark .filter-select,
 html.dark .filter-group select { background: var(--bg-input); border-color: var(--border-strong); color: var(--text-default); }
 html.dark [class*="topbar-id"] { color: var(--text-subtle); }
@@ -396,7 +421,7 @@ html.dark .form-group label { color: var(--text-secondary); }
 html.dark .cliente-orders,
 html.dark .mecanico-orders { background: var(--bg-page); }
 html.dark .cliente-orders h1,
-html.dark .mecanico-orders h1 { color: var(--text-default); }
+html.dark .mecanico-orders h1 { color: #f1f5f9; }
 html.dark [class*="moto-card"] { background: var(--bg-card); border-color: var(--border-default); }
 html.dark [class*="moto-card-header"] { background: var(--bg-muted); }
 html.dark [class*="moto-marca"] { color: var(--text-default); }
