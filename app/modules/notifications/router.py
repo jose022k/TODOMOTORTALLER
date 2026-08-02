@@ -29,8 +29,7 @@ def unread_count(
     db: Session = Depends(get_db),
     current_user: AnyUser = Depends(get_current_user),
 ):
-    from app.modules.notifications.dao import NotificacionDAO
-    count = NotificacionDAO().get_unread_count(db, current_user.id, current_user.rol)
+    count = service.get_unread_count(db, current_user)
     return {"count": count}
 
 

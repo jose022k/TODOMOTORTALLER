@@ -2,6 +2,9 @@ from sqlalchemy.orm import Session
 from app.modules.preferences.models import UserPreference
 from app.modules.preferences.schemas import PreferencesResponse, PreferencesUpdate
 
+MESSAGE_TIPOS = ("mensaje_recibido", "evidencia_enviada")
+ORDER_TIPOS = ("orden_creada", "orden_en_proceso", "orden_completada", "orden_cancelada", "datos_actualizados")
+
 
 def _defaults():
     return PreferencesResponse(notify_messages=True, notify_orders=True, dark_mode=False)
@@ -60,3 +63,21 @@ def should_notify(db: Session, user_role: str, user_id: int, tipo: str) -> bool:
         return pref.notify_orders
 
     return True
+
+
+def allowed_tipos(db: Session, user_role: str, user_id: int) -> set:
+    """Devuelve el set de tipos de notificación permitidos. None si todos están permitidos."""
+    pref = db.query(UserPreference).filter(
+        UserPreference.user_role == user_role,
+        UserPreference.user_id == user_id,
+    ).first()
+
+    if not pref:
+        return None
+
+    allowed = set()
+    if pref.notify_messages:
+        allowed.update(MESSAGE_TIPOS)
+    if pref.notify_orders:
+        allowed.update(ORDER_TIPOS)
+    return allowed
