@@ -9,8 +9,12 @@ catalogo_dao = CatalogoMotoDAO()
 marca_dao = MarcaDAO()
 
 
-def get_catalog_items(db: Session, skip: int = 0, limit: int = 100):
-    return catalogo_dao.get_all(db, skip=skip, limit=limit)
+def get_catalog_items(db: Session, skip: int = 0, limit: int = 100, search: str = ""):
+    return catalogo_dao.get_all_paginated(db, skip=skip, limit=limit, search=search)
+
+
+def count_catalog_items(db: Session, search: str = ""):
+    return catalogo_dao.count_all(db, search=search)
 
 
 def get_brands(db: Session):

@@ -9,6 +9,7 @@ from app.modules.motorcycles.models import CatalogoMoto, MotoCliente, HistorialM
 from app.modules.service_orders.models import OrdenServicio, Evidencia
 from app.modules.notifications.models import Notificacion, PushSubscription
 from app.modules.chat.models import Mensaje
+from app.modules.preferences.models import UserPreference
 
 # Import routers
 from app.modules.auth.router import router as auth_router
@@ -20,6 +21,7 @@ from app.modules.reports.router import router as reports_router
 from app.modules.admin.router import router as admin_router
 from app.modules.chat.router import router as chat_router
 from app.modules.ws.router import router as ws_router
+from app.modules.bcv.router import router as bcv_router
 
 Base.metadata.create_all(bind=engine)
 ensure_schema_updates()
@@ -52,6 +54,9 @@ app.include_router(reports_router)
 app.include_router(admin_router)
 app.include_router(chat_router)
 app.include_router(ws_router)
+app.include_router(bcv_router)
+from app.modules.preferences.router import router as preferences_router
+app.include_router(preferences_router)
 
 @app.on_event("startup")
 async def startup():

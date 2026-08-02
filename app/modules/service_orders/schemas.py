@@ -7,6 +7,8 @@ class OrdenServicioBase(BaseModel):
     descripcion: str
     cliente_id: int
     mecanico_id: int
+    monto: float
+    moneda: str
 
 
 class OrdenServicioCreate(OrdenServicioBase):
@@ -32,6 +34,10 @@ class OrdenServicioResponse(BaseModel):
     estado: str
     fecha_creacion: datetime
     fecha_cierre: Optional[datetime] = None
+    monto: Optional[float] = None
+    moneda: Optional[str] = None
+    tasa_bcv: Optional[float] = None
+    monto_usd: Optional[float] = None
     cliente_id: int
     mecanico_id: int
     moto_cliente_id: int
@@ -46,6 +52,10 @@ class OrdenServicioListResponse(BaseModel):
     estado: str
     fecha_creacion: datetime
     fecha_cierre: Optional[datetime] = None
+    monto: Optional[float] = None
+    moneda: Optional[str] = None
+    tasa_bcv: Optional[float] = None
+    monto_usd: Optional[float] = None
     cliente_id: int
     cliente_nombre: str
     mecanico_id: int
@@ -66,6 +76,10 @@ class OrdenServicioDetailResponse(BaseModel):
     estado: str
     fecha_creacion: datetime
     fecha_cierre: Optional[datetime] = None
+    monto: Optional[float] = None
+    moneda: Optional[str] = None
+    tasa_bcv: Optional[float] = None
+    monto_usd: Optional[float] = None
     cliente_id: int
     cliente_nombre: str
     cliente_cedula: str

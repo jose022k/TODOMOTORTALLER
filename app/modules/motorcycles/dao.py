@@ -1,4 +1,5 @@
 from typing import Optional
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 from app.core.base_dao import BaseDAO
 from app.modules.motorcycles.models import CatalogoMoto, Marca
@@ -28,6 +29,30 @@ class CatalogoMotoDAO(BaseDAO[CatalogoMoto, CatalogoMotoCreate, CatalogoMotoUpda
             )
             .first()
         )
+
+    def get_all_paginated(self, db: Session, skip: int, limit: int, search: str = ""):
+        query = db.query(self.model)
+        if len(search) >= 2:
+            pattern = f"{search}%"
+            query = query.filter(
+                or_(
+                    self.model.marca.ilike(pattern),
+                    self.model.modelo.ilike(pattern),
+                )
+            )
+        return query.order_by(self.model.marca, self.model.modelo).offset(skip).limit(limit).all()
+
+    def count_all(self, db: Session, search: str = ""):
+        query = db.query(self.model.id)
+        if len(search) >= 2:
+            pattern = f"{search}%"
+            query = query.filter(
+                or_(
+                    self.model.marca.ilike(pattern),
+                    self.model.modelo.ilike(pattern),
+                )
+            )
+        return query.count()
 
 
 class MarcaDAO(BaseDAO[Marca, dict, dict]):

@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@router.websocket("/ws/orders")
+@router.websocket("/socket/orders")
 async def websocket_orders(
     websocket: WebSocket,
     token: str = Query(...),

@@ -29,7 +29,7 @@
         </div>
         <p v-if="error" class="error-msg">{{ error }}</p>
         <button type="submit" class="btn-submit" :disabled="loading">
-          <svg v-if="loading" class="btn-spinner" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10" stroke-dasharray="31.4 31.4" stroke-linecap="round"/></svg>
+          <span v-if="loading" class="btn-spinner"></span>
           <span>{{ loading ? "Entrando..." : "Iniciar Sesión" }}</span>
         </button>
       </form>
@@ -37,14 +37,17 @@
         ¿Eres cliente? <router-link to="/register/cliente">Regístrate aquí</router-link>
       </div>
     </div>
+    <LoadingOverlay :visible="loading" text="Entrando al sistema..." />
   </div>
 </template>
 
 <script>
 import { useAuthStore } from "@/stores/auth";
+import LoadingOverlay from "@/components/LoadingOverlay.vue";
 
 export default {
   name: "LoginView",
+  components: { LoadingOverlay },
   data() {
     return { email: "", password: "", error: "", loading: false, showPassword: false };
   },
@@ -205,7 +208,17 @@ export default {
   cursor: not-allowed;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
-.btn-spinner { animation: spin 0.8s linear infinite; }
+.btn-spinner {
+  width: 18px;
+  height: 18px;
+  display: inline-block;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, transparent 0deg, currentColor 120deg, transparent 300deg);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2px));
+  animation: spin 0.8s linear infinite;
+  vertical-align: middle;
+}
 .auth-footer {
   margin-top: 24px;
   text-align: center;

@@ -164,6 +164,12 @@ def get_messages(db: Session, orden_id: int, current_user):
 
     _validar_acceso_orden(order, current_user)
 
+    if order.estado != "en_proceso":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Los mensajes solo están disponibles mientras la orden está en proceso",
+        )
+
     mensajes = mensaje_dao.get_by_orden(db, orden_id)
     return [_build_mensaje_response(m) for m in mensajes]
 
@@ -177,6 +183,12 @@ def get_evidencias(db: Session, orden_id: int, current_user):
         )
 
     _validar_acceso_orden(order, current_user)
+
+    if order.estado != "en_proceso":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Las evidencias solo están disponibles mientras la orden está en proceso",
+        )
 
     evidencias = (
         db.query(Evidencia)
@@ -236,6 +248,20 @@ async def create_evidencia(db: Session, orden_id: int, file: UploadFile, mensaje
     for aid in [a.id for a in db.query(Admin.id).all()]:
         create_notification(db, "evidencia_enviada", f"Nueva evidencia en la orden #{orden_id}", orden_servicio_id=orden_id, admin_id=aid, open_chat=True)
 
+    return evidencia
+
+
+def link_evidencia(db: Session, orden_id: int, evidencia_id: int, mensaje_id: int, current_user):
+    order = orden_dao.get_by_id(db, orden_id)
+    if not order:
+        raise HTTPException(status_code=404, detail="Orden no encontrada")
+    _validar_acceso_orden(order, current_user)
+    evidencia = db.query(Evidencia).filter(Evidencia.id == evidencia_id, Evidencia.orden_servicio_id == orden_id).first()
+    if not evidencia:
+        raise HTTPException(status_code=404, detail="Evidencia no encontrada")
+    evidencia.mensaje_id = mensaje_id
+    db.commit()
+    db.refresh(evidencia)
     return evidencia
 
 

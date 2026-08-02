@@ -6,6 +6,26 @@ Todas las modificaciones siguen el estándar de versión semántica (https://sem
 
 ---
 
+## [1.9.0] - 2026-08-02
+
+### Added
+
+- Montos de pago en órdenes de servicio: columnas `monto`, `moneda` (BS/USD), `tasa_bcv` y `monto_usd` en `OrdenServicio`, con migración automática
+- Conversión Bs → USD con tasa de referencia del BCV en `create_order` (el monto es obligatorio)
+- Tabla `configuracion` (con `ensure_schema_updates`) para persistir la tasa manual del admin
+- Módulo `app/modules/bcv/` con endpoints `GET /bcv/tasa` y `PUT /bcv/tasa-manual`
+- Tarjeta "Ganancias" en `AdminReportsView`: suma de órdenes completadas de los últimos 7 días, gráfico de línea semanal (eje Y 15–300), tabla impresa en el PDF y chip editable de tasa BCV
+- Buscador de clientes en el modal "Nueva Orden" para seleccionar por nombre o cédula
+- Spinners modernos tipo aro (conic-gradient + máscara) en `LoadingOverlay.vue` y botones (`.btn-spinner`)
+
+### Changed
+
+- Tasa de referencia consultada directamente desde `bcv.org.ve` (scraping del bloque `#dolar`) en lugar de DolarApi; `BCV_API_URL` → `BCV_URL` en `app/core/config.py`
+- Subtítulos descriptivos de vistas admin alineados con el catálogo (`.page-subtitle` global con `margin-left: 48px`)
+- Spinner de rueda de moto reemplazado por aro moderno en overlay y botones
+
+---
+
 ## [1.8.0] - 2026-07-25
 
 ### Added
@@ -22,6 +42,44 @@ Todas las modificaciones siguen el estándar de versión semántica (https://sem
 - `app/main.py` — startup event para inicializar `ws_manager`
 - `app/modules/service_orders/service.py` — broadcast en `create_order`, `update_order_status`, `assign_mechanic`
 - `frontend/vue.config.js` — proxy `/ws` añadido con soporte WebSocket
+
+---
+
+## [1.8.1] - 2026-07-28
+
+### Added
+
+- Carrusel de imágenes en vista Taller (HomeView) con fotos taller1-4 subidas a Cloudinary
+- Paginación (30/pág.) y búsqueda por prefijo en catálogo de motos
+- Paginación (15/pág.) en tabla de usuarios (clientes y mecánicos)
+- Subtítulos descriptivos debajo del título en vistas de admin
+- Componente `LoadingOverlay` con animación de rueda de moto girando
+- Componente `ConfirmModal` para confirmación de cierre de sesión
+- Iconos SVG profesionales en navegación (Taller, Ubicación, Iniciar Sesión)
+
+### Changed
+
+- Vista Taller: nuevo carrusel con auto-slide, botones anterior/siguiente y puntos
+- Vista Ubicación: mapa de Google Maps embebido + tarjeta de contacto flotante (WhatsApp y llamadas) + botón "Abrir en Maps"
+- Navegación: "Home" → "Taller", "About" → "Ubicación"
+- Cierre de sesión: ahora muestra modal de confirmación y overlay de carga de 3s
+- Inicio de sesión: spinner reemplazado por overlay full-screen con rueda de moto
+- Placa en órdenes de servicio: mayúsculas automáticas, solo alfanumérico, máx 7 caracteres
+
+### Fixed
+
+- Flash de enlaces Taller/Ubicación al cargar sesión de admin — corregida condición en App.vue
+- Subtítulo "Visualiza y descarga reportes" aparecía en PDF — oculto con @media print
+
+---
+
+## [1.8.2] - 2026-07-28
+
+### Fixed
+
+- Chat: auto-scroll ya no baja cuando el usuario está leyendo mensajes antiguos
+- Chat: mensajes y evidencias bloqueados cuando la orden está completada o cancelada
+- Notificaciones: al hacer clic en una notificación de mensaje/evidencia de orden completada/cancelada, muestra aviso "La orden ya fue completada/cancelada"
 
 ---
 

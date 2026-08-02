@@ -50,7 +50,12 @@ export default {
     };
   },
   mounted() {
-    this.fetchMessages();
+    this.fetchMessages().then(() => {
+      this.$nextTick(() => {
+        const el = this.$refs.messagesContainer;
+        if (el) el.scrollTop = el.scrollHeight;
+      });
+    });
     this.polling = setInterval(() => this.fetchMessages(), 5000);
   },
   beforeUnmount() {
@@ -63,18 +68,38 @@ export default {
         this.messages = data;
         this.$nextTick(() => {
           const el = this.$refs.messagesContainer;
-          if (el) el.scrollTop = el.scrollHeight;
+          if (!el) return;
+          const threshold = 50;
+          const nearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < threshold;
+          if (nearBottom) el.scrollTop = el.scrollHeight;
         });
       } catch (e) { /* polling error silently */ }
     },
     async send() {
       if (!this.text.trim()) return;
+      const text = this.text;
+      this.text = "";
+      const tempMsg = { id: -Date.now(), contenido: text, fecha_hora: new Date().toISOString(), remitente_id: this.myId, remitente_rol: this.myRole, editado: false };
+      this.messages.push(tempMsg);
+      this.$nextTick(() => {
+        requestAnimationFrame(() => {
+          const el = this.$refs.messagesContainer;
+          if (el) el.scrollTop = el.scrollHeight;
+        });
+      });
       try {
-        await api.post(`/chat/${this.ordenId}`, { contenido: this.text, orden_servicio_id: this.ordenId });
-        this.text = "";
-        await this.fetchMessages();
+        const { data } = await api.post(`/chat/${this.ordenId}`, { contenido: text, orden_servicio_id: this.ordenId });
+        Object.assign(tempMsg, data);
       } catch (err) {
+        this.messages = this.messages.filter(m => m.id !== tempMsg.id);
         alert(err.response?.data?.detail || "Error al enviar mensaje");
+      } finally {
+        this.$nextTick(() => {
+          requestAnimationFrame(() => {
+            const el = this.$refs.messagesContainer;
+            if (el) el.scrollTop = el.scrollHeight;
+          });
+        });
       }
     },
     formatTime(dt) {

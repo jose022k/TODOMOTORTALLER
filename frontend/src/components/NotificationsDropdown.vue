@@ -105,9 +105,20 @@ export default {
       }
       this.navigateTo(n);
     },
-    navigateTo(n) {
+    async navigateTo(n) {
       const orderId = n.orden_servicio_id;
       if (!orderId) return;
+      if (n.tipo === "mensaje_recibido" || n.tipo === "evidencia_enviada") {
+        try {
+          const { data } = await api.get(`/service-orders/${orderId}`);
+          if (data.estado === "completada" || data.estado === "cancelada") {
+            alert("La orden ya fue " + (data.estado === "completada" ? "completada" : "cancelada") + ".");
+            return;
+          }
+        } catch {
+          // if error, proceed anyway
+        }
+      }
       const role = this.authStore.user?.rol;
       const openChat = n.tipo === "mensaje_recibido" || n.tipo === "evidencia_enviada";
       let url;

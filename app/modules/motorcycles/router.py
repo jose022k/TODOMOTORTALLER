@@ -14,6 +14,7 @@ from app.modules.motorcycles.schemas import (
 from app.modules.motorcycles.service import (
     get_brands,
     get_catalog_items,
+    count_catalog_items,
     get_catalog_item_by_id,
     create_catalog_item,
     update_catalog_item,
@@ -42,14 +43,25 @@ def create_brand_endpoint(
     return create_brand(db, nombre, logo.file)
 
 
+@router.get("/catalog/count")
+def count_catalog(
+    search: str = "",
+    db: Session = Depends(get_db),
+    current_user: AnyUser = Depends(get_current_user),
+):
+    total = count_catalog_items(db, search=search)
+    return {"total": total}
+
+
 @router.get("/catalog", response_model=List[CatalogoMotoResponse])
 def list_catalog(
     skip: int = 0,
     limit: int = 100,
+    search: str = "",
     db: Session = Depends(get_db),
     current_user: AnyUser = Depends(get_current_user),
 ):
-    return get_catalog_items(db, skip=skip, limit=limit)
+    return get_catalog_items(db, skip=skip, limit=limit, search=search)
 
 
 @router.get("/catalog/{item_id}", response_model=CatalogoMotoResponse)

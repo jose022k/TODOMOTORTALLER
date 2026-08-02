@@ -78,3 +78,12 @@ def rendimiento_mecanicos(
     admin=Depends(get_current_admin),
 ):
     return service.get_rendimiento_mecanicos(db, fecha_inicio=fecha_inicio, fecha_fin=fecha_fin)
+
+
+@router.get("/ganancias")
+def ganancias_semana(
+    db: Session = Depends(get_db),
+    admin=Depends(get_current_admin),
+):
+    """Ganancias en USD de órdenes completadas de los últimos 7 días."""
+    return service.get_ganancias_semana(db)

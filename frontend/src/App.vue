@@ -3,9 +3,15 @@
     <header class="app-header">
       <router-link :to="homeRoute" class="logo">Todomotortaller</router-link>
       <nav class="app-nav">
-        <template v-if="!authStore.isAuthenticated || !authStore.isAdmin">
-          <router-link v-if="!authStore.isMecanico && !authStore.isCliente" to="/">Home</router-link>
-          <router-link v-if="!authStore.isMecanico && !authStore.isCliente" to="/about">About</router-link>
+        <template v-if="!authStore.isAuthenticated">
+          <router-link v-if="!authStore.isMecanico && !authStore.isCliente" to="/" class="nav-text-link">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>
+            Taller
+          </router-link>
+          <router-link v-if="!authStore.isMecanico && !authStore.isCliente" to="/about" class="nav-text-link">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            Ubicación
+          </router-link>
         </template>
         <template v-if="authStore.isAuthenticated">
           <router-link v-if="authStore.isAdmin" to="/admin" class="nav-icon-btn" data-tooltip="Panel Admin">
@@ -31,29 +37,45 @@
           </router-link>
           <NotificationsDropdown />
           <span class="user-info">{{ authStore.user?.nombre }}</span>
-          <button class="btn-logout" @click="handleLogout">Cerrar Sesión</button>
+          <SettingsDropdown @theme-change="onThemeChange" />
+          <button class="btn-logout" @click="handleLogout" :disabled="loggingOut">{{ loggingOut ? "Cerrando sesión..." : "Cerrar Sesión" }}</button>
         </template>
         <template v-else>
-          <router-link v-if="$route.path !== '/login'" to="/login">
+          <router-link v-if="$route.path !== '/login'" to="/login" class="nav-text-link">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
             Iniciar Sesión
           </router-link>
+          <button class="theme-toggle" @click="toggleTheme" :title="isDark ? 'Modo claro' : 'Modo oscuro'" v-html="isDark ? sunIcon : moonIcon"></button>
         </template>
       </nav>
     </header>
     <main class="app-main">
       <router-view />
     </main>
+    <ConfirmModal
+      :visible="showLogoutModal"
+      title="Cerrar Sesión"
+      message="¿Deseas cerrar sesión?"
+      confirmText="Cerrar Sesión"
+      cancelText="Cancelar"
+      @confirm="confirmLogout"
+      @cancel="showLogoutModal = false"
+    />
+    <LoadingOverlay :visible="loggingOut" text="Cerrando sesión..." />
   </div>
 </template>
 
 <script>
 import { useAuthStore } from "@/stores/auth";
 import NotificationsDropdown from "@/components/NotificationsDropdown.vue";
+import SettingsDropdown from "@/components/SettingsDropdown.vue";
+import ConfirmModal from "@/components/ConfirmModal.vue";
+import LoadingOverlay from "@/components/LoadingOverlay.vue";
 import { setupPush } from "@/services/push";
 
 export default {
   name: "App",
-  components: { NotificationsDropdown },
+  components: { NotificationsDropdown, SettingsDropdown, ConfirmModal, LoadingOverlay },
   setup() {
     const authStore = useAuthStore();
     if (authStore.isAuthenticated && !authStore.user) {
@@ -80,10 +102,35 @@ export default {
       return "/";
     },
   },
+  data() {
+    return {
+      showLogoutModal: false,
+      loggingOut: false,
+      isDark: document.documentElement.classList.contains("dark"),
+      sunIcon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>',
+      moonIcon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>',
+    };
+  },
   methods: {
+    onThemeChange(dark) {
+      this.isDark = dark;
+      document.documentElement.classList.toggle("dark", dark);
+    },
+    toggleTheme() {
+      this.isDark = !this.isDark;
+      document.documentElement.classList.toggle("dark", this.isDark);
+    },
     handleLogout() {
-      this.authStore.logout();
-      this.$router.push("/login");
+      this.showLogoutModal = true;
+    },
+    confirmLogout() {
+      this.showLogoutModal = false;
+      this.loggingOut = true;
+      setTimeout(() => {
+        this.authStore.logout();
+        this.loggingOut = false;
+        this.$router.push("/login");
+      }, 3000);
     },
   },
 };
@@ -125,6 +172,11 @@ export default {
   text-decoration: none;
   font-weight: 600;
   font-size: 14px;
+}
+.nav-text-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 .app-nav a:hover {
   color: #ffaa00;
@@ -183,6 +235,28 @@ export default {
   border-color: #ffaa00;
   color: #ffaa00;
 }
+.btn-logout:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.theme-toggle {
+  background: none;
+  border: none;
+  color: #b0b5b9;
+  cursor: pointer;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  border-radius: 6px;
+  transition: all 0.15s;
+  line-height: 1;
+}
+.theme-toggle:hover {
+  color: #ffaa00;
+  background: rgba(255,170,0,0.1);
+}
+html.dark .theme-toggle { color: #94a3b8; }
+html.dark .theme-toggle:hover { color: #ffaa00; }
 .app-main {
   padding: 12px 20px;
 }

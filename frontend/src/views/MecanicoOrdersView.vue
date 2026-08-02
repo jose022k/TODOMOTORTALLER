@@ -9,7 +9,10 @@
       <button class="alert-close" @click="alert.message = ''">×</button>
     </div>
 
-    <div v-if="loading" class="loading-state">Cargando órdenes...</div>
+    <div v-if="loading" class="loading-state">
+      <div class="spinner"></div>
+      <p>Cargando órdenes...</p>
+    </div>
     <div v-else-if="orders.length === 0" class="empty-state">No tienes órdenes asignadas.</div>
     <table v-else class="data-table">
       <thead>

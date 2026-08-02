@@ -9,7 +9,7 @@ class NotificacionDAO(BaseDAO[Notificacion, NotificacionCreate, NotificacionCrea
     def __init__(self):
         super().__init__(Notificacion)
 
-    def get_by_user(self, db: Session, user_id: int, role: str, skip: int = 0, limit: int = 50) -> List[Notificacion]:
+    def get_by_user(self, db: Session, user_id: int, role: str, skip: int = 0, limit: int = 50, allowed_tipos: set = None) -> List[Notificacion]:
         query = db.query(self.model)
         if role == "admin":
             query = query.filter(self.model.admin_id == user_id)
@@ -17,6 +17,10 @@ class NotificacionDAO(BaseDAO[Notificacion, NotificacionCreate, NotificacionCrea
             query = query.filter(self.model.cliente_id == user_id)
         elif role == "mecanico":
             query = query.filter(self.model.mecanico_id == user_id)
+        if allowed_tipos is not None:
+            if not allowed_tipos:
+                return []
+            query = query.filter(self.model.tipo.in_(allowed_tipos))
         return (
             query
             .order_by(self.model.fecha_creacion.desc())
@@ -25,7 +29,7 @@ class NotificacionDAO(BaseDAO[Notificacion, NotificacionCreate, NotificacionCrea
             .all()
         )
 
-    def get_unread_count(self, db: Session, user_id: int, role: str) -> int:
+    def get_unread_count(self, db: Session, user_id: int, role: str, allowed_tipos: set = None) -> int:
         query = db.query(self.model).filter(self.model.leido == False)
         if role == "admin":
             query = query.filter(self.model.admin_id == user_id)
@@ -33,6 +37,10 @@ class NotificacionDAO(BaseDAO[Notificacion, NotificacionCreate, NotificacionCrea
             query = query.filter(self.model.cliente_id == user_id)
         elif role == "mecanico":
             query = query.filter(self.model.mecanico_id == user_id)
+        if allowed_tipos is not None:
+            if not allowed_tipos:
+                return 0
+            query = query.filter(self.model.tipo.in_(allowed_tipos))
         return query.count()
 
     def mark_as_read(self, db: Session, notif_id: int, user_id: int, role: str) -> Optional[Notificacion]:

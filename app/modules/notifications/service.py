@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from app.modules.notifications.dao import NotificacionDAO
 from app.modules.notifications.schemas import NotificacionResponse
 from app.modules.notifications.push_service import notify_user
+from app.modules.preferences.service import should_notify, allowed_tipos
 
 notificacion_dao = NotificacionDAO()
 
@@ -23,9 +24,15 @@ def _build_response(n) -> NotificacionResponse:
 
 
 def get_notifications(db: Session, current_user, skip: int = 0, limit: int = 50):
-    notifs = notificacion_dao.get_by_user(db, current_user.id, current_user.rol, skip=skip, limit=limit)
-    unread = notificacion_dao.get_unread_count(db, current_user.id, current_user.rol)
+    allowed = allowed_tipos(db, current_user.rol, current_user.id)
+    notifs = notificacion_dao.get_by_user(db, current_user.id, current_user.rol, skip=skip, limit=limit, allowed_tipos=allowed)
+    unread = notificacion_dao.get_unread_count(db, current_user.id, current_user.rol, allowed_tipos=allowed)
     return [_build_response(n) for n in notifs], unread
+
+
+def get_unread_count(db: Session, current_user) -> int:
+    allowed = allowed_tipos(db, current_user.rol, current_user.id)
+    return notificacion_dao.get_unread_count(db, current_user.id, current_user.rol, allowed_tipos=allowed)
 
 
 def mark_read(db: Session, notif_id: int, current_user) -> Optional[NotificacionResponse]:
@@ -63,9 +70,17 @@ def create_notification(
         "cliente_id": cliente_id,
         "mecanico_id": mecanico_id,
     }
-    result = notificacion_dao.create(db, data)
-
     extra = "&open_chat=1" if open_chat else ""
+
+    # Verificar preferencias antes de notificar
+    if admin_id and not should_notify(db, "admin", admin_id, tipo):
+        return None
+    if cliente_id and not should_notify(db, "cliente", cliente_id, tipo):
+        return None
+    if mecanico_id and not should_notify(db, "mecanico", mecanico_id, tipo):
+        return None
+
+    result = notificacion_dao.create(db, data)
 
     # También enviar Web Push si hay un destinatario
     try:

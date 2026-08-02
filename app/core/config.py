@@ -16,6 +16,10 @@ CLOUDINARY_API_SECRET = os.getenv("CLOUDINARY_API_SECRET")
 # Frontend
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:8080")
 
+# Tasa BCV (fuente oficial bcv.org.ve)
+BCV_URL = os.getenv("BCV_URL", "https://www.bcv.org.ve/")
+BCV_CACHE_MINUTES = int(os.getenv("BCV_CACHE_MINUTES", "60"))
+
 # Web Push (VAPID)
 VAPID_PRIVATE_KEY = os.getenv("VAPID_PRIVATE_KEY")
 VAPID_PUBLIC_KEY = os.getenv("VAPID_PUBLIC_KEY")

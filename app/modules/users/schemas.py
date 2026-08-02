@@ -62,6 +62,10 @@ class ClienteResponse(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class CountResponse(BaseModel):
+    total: int
+
+
 class ClienteDetailResponse(BaseModel):
     id: int
     nombre: str

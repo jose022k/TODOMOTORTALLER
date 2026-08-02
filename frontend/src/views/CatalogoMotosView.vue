@@ -25,6 +25,7 @@
         type="text" 
         placeholder="Buscar por marca o modelo..." 
         class="search-input"
+        @input="onSearchInput"
       />
     </div>
 
@@ -43,7 +44,7 @@
     </div>
 
     <!-- Catálogo Vacío -->
-    <div v-else-if="filteredCatalog.length === 0" class="empty-state">
+    <div v-else-if="catalog.length === 0" class="empty-state">
       <div class="empty-icon">🏍️</div>
       <h3>No se encontraron modelos</h3>
       <p>Prueba con otra búsqueda o agrega un nuevo modelo al catálogo.</p>
@@ -52,7 +53,7 @@
     <!-- Lista de Catálogo en Grid -->
     <div v-else class="catalog-grid">
       <div 
-        v-for="item in filteredCatalog" 
+        v-for="item in catalog" 
         :key="item.id" 
         class="catalog-card"
       >
@@ -66,6 +67,13 @@
         </div>
       
       </div>
+    </div>
+
+    <!-- Paginación -->
+    <div v-if="!loading && totalPages > 1" class="pagination">
+      <button class="page-btn" :disabled="page <= 1" @click="goToPage(page - 1)">&#9664;</button>
+      <span class="page-info">{{ page }} / {{ totalPages }}</span>
+      <button class="page-btn" :disabled="page >= totalPages" @click="goToPage(page + 1)">&#9654;</button>
     </div>
 
     <!-- Modal Formulario (Crear / Editar) -->
@@ -182,6 +190,11 @@ export default {
       brands: [],
       searchQuery: "",
       loading: false,
+      page: 1,
+      pageSize: 30,
+      totalItems: 0,
+      totalPages: 0,
+      searchTimer: null,
       alert: {
         message: "",
         type: "", // 'success' o 'error'
@@ -213,19 +226,10 @@ export default {
     brandNames() {
       return this.brands.map((b) => b.marca).sort();
     },
-    filteredCatalog() {
-      const query = this.searchQuery.toLowerCase().trim();
-      if (!query) return this.catalog;
-      return this.catalog.filter(
-        (item) =>
-          item.marca.toLowerCase().includes(query) ||
-          item.modelo.toLowerCase().includes(query) ||
-          item.gama_color.toLowerCase().includes(query)
-      );
-    },
   },
   mounted() {
     this.fetchCatalog();
+    this.fetchCatalogCount();
     this.fetchBrands();
   },
   watch: {
@@ -242,7 +246,10 @@ export default {
     async fetchCatalog() {
       this.loading = true;
       try {
-        const { data } = await api.get("/motorcycles/catalog", { params: { limit: 500 } });
+        const params = { skip: (this.page - 1) * this.pageSize, limit: this.pageSize };
+        const trimmed = this.searchQuery.trim();
+        if (trimmed.length >= 2) params.search = trimmed;
+        const { data } = await api.get("/motorcycles/catalog", { params });
         this.catalog = data;
       } catch (err) {
         this.showAlert(
@@ -252,6 +259,30 @@ export default {
       } finally {
         this.loading = false;
       }
+    },
+    async fetchCatalogCount() {
+      try {
+        const params = {};
+        const trimmed = this.searchQuery.trim();
+        if (trimmed.length >= 2) params.search = trimmed;
+        const { data } = await api.get("/motorcycles/catalog/count", { params });
+        this.totalItems = data.total;
+        this.totalPages = Math.ceil(this.totalItems / this.pageSize) || 1;
+      } catch (e) {
+        console.error("Error fetching count", e);
+      }
+    },
+    async goToPage(p) {
+      this.page = p;
+      await this.fetchCatalog();
+    },
+    onSearchInput() {
+      if (this.searchTimer) clearTimeout(this.searchTimer);
+      this.searchTimer = setTimeout(() => {
+        this.page = 1;
+        this.fetchCatalog();
+        this.fetchCatalogCount();
+      }, 300);
     },
     async fetchBrands() {
       try {
@@ -354,21 +385,19 @@ export default {
         };
 
         if (this.modal.isEdit) {
-          const { data } = await api.put(
+          await api.put(
             `/motorcycles/catalog/${this.modal.form.id}`,
             payload
           );
-          const index = this.catalog.findIndex((x) => x.id === data.id);
-          if (index !== -1) {
-            this.catalog.splice(index, 1, data);
-          }
           this.showAlert("Modelo actualizado correctamente.");
         } else {
-          const { data } = await api.post("/motorcycles/catalog", payload);
-          this.catalog.push(data);
+          await api.post("/motorcycles/catalog", payload);
           this.showAlert("Modelo agregado al catálogo exitosamente.");
         }
         this.modal.show = false;
+        this.page = 1;
+        await this.fetchCatalog();
+        await this.fetchCatalogCount();
       } catch (err) {
         this.showAlert(
           err.response?.data?.detail || "Error al guardar el modelo de moto.",
@@ -381,6 +410,7 @@ export default {
   },
   beforeUnmount() {
     if (this.alertTimeout) clearTimeout(this.alertTimeout);
+    if (this.searchTimer) clearTimeout(this.searchTimer);
   },
 };
 </script>
@@ -412,6 +442,7 @@ export default {
 .header-content p {
   color: #666;
   margin-top: 5px;
+  margin-left: 48px;
   font-size: 1.05rem;
 }
 
@@ -428,6 +459,7 @@ export default {
   transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
   border: none;
   font-weight: 600;
+  cursor: pointer;
 }
 
 .btn-add:hover {
@@ -453,6 +485,7 @@ export default {
   border: 1.5px solid #d1d5db;
   font-weight: 600;
   transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+  cursor: pointer;
 }
 
 .btn-add-brand:hover {
@@ -615,7 +648,7 @@ export default {
 /* Catalog Grid */
 .catalog-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 24px;
 }
 
@@ -676,6 +709,44 @@ export default {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+}
+
+/* Pagination */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 20px;
+  padding: 12px 0;
+}
+.page-btn {
+  width: 36px;
+  height: 36px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #475569;
+  transition: all 0.15s;
+}
+.page-btn:hover:not(:disabled) {
+  border-color: #ffaa00;
+  color: #ffaa00;
+}
+.page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.page-info {
+  font-size: 14px;
+  font-weight: 600;
+  color: #64748b;
+  min-width: 60px;
+  text-align: center;
 }
 
 /* Modals */
@@ -814,6 +885,38 @@ export default {
   font-size: 0.95rem;
   border: none;
 }
+.modal-footer .btn-primary {
+  background: #ffaa00;
+  color: #1a1a1a;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.modal-footer .btn-primary:hover {
+  background: #e69900;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 170, 0, 0.3);
+}
+.modal-footer .btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+.modal-footer .btn-secondary {
+  background: #f1f5f9;
+  color: #475569;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.modal-footer .btn-secondary:hover {
+  background: #e2e8f0;
+}
+.modal-footer .btn-secondary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
 
 /* Spinner */
 .loading-state {
@@ -858,6 +961,19 @@ export default {
 
 .empty-state p {
   color: #64748b;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .catalog-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .catalog-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* Animaciones */

@@ -16,6 +16,7 @@ from app.modules.users.schemas import (
     ClienteDetailResponse,
     ClienteSummary,
     MotoAsociada,
+    CountResponse,
 )
 
 router = APIRouter(prefix="/users", tags=["users"])
@@ -28,6 +29,15 @@ def register_mechanic(
     admin: Admin = Depends(get_current_admin),
 ):
     return service.register_mecanico(db, data.nombre, data.email, data.password)
+
+
+@router.get("/clients/count", response_model=CountResponse)
+def count_clients(
+    db: Session = Depends(get_db),
+    admin: Admin = Depends(get_current_admin),
+):
+    total = service.count_clients(db)
+    return {"total": total}
 
 
 @router.get("/clients", response_model=List[ClienteResponse])
@@ -114,6 +124,15 @@ def deactivate_client(
     admin: Admin = Depends(get_current_admin),
 ):
     return service.deactivate_client(db, client_id)
+
+
+@router.get("/mechanics/count", response_model=CountResponse)
+def count_mechanics(
+    db: Session = Depends(get_db),
+    admin: Admin = Depends(get_current_admin),
+):
+    total = service.count_mechanics(db)
+    return {"total": total}
 
 
 @router.get("/mechanics", response_model=List[MecanicoResponse])

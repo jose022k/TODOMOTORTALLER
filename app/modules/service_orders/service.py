@@ -16,6 +16,7 @@ from app.modules.service_orders.schemas import (
 from app.modules.motorcycles.models import HistorialMantenimiento, MotoCliente, CatalogoMoto
 from app.modules.auth.models import Admin
 from app.modules.notifications.service import create_notification
+from app.modules.bcv.service import convertir_a_usd
 from app.core.ws_manager import manager
 
 orden_dao = OrdenServicioDAO()
@@ -39,6 +40,10 @@ def _build_list_response(order):
         estado=order.estado,
         fecha_creacion=order.fecha_creacion,
         fecha_cierre=order.fecha_cierre,
+        monto=order.monto,
+        moneda=order.moneda,
+        tasa_bcv=order.tasa_bcv,
+        monto_usd=order.monto_usd,
         cliente_id=order.cliente_id,
         cliente_nombre=order.cliente.nombre if order.cliente else "—",
         mecanico_id=order.mecanico_id,
@@ -93,7 +98,21 @@ def create_order(db: Session, data: OrdenServicioCreate, admin_user):
         "cliente_id": data.cliente_id,
         "mecanico_id": data.mecanico_id,
         "moto_cliente_id": moto_cliente_id,
+        "monto": data.monto,
+        "moneda": data.moneda,
     }
+
+    # Convertir a USD según la moneda (Bs usa la tasa BCV)
+    try:
+        monto_usd, tasa, _ = convertir_a_usd(db, data.monto, data.moneda)
+        order_data["monto_usd"] = monto_usd
+        order_data["tasa_bcv"] = tasa
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
+
     order = orden_dao.create(db, order_data)
 
     # Notificar al cliente
@@ -191,6 +210,10 @@ def get_order_by_id(db: Session, order_id: int, current_user):
         estado=order.estado,
         fecha_creacion=order.fecha_creacion,
         fecha_cierre=order.fecha_cierre,
+        monto=order.monto,
+        moneda=order.moneda,
+        tasa_bcv=order.tasa_bcv,
+        monto_usd=order.monto_usd,
         cliente_id=order.cliente_id,
         cliente_nombre=cliente.nombre if cliente else "—",
         cliente_cedula=cliente.cedula if cliente else "—",

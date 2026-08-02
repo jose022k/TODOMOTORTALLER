@@ -10,7 +10,7 @@ function getWebSocketUrl() {
   const token = localStorage.getItem('access_token')
   if (!token) return null
   const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-  return `${protocol}//${window.location.host}/ws/orders?token=${encodeURIComponent(token)}`
+  return `${protocol}//${window.location.host}/socket/orders?token=${encodeURIComponent(token)}`
 }
 
 function onOpen() {
@@ -30,9 +30,9 @@ function onClose() {
 }
 
 function onMessage(event) {
+  if (event.data === 'pong') return
   try {
     const data = JSON.parse(event.data)
-    if (data.tipo === 'pong') return
     if (data.tipo === 'orden_creada' || data.tipo === 'orden_actualizada') {
       window.dispatchEvent(new CustomEvent('order-updated', { detail: data }))
     }

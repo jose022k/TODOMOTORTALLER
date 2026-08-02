@@ -1,10 +1,13 @@
 <template>
   <div class="admin-orders">
     <div class="orders-header">
-      <h1>
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px; vertical-align: middle;"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M9 14l2 2 4-4"/></svg>
-        Órdenes de Servicio
-      </h1>
+      <div class="header-content">
+        <h1>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px; vertical-align: middle;"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M9 14l2 2 4-4"/></svg>
+          Órdenes de Servicio
+        </h1>
+        <p class="page-subtitle">Gestiona las órdenes de servicio de los clientes</p>
+      </div>
     </div>
 
     <!-- Alerta -->
@@ -34,7 +37,10 @@
     </div>
 
     <!-- Tabla de órdenes -->
-    <div v-if="loading" class="loading-state">Cargando órdenes...</div>
+    <div v-if="loading" class="loading-state">
+      <div class="spinner"></div>
+      <p>Cargando órdenes...</p>
+    </div>
     <div v-else-if="orders.length === 0" class="empty-state">No se encontraron órdenes de servicio.</div>
     <table v-else class="data-table">
       <thead>
@@ -81,10 +87,35 @@
         <div class="modal-body">
           <div class="form-group">
             <label>Cliente</label>
-            <select v-model="form.cliente_id" @change="onClientChange" class="form-control">
-              <option value="">Seleccionar cliente...</option>
-              <option v-for="c in clients" :key="c.id" :value="c.id">{{ c.nombre }} ({{ c.cedula }})</option>
-            </select>
+            <div v-if="!form.cliente_id" class="client-search">
+              <input
+                v-model="clienteBusqueda"
+                type="text"
+                class="form-control"
+                placeholder="Buscar cliente por nombre o cédula..."
+                @focus="clienteDropdownOpen = true"
+                @blur="closeClienteDropdown"
+              />
+              <div v-if="clienteDropdownOpen" class="client-search-dropdown">
+                <div v-if="clientsFiltrados.length === 0" class="client-search-empty">No se encontraron clientes.</div>
+                <button
+                  v-for="c in clientsFiltrados"
+                  :key="c.id"
+                  type="button"
+                  class="client-search-item"
+                  @mousedown.prevent="selectCliente(c)"
+                >
+                  <span class="client-search-name">{{ c.nombre }}</span>
+                  <span class="client-search-cedula">C.I. {{ c.cedula }}</span>
+                </button>
+              </div>
+            </div>
+            <div v-else class="client-selected">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              <span class="client-selected-name">{{ selectedCliente.nombre }}</span>
+              <span class="client-selected-cedula">C.I. {{ selectedCliente.cedula }}</span>
+              <button type="button" class="client-selected-clear" @click="clearCliente" title="Cambiar cliente">×</button>
+            </div>
           </div>
 
           <!-- Toggle: tipo de moto -->
@@ -115,7 +146,7 @@
             </div>
             <div class="form-group">
               <label>Modelo</label>
-              <select v-model="form.catalogoModelo" @change="onModeloChange" class="form-control" :disabled="!form.catalogoMarca">
+              <select v-model="form.catalogoModelo" @change="onModeloChange" class="form-control">
                 <option value="">Seleccionar modelo...</option>
                 <option v-for="m in modelosFiltrados" :key="m.id" :value="m.modelo">{{ m.modelo }}</option>
               </select>
@@ -143,7 +174,7 @@
             <div class="form-row">
               <div class="form-group half">
                 <label>Placa</label>
-                <input v-model="form.placa" type="text" class="form-control" placeholder="ABC-123" maxlength="20" />
+                <input v-model="form.placa" type="text" class="form-control" placeholder="ABC-123" maxlength="7" @input="filterPlaca" />
               </div>
               <div class="form-group half">
                 <label>Año</label>
@@ -162,6 +193,34 @@
           <div class="form-group">
             <label>Descripción del servicio</label>
             <textarea v-model="form.descripcion" class="form-control" rows="4" placeholder="Describe el trabajo a realizar..."></textarea>
+          </div>
+
+          <div class="form-group">
+            <label>Monto</label>
+            <div class="monto-toggle">
+              <button :class="['toggle-btn', { active: form.moneda === 'BS' }]" type="button" @click="form.moneda = 'BS'">Bs</button>
+              <button :class="['toggle-btn', { active: form.moneda === 'USD' }]" type="button" @click="form.moneda = 'USD'">$</button>
+            </div>
+            <div class="monto-input-row">
+              <input
+                v-model="form.monto"
+                type="number"
+                step="0.01"
+                min="0"
+                class="form-control"
+                :placeholder="form.moneda === 'BS' ? 'Ej: 5000' : 'Ej: 50'"
+                @input="filterMonto"
+              />
+              <span class="monto-currency">{{ form.moneda === 'BS' ? 'Bs' : '$' }}</span>
+            </div>
+            <p v-if="form.moneda === 'BS' && montoUsdPreview" class="monto-preview">
+              ≈ ${{ montoUsdPreview }}
+            </p>
+            <p v-else-if="form.moneda === 'USD' && tasaBcv && form.monto > 0" class="monto-preview">
+              ≈ {{ formatBs(form.monto * tasaBcv) }} Bs
+            </p>
+            <p v-if="tasaBcv" class="monto-tasa">Tasa BCV: {{ tasaBcv.toFixed(2) }} Bs/$</p>
+            <p v-else class="monto-tasa warn">Tasa no disponible. Configúrala en Reportes y Estadísticas.</p>
           </div>
         </div>
         <div class="modal-footer">
@@ -239,6 +298,18 @@
               <div>
                 <span class="detail-label">Cerrada</span>
                 <span class="detail-value">{{ formatDate(detail.fecha_cierre) }}</span>
+              </div>
+            </div>
+            <div class="detail-item" v-if="detail.monto">
+              <div class="detail-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              </div>
+              <div>
+                <span class="detail-label">Monto</span>
+                <span class="detail-value">
+                  <span class="monto-original">{{ detail.moneda === 'USD' ? '$' : 'Bs' }} {{ detail.moneda === 'USD' ? detail.monto : formatBs(detail.monto) }}</span>
+                  <span v-if="detail.monto_usd" class="detail-sub">≈ ${{ Number(detail.monto_usd).toFixed(2) }}</span>
+                </span>
               </div>
             </div>
           </div>
@@ -323,6 +394,9 @@ export default {
       showDetailModal: false,
       clients: [],
       mechanics: [],
+      clienteBusqueda: "",
+      clienteDropdownOpen: false,
+      tasaBcv: null,
       clientMotos: [],
       catalog: [],          // todos los items del catálogo
       motoMode: "existente", // "existente" | "nueva"
@@ -348,27 +422,61 @@ export default {
     };
   },
   computed: {
+    clientsFiltrados() {
+      const q = this.clienteBusqueda.trim().toLowerCase();
+      if (!q) return this.clients;
+      return this.clients.filter((c) =>
+        (c.nombre || "").toLowerCase().includes(q) ||
+        String(c.cedula || "").toLowerCase().includes(q)
+      );
+    },
+    selectedCliente() {
+      return this.clients.find((c) => c.id === this.form.cliente_id) || null;
+    },
+    montoUsdPreview() {
+      if (this.form.moneda !== 'BS' || !this.tasaBcv || !(this.form.monto > 0)) return "";
+      return (this.form.monto / this.tasaBcv).toFixed(2);
+    },
     marcas() {
       const set = new Set(this.catalog.map((m) => m.marca));
       return [...set].sort();
     },
     modelosFiltrados() {
-      if (!this.form.catalogoMarca) return [];
-      return this.catalog.filter((m) => m.marca === this.form.catalogoMarca);
+      const seen = new Set();
+      return this.catalog.filter((m) => {
+        if (this.form.catalogoMarca && m.marca !== this.form.catalogoMarca) return false;
+        if (seen.has(m.modelo)) return false;
+        seen.add(m.modelo);
+        return true;
+      });
+    },
+    coloresPorModelo() {
+      if (!this.form.catalogoModelo) return [];
+      const colores = new Set();
+      this.catalog
+        .filter((m) => {
+          if (this.form.catalogoMarca && m.marca !== this.form.catalogoMarca) return false;
+          return m.modelo === this.form.catalogoModelo;
+        })
+        .forEach((m) => {
+          (m.gama_color || "").split(",").map((c) => c.trim()).filter(Boolean).forEach((c) => colores.add(c));
+        });
+      return [...colores];
     },
     modeloSeleccionado() {
-      return this.catalog.find(
-        (m) => m.marca === this.form.catalogoMarca && m.modelo === this.form.catalogoModelo
-      );
+      return this.catalog.find((m) => {
+        if (this.form.catalogoMarca && m.marca !== this.form.catalogoMarca) return false;
+        return m.modelo === this.form.catalogoModelo;
+      });
     },
     coloresDisponibles() {
-      if (!this.modeloSeleccionado) return [];
-      return this.modeloSeleccionado.gama_color.split(",").map((c) => c.trim()).filter(Boolean);
+      return this.coloresPorModelo;
     },
     canCreate() {
       if (!this.form.cliente_id || !this.form.mecanico_id || !this.form.descripcion.trim()) return false;
+      if (!(this.form.monto > 0) || !this.form.moneda) return false;
       if (this.motoMode === "existente") return !!this.form.moto_cliente_id;
-      return !!(this.form.catalogoMarca && this.form.catalogoModelo && this.form.color && this.form.placa && this.form.anio);
+      return !!(this.form.catalogoModelo && this.modeloSeleccionado && this.form.color && this.form.placa && this.form.anio);
     },
     canChangeStatus() {
       return this.detail && this.detail.estado !== "completada" && this.detail.estado !== "cancelada";
@@ -430,6 +538,9 @@ export default {
       this.page = p;
       await this.fetchOrders();
     },
+    filterPlaca() {
+      this.form.placa = this.form.placa.replace(/[^a-zA-Z0-9]/g, "").toUpperCase().slice(0, 7);
+    },
     onFilterChange() {
       this.page = 1;
       this.fetchOrders();
@@ -453,7 +564,7 @@ export default {
     },
     async fetchCatalog() {
       try {
-        const { data } = await api.get("/motorcycles/catalog", { params: { limit: 500 } });
+        const { data } = await api.get("/motorcycles/catalog", { params: { limit: 9999 } });
         this.catalog = data;
       } catch (err) {
         console.error("Error loading catalog", err);
@@ -470,12 +581,48 @@ export default {
         console.error("Error loading client motos", err);
       }
     },
+    selectCliente(c) {
+      this.form.cliente_id = c.id;
+      this.clienteBusqueda = "";
+      this.clienteDropdownOpen = false;
+      this.onClientChange();
+    },
+    clearCliente() {
+      this.form.cliente_id = "";
+      this.clienteBusqueda = "";
+      this.clienteDropdownOpen = false;
+      this.clientMotos = [];
+      this.motoMode = "existente";
+      this.resetMotoForm();
+    },
+    closeClienteDropdown() {
+      setTimeout(() => { this.clienteDropdownOpen = false; }, 150);
+    },
+    async fetchTasa() {
+      try {
+        const { data } = await api.get("/bcv/tasa");
+        this.tasaBcv = data.tasa;
+      } catch (err) {
+        this.tasaBcv = null;
+      }
+    },
+    filterMonto() {
+      const val = parseFloat(this.form.monto);
+      this.form.monto = isNaN(val) || val < 0 ? "" : val;
+    },
+    formatBs(val) {
+      return Number(val).toLocaleString("es-VE", { maximumFractionDigits: 2 });
+    },
     onMarcaChange() {
       this.form.catalogoModelo = "";
       this.form.color = "";
     },
     onModeloChange() {
       this.form.color = "";
+      if (!this.form.catalogoMarca) {
+        const match = this.catalog.find((m) => m.modelo === this.form.catalogoModelo);
+        if (match) this.form.catalogoMarca = match.marca;
+      }
     },
     colorHex(colorName) {
       const map = {
@@ -490,9 +637,11 @@ export default {
       this.form = {
         cliente_id: "", moto_cliente_id: "", catalogoMarca: "", catalogoModelo: "",
         color: "", placa: "", anio: "", mecanico_id: "", descripcion: "",
+        monto: "", moneda: "USD",
       };
       this.clientMotos = [];
       this.motoMode = "existente";
+      this.fetchTasa();
       this.showCreateModal = true;
     },
     async handleCreate() {
@@ -502,6 +651,8 @@ export default {
           descripcion: this.form.descripcion,
           cliente_id: Number(this.form.cliente_id),
           mecanico_id: Number(this.form.mecanico_id),
+          monto: Number(this.form.monto),
+          moneda: this.form.moneda,
         };
         if (this.motoMode === "existente") {
           payload.moto_cliente_id = Number(this.form.moto_cliente_id);
@@ -832,6 +983,8 @@ export default {
 .detail-value { font-size: 13px; font-weight: 600; color: #1a1a1a; display: flex; align-items: center; gap: 6px; }
 .detail-value.moto-value { flex-direction: column; align-items: flex-start; gap: 4px; }
 .detail-sub { font-weight: 700; color: #94a3b8; }
+.monto-original { color: #166534; font-weight: 700; }
+html.dark .monto-original { color: #4ade80; }
 .detail-card {
   margin-bottom: 24px;
   padding: 16px;
@@ -930,6 +1083,153 @@ textarea.form-control {
   color: #475569;
   margin-bottom: 5px;
 }
+/* Cliente search */
+.client-search {
+  position: relative;
+}
+.client-search-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 4px;
+  max-height: 240px;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  z-index: 30;
+}
+.client-search-empty {
+  padding: 12px 14px;
+  color: #94a3b8;
+  font-size: 13px;
+  text-align: center;
+}
+.client-search-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 14px;
+  border: none;
+  border-bottom: 1px solid #f1f5f9;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 14px;
+  color: #1a1a1a;
+  transition: background 0.12s;
+}
+.client-search-item:last-child { border-bottom: none; }
+.client-search-item:hover { background: #f8fafc; }
+.client-search-name { font-weight: 600; }
+.client-search-cedula { color: #64748b; font-size: 13px; white-space: nowrap; }
+.client-selected {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: #f8fafc;
+  color: #1a1a1a;
+  font-size: 14px;
+}
+.client-selected svg { color: #ffaa00; flex-shrink: 0; }
+.client-selected-name { font-weight: 600; }
+.client-selected-cedula { color: #64748b; font-size: 13px; }
+.client-selected-clear {
+  margin-left: auto;
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 50%;
+  background: #e2e8f0;
+  color: #475569;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.12s, color 0.12s;
+}
+.client-selected-clear:hover { background: #ffaa00; color: #1a1a1a; }
+html.dark .client-search-dropdown { background: var(--bg-card); border-color: var(--border-input); }
+html.dark .client-search-item { color: var(--text-default); border-bottom-color: var(--bg-muted); }
+html.dark .client-search-item:hover { background: var(--bg-hover); }
+html.dark .client-search-cedula { color: var(--text-muted); }
+html.dark .client-search-empty { color: var(--text-muted); }
+html.dark .client-selected { background: var(--bg-input); border-color: var(--border-input); color: var(--text-default); }
+html.dark .client-selected-cedula { color: var(--text-muted); }
+html.dark .client-selected-clear { background: var(--bg-muted); color: var(--text-secondary); }
+html.dark .client-selected-clear:hover { background: var(--color-primary); color: #1a1a1a; }
+/* Monto */
+.monto-toggle {
+  display: flex;
+  gap: 0;
+  margin-bottom: 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  overflow: hidden;
+  max-width: 200px;
+}
+.monto-toggle .toggle-btn {
+  flex: 1;
+  padding: 8px 12px;
+  border: none;
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.monto-toggle .toggle-btn.active {
+  background: #ffaa00;
+  color: #1a1a1a;
+}
+.monto-input-row {
+  position: relative;
+  max-width: 260px;
+}
+.monto-input-row input {
+  padding-right: 46px;
+}
+.monto-currency {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-weight: 700;
+  font-size: 14px;
+  color: #475569;
+  pointer-events: none;
+}
+.monto-preview {
+  margin-top: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #166534;
+}
+.monto-tasa {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #64748b;
+}
+.monto-tasa.warn {
+  color: #b45309;
+  font-weight: 600;
+}
+html.dark .monto-toggle { border-color: var(--border-input); }
+html.dark .monto-toggle .toggle-btn { background: var(--bg-muted); color: var(--text-muted); }
+html.dark .monto-toggle .toggle-btn.active { background: var(--color-primary); color: #1a1a1a; }
+html.dark .monto-currency { color: var(--text-secondary); }
+html.dark .monto-preview { color: #4ade80; }
+html.dark .monto-tasa { color: var(--text-muted); }
+html.dark .monto-tasa.warn { color: #fbbf24; }
 /* Toggle */
 .moto-toggle {
   display: flex;

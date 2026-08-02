@@ -12,7 +12,7 @@
         </div>
 
         <template v-for="item in timeline" :key="item.key">
-          <!-- Evidencia -->
+          <!-- Evidencia suelta (sin mensaje) -->
           <div v-if="item.type === 'evidencia'" class="evidencia-bubble">
             <img :src="imageUrl(item.url)" class="evidencia-img" @click="openLightbox(imageUrl(item.url))" />
           </div>
@@ -28,10 +28,19 @@
                 </div>
               </template>
               <template v-else>
-                <div class="msg-text">{{ item.contenido }}</div>
+                <div v-if="item.evidencias.length" class="msg-attached-imgs">
+                  <img
+                    v-for="ev in item.evidencias"
+                    :key="ev._key || ev.id"
+                    :src="imageUrl(ev.url)"
+                    class="attached-img"
+                    @click="openLightbox(imageUrl(ev.url))"
+                  />
+                </div>
+                <div v-if="item.contenido" class="msg-text">{{ item.contenido }}</div>
                 <div class="msg-footer">
                   <span class="msg-time">{{ formatTime(item.fecha_hora) }}<span v-if="item.editado" class="editado-badge"> · editado</span></span>
-                  <button v-if="item.mine && item.canEdit" class="btn-edit" title="Editar mensaje" @click.stop="startEdit(item)">✏️</button>
+                  <button v-if="item.mine && item.canEdit" class="btn-edit" title="Editar mensaje" @click.stop="startEdit(item)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>
                 </div>
               </template>
             </div>
@@ -104,18 +113,28 @@ export default {
   },
   computed: {
     timeline() {
+      const now = new Date();
+      const evidenciasByMsg = {};
+      this.evidencias.forEach((e) => {
+        if (e.mensaje_id) {
+          if (!evidenciasByMsg[e.mensaje_id]) evidenciasByMsg[e.mensaje_id] = [];
+          evidenciasByMsg[e.mensaje_id].push(e);
+        }
+      });
       const items = [];
       this.evidencias.forEach((e) => {
-        items.push({ type: "evidencia", key: "ev" + e.id, url: e.url, fecha: e.fecha });
+        if (!e.mensaje_id) {
+          items.push({ type: "evidencia", key: "ev" + (e._key || e.id), url: e.url, fecha: e.fecha });
+        }
       });
-      const now = new Date();
       this.messages.forEach((m) => {
         const mine = m.remitente_id === this.myId && m.remitente_rol === this.myRole;
         const msgDate = new Date(m.fecha_hora);
         const canEdit = mine && (now - msgDate) < 600000;
+        const attached = evidenciasByMsg[m.id] || [];
         items.push({
           type: "mensaje",
-          key: "msg" + m.id,
+          key: "msg" + (m._key || m.id),
           id: m.id,
           contenido: m.contenido,
           fecha_hora: m.fecha_hora,
@@ -123,6 +142,7 @@ export default {
           remitente_rol: m.remitente_rol,
           mine,
           canEdit,
+          evidencias: attached,
         });
       });
       items.sort((a, b) => new Date(a.fecha || a.fecha_hora) - new Date(b.fecha || b.fecha_hora));
@@ -137,44 +157,75 @@ export default {
           api.get(`/chat/${this.ordenId}/evidencias`),
         ]);
         this.messages = msgRes.data;
-        this.evidencias = evRes.data;
-        this.$nextTick(() => this.scrollDown());
+        const localLinks = {};
+        this.evidencias.forEach(e => { if (e.id && e.mensaje_id) localLinks[e.id] = e.mensaje_id; });
+        this.evidencias = evRes.data.map(ev => { if (localLinks[ev.id]) ev.mensaje_id = localLinks[ev.id]; return ev; });
+        await this.$nextTick();
+        this.scrollDown();
       } catch (e) { /* polling error silently */ }
     },
     scrollDown() {
       const el = this.$refs.chatBody;
-      if (el) el.scrollTop = el.scrollHeight;
+      if (!el) return;
+      const threshold = 50;
+      const nearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < threshold;
+      if (nearBottom) el.scrollTop = el.scrollHeight;
     },
     async send() {
       const textContent = this.text.trim();
       const file = this.selectedFile;
       if (!textContent && !file) return;
       this.uploading = true;
+      const tempId = -Date.now();
       let tempMsg = null;
+      let tempEv = null;
       if (textContent) {
-        tempMsg = { id: -Date.now(), contenido: textContent, fecha_hora: new Date().toISOString(), remitente_id: this.myId, remitente_rol: this.myRole, editado: false };
+        tempMsg = { _key: tempId, id: tempId, contenido: textContent, fecha_hora: new Date().toISOString(), remitente_id: this.myId, remitente_rol: this.myRole, editado: false };
         this.messages.push(tempMsg);
         this.text = "";
-        this.$nextTick(() => this.scrollDown());
+      }
+      if (file) {
+        tempEv = { _key: tempId, id: tempId, url: this.previewUrl, mensaje_id: tempId, fecha: new Date().toISOString() };
+        this.evidencias.push(tempEv);
+        this.clearPreview();
       }
       try {
-        const promises = [];
-        if (file) {
+        if (textContent && file) {
           const fd = new FormData();
           fd.append("file", file);
-          promises.push(api.post(`/chat/${this.ordenId}/evidencias`, fd));
+          const [msgRes, evRes] = await Promise.all([
+            api.post(`/chat/${this.ordenId}`, { contenido: textContent, orden_servicio_id: this.ordenId }),
+            api.post(`/chat/${this.ordenId}/evidencias`, fd),
+          ]);
+          Object.assign(tempMsg, msgRes.data);
+          const evIdx = this.evidencias.indexOf(tempEv);
+          const realEv = { _key: tempEv._key, ...evRes.data, mensaje_id: msgRes.data.id || null };
+          if (evIdx !== -1) this.evidencias.splice(evIdx, 1, realEv);
+          if (msgRes.data.id) {
+            api.patch(`/chat/${this.ordenId}/evidencias/${evRes.data.id}/link?mensaje_id=${msgRes.data.id}`).catch(() => {});
+          }
+        } else if (file) {
+          const fd = new FormData();
+          fd.append("file", file);
+          const evRes = await api.post(`/chat/${this.ordenId}/evidencias`, fd);
+          const evIdx = this.evidencias.indexOf(tempEv);
+          if (evIdx !== -1) this.evidencias.splice(evIdx, 1, { _key: tempEv._key, ...evRes.data });
+        } else if (textContent) {
+          const msgRes = await api.post(`/chat/${this.ordenId}`, { contenido: textContent, orden_servicio_id: this.ordenId });
+          Object.assign(tempMsg, msgRes.data);
         }
-        if (textContent) {
-          promises.push(api.post(`/chat/${this.ordenId}`, { contenido: textContent, orden_servicio_id: this.ordenId }));
-        }
-        await Promise.all(promises);
-        if (file) this.clearPreview();
-        this.fetchAll();
       } catch (err) {
-        if (tempMsg) this.messages = this.messages.filter(m => m.id !== tempMsg.id);
+        if (tempMsg) this.messages = this.messages.filter(m => (m._key || m.id) !== (tempMsg._key || tempMsg.id));
+        if (tempEv) this.evidencias = this.evidencias.filter(e => (e._key || e.id) !== (tempEv._key || tempEv.id));
         alert("Error al enviar: " + (err.response?.data?.detail || err.message));
       } finally {
         this.uploading = false;
+        this.$nextTick(() => {
+          requestAnimationFrame(() => {
+            const el = this.$refs.chatBody;
+            if (el) el.scrollTop = el.scrollHeight;
+          });
+        });
       }
     },
     selectFile(e) {
@@ -205,8 +256,13 @@ export default {
       if (!this.editText.trim()) return;
       try {
         await api.put(`/chat/${this.ordenId}/${msgId}`, { contenido: this.editText });
+        const msg = this.messages.find(m => m.id === msgId);
+        if (msg) {
+          msg.contenido = this.editText;
+          msg.editado = true;
+          msg.fecha_edicion = new Date().toISOString();
+        }
         this.cancelEdit();
-        await this.fetchAll();
       } catch (err) {
         alert("Error al editar: " + (err.response?.data?.detail || err.message));
       }
@@ -227,7 +283,12 @@ export default {
     },
   },
   mounted() {
-    this.fetchAll();
+    this.fetchAll().then(() => {
+      this.$nextTick(() => {
+        const el = this.$refs.chatBody;
+        if (el) el.scrollTop = el.scrollHeight;
+      });
+    });
     this.polling = setInterval(() => this.fetchAll(), 2000);
     document.addEventListener("visibilitychange", this.onVisible);
   },
@@ -297,43 +358,62 @@ export default {
   border: 2px solid #fff;
   box-shadow: 0 1px 3px rgba(0,0,0,0.15);
 }
+.msg-attached-imgs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 6px;
+}
+.attached-img {
+  width: 100%;
+  max-height: 200px;
+  object-fit: cover;
+  border-radius: 10px;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
 .msg-row {
   display: flex;
+  margin-bottom: 2px;
 }
 .msg-mine { justify-content: flex-end; }
 .msg-other { justify-content: flex-start; }
 .msg-bubble {
   max-width: 75%;
   padding: 8px 12px;
-  border-radius: 10px;
+  border-radius: 14px;
   font-size: 0.9rem;
   position: relative;
   word-wrap: break-word;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.06);
 }
 .bubble-mine {
-  background: #fef3c7;
-  border-bottom-right-radius: 2px;
+  background: #fff3cd;
+  border-bottom-right-radius: 4px;
 }
 .bubble-other {
   background: #fff;
-  border-bottom-left-radius: 2px;
+  border-bottom-left-radius: 4px;
 }
 .msg-author {
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: #1a1a1a;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #9ca3af;
   margin-bottom: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
 }
-.msg-text { line-height: 1.4; }
+.msg-text { line-height: 1.45; color: #1f2937; }
 .msg-footer {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
+  gap: 6px;
   margin-top: 4px;
 }
 .msg-time {
-  font-size: 0.65rem;
-  color: #6b7280;
+  font-size: 0.6rem;
+  color: #9ca3af;
 }
 .editado-badge {
   color: #d97706;
@@ -342,15 +422,24 @@ export default {
 .btn-edit {
   background: none;
   border: none;
-  font-size: 0.75rem;
   cursor: pointer;
-  padding: 0;
+  padding: 3px;
   line-height: 1;
-  opacity: 0.4;
-  transition: opacity 0.15s;
+  opacity: 0;
+  color: #9ca3af;
+  border-radius: 6px;
+  transition: all 0.15s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.btn-edit:hover {
+  opacity: 1 !important;
+  color: #ffaa00;
+  background: rgba(255,170,0,0.1);
 }
 .msg-bubble:hover .btn-edit {
-  opacity: 1;
+  opacity: 0.5;
 }
 .edit-input {
   width: 100%;
