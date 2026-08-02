@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Optional
 
 from sqlalchemy import func
@@ -133,3 +133,38 @@ def get_rendimiento_mecanicos(db: Session, fecha_inicio: Optional[datetime] = No
     q = _apply_date_filter(q, OrdenServicio, fecha_inicio, fecha_fin)
     rows = q.group_by(Mecanico.id).order_by(func.count(OrdenServicio.id).desc()).all()
     return [_to_dict(r, ["id", "nombre", "total_ordenes", "minutos_promedio"]) for r in rows]
+
+
+def get_ganancias_semana(db: Session):
+    """Ganancias en USD de órdenes completadas, agrupadas por día, últimos 7 días."""
+    hoy = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+    inicio = hoy - timedelta(days=6)
+
+    rows = (
+        db.query(
+            func.date(OrdenServicio.fecha_creacion).label("dia"),
+            func.sum(OrdenServicio.monto_usd).label("total_usd"),
+        )
+        .filter(
+            OrdenServicio.estado == "completada",
+            OrdenServicio.fecha_creacion >= inicio,
+            OrdenServicio.fecha_creacion < hoy + timedelta(days=1),
+        )
+        .group_by("dia")
+        .order_by("dia")
+        .all()
+    )
+
+    por_dia = {str(r.dia): float(r.total_usd or 0) for r in rows}
+
+    dias_nombres = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
+    dias = []
+    for i in range(7):
+        fecha = inicio + timedelta(days=i)
+        clave = fecha.strftime("%Y-%m-%d")
+        dias.append({
+            "dia": dias_nombres[fecha.weekday()],
+            "fecha": clave,
+            "total_usd": round(por_dia.get(clave, 0.0), 2),
+        })
+    return dias

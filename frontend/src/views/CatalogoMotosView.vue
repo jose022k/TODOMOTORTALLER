@@ -459,6 +459,7 @@ export default {
   transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
   border: none;
   font-weight: 600;
+  cursor: pointer;
 }
 
 .btn-add:hover {
@@ -484,6 +485,7 @@ export default {
   border: 1.5px solid #d1d5db;
   font-weight: 600;
   transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+  cursor: pointer;
 }
 
 .btn-add-brand:hover {
@@ -882,6 +884,38 @@ export default {
   border-radius: 8px;
   font-size: 0.95rem;
   border: none;
+}
+.modal-footer .btn-primary {
+  background: #ffaa00;
+  color: #1a1a1a;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.modal-footer .btn-primary:hover {
+  background: #e69900;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 170, 0, 0.3);
+}
+.modal-footer .btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+.modal-footer .btn-secondary {
+  background: #f1f5f9;
+  color: #475569;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.modal-footer .btn-secondary:hover {
+  background: #e2e8f0;
+}
+.modal-footer .btn-secondary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 /* Spinner */

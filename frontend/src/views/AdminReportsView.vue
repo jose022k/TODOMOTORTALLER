@@ -26,6 +26,17 @@
           <input type="date" v-model="fechaFin" @change="fetchAll" class="filter-date" />
         </label>
         <button v-if="fechaInicio || fechaFin" class="btn-clear" @click="clearFilters">Limpiar filtros</button>
+        <div class="tasa-chip" @click="editTasa = true" title="Editar tasa BCV">
+          <span class="tasa-chip-label">Tasa BCV</span>
+          <span class="tasa-chip-value">{{ tasaBcv ? tasaBcv.toFixed(2) + ' Bs/$' : 'N/D' }}</span>
+          <svg v-if="editTasa" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-left:4px;"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          <svg v-else width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-left:4px;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </div>
+        <div v-if="editTasa" class="tasa-editor">
+          <input v-model="tasaInput" type="number" step="0.01" min="0" class="filter-date" placeholder="Tasa del día" />
+          <button class="btn-clear" @click="saveTasa">Guardar</button>
+          <button class="btn-clear" @click="editTasa = false">Cancelar</button>
+        </div>
         <div class="pdf-dropdown">
           <button class="btn-pdf" @click="showPdfMenu = !showPdfMenu">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
@@ -46,7 +57,10 @@
       </div>
     </div>
 
-    <div v-if="loading" class="loading-state no-print">Cargando reportes...</div>
+    <div v-if="loading" class="loading-state no-print">
+      <div class="spinner"></div>
+      <p>Cargando reportes...</p>
+    </div>
 
     <template v-else>
       <div class="report-card highlight-card no-print">
@@ -62,7 +76,8 @@
           </div>
           <div v-if="s.data.length === 0" class="report-empty">Sin datos</div>
           <div v-else class="chart-wrapper screen-only">
-            <Bar :data="s.chartData" :options="s.chartOptions" />
+            <Line v-if="s.key === 'ganancias'" :data="s.chartData" :options="s.chartOptions" />
+            <Bar v-else :data="s.chartData" :options="s.chartOptions" />
           </div>
           <div v-if="s.data.length > 0" class="print-table-wrapper">
             <table class="print-table">
@@ -84,6 +99,7 @@
                     <template v-else-if="col.key === 'moto'">{{ row.marca }} {{ row.modelo }}</template>
                     <template v-else-if="col.key === 'dia'">{{ row.dia }}</template>
                     <template v-else-if="col.key === 'total_dia'">{{ row.total }} órdenes</template>
+                    <template v-else-if="col.key === 'total_usd'">$ {{ Number(row.total_usd).toFixed(2) }}</template>
                     <template v-else>{{ row[col.key] }}</template>
                   </td>
                 </tr>
@@ -97,19 +113,21 @@
 </template>
 
 <script>
-import { Bar } from "vue-chartjs";
+import { Bar, Line } from "vue-chartjs";
 import {
   Chart as ChartJS,
   CategoryScale,
   LinearScale,
   BarElement,
+  PointElement,
+  LineElement,
   Title,
   Tooltip,
   Legend,
 } from "chart.js";
 import api from "@/services/api";
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
+ChartJS.register(CategoryScale, LinearScale, BarElement, PointElement, LineElement, Title, Tooltip, Legend);
 
 const COLORS = [
   "#ffaa00", "#f59e0b", "#eab308", "#d97706",
@@ -118,7 +136,7 @@ const COLORS = [
 
 export default {
   name: "AdminReports",
-  components: { Bar },
+  components: { Bar, Line },
   data() {
     return {
       loading: true,
@@ -129,11 +147,16 @@ export default {
       topClientes: [],
       rendimientoMecanicos: [],
       diasSemana: [],
+      ganancias: [],
+      tasaBcv: null,
+      editTasa: false,
+      tasaInput: "",
       fechaInicio: "",
       fechaFin: "",
       showPdfMenu: false,
       pdfCounter: parseInt(localStorage.getItem("pdfCounter") || "1", 10),
       printSections: [
+        { key: "ganancias", label: "Ganancias", checked: true },
         { key: "mecanicos", label: "Top Mecánicos", checked: true },
         { key: "motos", label: "Top Motos Atendidas", checked: true },
         { key: "servicios", label: "Top Servicios Realizados", checked: true },
@@ -149,6 +172,7 @@ export default {
     },
     visibleSections() {
       const icons = {
+        ganancias: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>',
         mecanicos: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M9 14l2 2 4-4"/></svg>',
         motos: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="14" r="4"/><circle cx="18" cy="14" r="4"/><path d="M6 14h12"/><path d="M16 4h-4l-3 5h7l2 3"/><path d="M3 10h3l1-2"/></svg>',
         servicios: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>',
@@ -157,6 +181,7 @@ export default {
         rendimiento: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20v-6"/><path d="M12 10V4"/><path d="M6 20v-4"/><path d="M6 12V4"/><path d="M18 20v-8"/><path d="M18 8V4"/></svg>',
       };
       const columns = {
+        ganancias: [{ key: "dia", label: "Día" }, { key: "total_usd", label: "Monto" }],
         mecanicos: [{ key: "_rank", label: "#" }, { key: "nombre", label: "Nombre" }, { key: "total_servicios", label: "Servicios" }],
         motos: [{ key: "_rank", label: "#" }, { key: "moto", label: "Moto" }, { key: "total_ordenes", label: "Órdenes" }],
         servicios: [{ key: "_rank", label: "#" }, { key: "descripcion", label: "Servicio" }, { key: "total", label: "Veces" }],
@@ -165,6 +190,7 @@ export default {
         rendimiento: [{ key: "nombre", label: "Mecánico" }, { key: "total_ordenes", label: "Órdenes" }, { key: "minutos_promedio", label: "Tiempo Promedio" }],
       };
       const dataMap = {
+        ganancias: this.ganancias,
         mecanicos: this.topMecanicos,
         motos: this.topMotos,
         servicios: this.topServicios,
@@ -173,6 +199,23 @@ export default {
         rendimiento: this.rendimientoMecanicos,
       };
       const chartBuilders = {
+        ganancias: (d) => ({
+          labels: d.map((g) => g.dia),
+          datasets: [{
+            label: "Ganancias ($)",
+            data: d.map((g) => g.total_usd),
+            borderColor: "#ffaa00",
+            backgroundColor: "#ffaa00",
+            pointBackgroundColor: "#ffaa00",
+            pointBorderColor: "#1a1a1a",
+            pointBorderWidth: 2,
+            pointRadius: 6,
+            pointHoverRadius: 8,
+            borderWidth: 3,
+            tension: 0.3,
+            fill: false,
+          }],
+        }),
         mecanicos: (d) => ({
           labels: d.map((m) => m.nombre),
           datasets: [{ label: "Servicios", data: d.map((m) => m.total_servicios), backgroundColor: COLORS.slice(0, d.length), borderRadius: 6 }],
@@ -214,7 +257,34 @@ export default {
       return this.printSections
         .map((s) => {
           const raw = dataMap[s.key];
-          const isHoriz = s.key !== "dias";
+          const isHoriz = s.key !== "dias" && s.key !== "ganancias";
+            let opts;
+            if (s.key === "ganancias") {
+              opts = {
+                ...baseOptions,
+                plugins: {
+                  ...baseOptions.plugins,
+                  tooltip: {
+                    ...baseOptions.plugins.tooltip,
+                    callbacks: { label: (ctx) => ` $ ${Number(ctx.parsed.y).toFixed(2)}` },
+                  },
+                },
+                scales: {
+                  ...baseOptions.scales,
+                  y: {
+                    ...baseOptions.scales.y,
+                    min: 15,
+                    max: 300,
+                    ticks: {
+                      ...baseOptions.scales.y.ticks,
+                      callback: (v) => "$" + v,
+                    },
+                  },
+                },
+              };
+            } else {
+              opts = isHoriz ? { ...baseOptions, indexAxis: "y" } : baseOptions;
+            }
             return {
               key: s.key,
               label: s.label,
@@ -223,7 +293,7 @@ export default {
             data: raw,
             columns: columns[s.key],
             chartData: chartBuilders[s.key](raw),
-            chartOptions: isHoriz ? { ...baseOptions, indexAxis: "y" } : baseOptions,
+            chartOptions: opts,
           };
         });
     },
@@ -247,7 +317,7 @@ export default {
       this.loading = true;
       try {
         const dp = this.dateParams();
-        const [avgRes, mecRes, motoRes, servRes, diasRes, cliRes, rendRes] = await Promise.all([
+        const [avgRes, mecRes, motoRes, servRes, diasRes, cliRes, rendRes, ganRes, tasaRes] = await Promise.all([
           api.get("/reports/tiempo-promedio-reparacion", { params: dp }),
           api.get("/reports/mecanicos/mas-servicios", { params: dp }),
           api.get("/reports/motos/mas-atendidas", { params: dp }),
@@ -255,6 +325,8 @@ export default {
           api.get("/reports/ordenes/por-dia-semana"),
           api.get("/reports/clientes/recurrentes", { params: dp }),
           api.get("/reports/mecanicos/rendimiento", { params: dp }),
+          api.get("/reports/ganancias"),
+          api.get("/bcv/tasa"),
         ]);
         this.avgMinutes = avgRes.data.minutos_promedio;
         this.topMecanicos = mecRes.data;
@@ -263,10 +335,24 @@ export default {
         this.diasSemana = diasRes.data;
         this.topClientes = cliRes.data;
         this.rendimientoMecanicos = rendRes.data;
+        this.ganancias = ganRes.data;
+        this.tasaBcv = tasaRes.data.tasa;
+        this.tasaInput = tasaRes.data.tasa ? String(tasaRes.data.tasa) : "";
       } catch (err) {
         console.error("Error al cargar reportes", err);
       } finally {
         this.loading = false;
+      }
+    },
+    async saveTasa() {
+      const val = parseFloat(this.tasaInput);
+      if (isNaN(val) || val <= 0) return;
+      try {
+        await api.put("/bcv/tasa-manual", { tasa: val });
+        this.tasaBcv = val;
+        this.editTasa = false;
+      } catch (err) {
+        console.error("Error al guardar tasa", err);
       }
     },
     clearFilters() {
@@ -364,6 +450,34 @@ export default {
   background: #e2e8f0;
   border-color: #94a3b8;
 }
+/* Tasa BCV chip */
+.tasa-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #fff7e6;
+  border: 1.5px solid #ffaa00;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #1a1a1a;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.12s;
+}
+.tasa-chip:hover { background: #ffedcc; }
+.tasa-chip-label { color: #b45309; font-weight: 700; }
+.tasa-chip-value { color: #1a1a1a; }
+.tasa-editor {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+html.dark .tasa-chip { background: #334155; border-color: var(--color-primary); }
+html.dark .tasa-chip:hover { background: #3b4a63; }
+html.dark .tasa-chip-label { color: #fbbf24; }
+html.dark .tasa-chip-value { color: var(--text-default); }
 .loading-state { text-align: center; padding: 60px; color: #64748b; font-size: 1rem; }
 
 /* PDF dropdown */

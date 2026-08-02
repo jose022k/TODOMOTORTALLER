@@ -1,6 +1,9 @@
 <template>
   <div class="tracker-container">
-    <div v-if="loading" class="loading-state">Consultando historial...</div>
+    <div v-if="loading" class="loading-state">
+      <div class="spinner"></div>
+      <p>Consultando historial...</p>
+    </div>
     <div v-else-if="error" class="error-state">
       <h2>Información no disponible</h2>
       <p>El código QR no es válido o la moto no tiene servicios registrados.</p>

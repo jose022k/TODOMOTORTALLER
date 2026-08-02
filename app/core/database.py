@@ -26,6 +26,10 @@ _MIGRATIONS = [
     ("moto_cliente", "ADD COLUMN IF NOT EXISTS color VARCHAR(50)"),
     ("mensaje", "ADD COLUMN IF NOT EXISTS editado BOOLEAN NOT NULL DEFAULT FALSE"),
     ("mensaje", "ADD COLUMN IF NOT EXISTS fecha_edicion TIMESTAMP"),
+    ("orden_servicio", "ADD COLUMN IF NOT EXISTS monto FLOAT"),
+    ("orden_servicio", "ADD COLUMN IF NOT EXISTS moneda VARCHAR(3)"),
+    ("orden_servicio", "ADD COLUMN IF NOT EXISTS tasa_bcv FLOAT"),
+    ("orden_servicio", "ADD COLUMN IF NOT EXISTS monto_usd FLOAT"),
 ]
 
 
@@ -88,6 +92,14 @@ def ensure_schema_updates():
                 notify_orders BOOLEAN NOT NULL DEFAULT TRUE,
                 dark_mode BOOLEAN NOT NULL DEFAULT FALSE,
                 UNIQUE (user_role, user_id)
+            )"""))
+            conn.commit()
+
+        # Crear tabla configuracion (clave-valor) si no existe
+        if "configuracion" not in tables:
+            conn.execute(text("""CREATE TABLE configuracion (
+                clave VARCHAR(100) PRIMARY KEY,
+                valor TEXT
             )"""))
             conn.commit()
 

@@ -23,7 +23,10 @@
     </div>
 
     <div v-if="activeTab === 'ordenes'">
-      <div v-if="loading" class="loading-state">Cargando órdenes...</div>
+      <div v-if="loading" class="loading-state">
+        <div class="spinner"></div>
+        <p>Cargando órdenes...</p>
+      </div>
       <div v-else-if="orders.length === 0" class="empty-state">No tienes órdenes de servicio registradas.</div>
       <table v-else class="data-table">
         <thead>
@@ -62,7 +65,10 @@
     </div>
 
     <div v-if="activeTab === 'motos'">
-      <div v-if="motosLoading" class="loading-state">Cargando motos...</div>
+      <div v-if="motosLoading" class="loading-state">
+        <div class="spinner"></div>
+        <p>Cargando motos...</p>
+      </div>
       <div v-else-if="motos.length === 0" class="empty-state">No tienes motos registradas.</div>
       <div v-else class="motos-grid">
         <div v-for="m in motos" :key="m.id" class="moto-card">
@@ -187,7 +193,10 @@
           <button class="modal-close" @click="showHistoryModal = false">×</button>
         </div>
         <div class="modal-body">
-          <div v-if="historyLoading" class="loading-state">Cargando historial...</div>
+          <div v-if="historyLoading" class="loading-state">
+            <div class="spinner"></div>
+            <p>Cargando historial...</p>
+          </div>
           <div v-else-if="motoHistory.length === 0" class="empty-state">Esta moto no tiene órdenes de servicio.</div>
           <div v-else class="history-list">
             <div v-for="h in motoHistory" :key="h.id" class="history-item" :class="'history-' + h.estado">

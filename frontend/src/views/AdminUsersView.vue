@@ -6,7 +6,7 @@
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px; vertical-align: middle;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
           Gestión de Usuarios
         </h1>
-        <p class="page-subtitle" style="margin-top: -8px;">Administra los clientes y mecánicos registrados</p>
+        <p class="page-subtitle">Administra los clientes y mecánicos registrados</p>
       </div>
     </div>
 
@@ -29,7 +29,10 @@
         <button class="btn-primary" @click="openCreateMechModal">+ Nuevo Mecánico</button>
       </div>
 
-      <div v-if="loading" class="loading-state">Cargando...</div>
+      <div v-if="loading" class="loading-state">
+        <div class="spinner"></div>
+        <p>Cargando mecánicos...</p>
+      </div>
       <div v-else-if="filteredMechanics.length === 0" class="empty-state">No se encontraron mecánicos.</div>
       <table v-else class="data-table">
         <thead>
@@ -71,7 +74,10 @@
         <input v-model="clientSearch" type="text" class="search-input" placeholder="Buscar por nombre, email o cédula..." @input="onClientSearchInput" />
       </div>
 
-      <div v-if="loading" class="loading-state">Cargando...</div>
+      <div v-if="loading" class="loading-state">
+        <div class="spinner"></div>
+        <p>Cargando clientes...</p>
+      </div>
       <div v-else-if="filteredClients.length === 0" class="empty-state">No se encontraron clientes.</div>
       <table v-else class="data-table">
         <thead>
@@ -492,7 +498,6 @@ export default {
   font-size: 1.8rem;
   color: #1a1a1a;
   font-weight: 800;
-  margin-bottom: 20px;
 }
 .alert {
   padding: 12px 16px;

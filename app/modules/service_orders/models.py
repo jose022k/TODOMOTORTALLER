@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, ForeignKey, DateTime
+from sqlalchemy import Column, Integer, String, Text, ForeignKey, DateTime, Float
 from sqlalchemy.orm import relationship
 from app.core.database import Base
 
@@ -15,6 +15,11 @@ class OrdenServicio(Base):
     estado = Column(String(20), nullable=False, default="pendiente")
     fecha_creacion = Column(DateTime, nullable=False)
     fecha_cierre = Column(DateTime, nullable=True)
+
+    monto = Column(Float, nullable=True)
+    moneda = Column(String(3), nullable=True)
+    tasa_bcv = Column(Float, nullable=True)
+    monto_usd = Column(Float, nullable=True)
 
     cliente_id = Column(Integer, ForeignKey("cliente.id"), nullable=False)
     mecanico_id = Column(Integer, ForeignKey("mecanico.id"), nullable=False)

@@ -6,6 +6,26 @@ Todas las modificaciones siguen el estándar de versión semántica (https://sem
 
 ---
 
+## [1.9.0] - 2026-08-02
+
+### Added
+
+- Montos de pago en órdenes de servicio: columnas `monto`, `moneda` (BS/USD), `tasa_bcv` y `monto_usd` en `OrdenServicio`, con migración automática
+- Conversión Bs → USD con tasa de referencia del BCV en `create_order` (el monto es obligatorio)
+- Tabla `configuracion` (con `ensure_schema_updates`) para persistir la tasa manual del admin
+- Módulo `app/modules/bcv/` con endpoints `GET /bcv/tasa` y `PUT /bcv/tasa-manual`
+- Tarjeta "Ganancias" en `AdminReportsView`: suma de órdenes completadas de los últimos 7 días, gráfico de línea semanal (eje Y 15–300), tabla impresa en el PDF y chip editable de tasa BCV
+- Buscador de clientes en el modal "Nueva Orden" para seleccionar por nombre o cédula
+- Spinners modernos tipo aro (conic-gradient + máscara) en `LoadingOverlay.vue` y botones (`.btn-spinner`)
+
+### Changed
+
+- Tasa de referencia consultada directamente desde `bcv.org.ve` (scraping del bloque `#dolar`) en lugar de DolarApi; `BCV_API_URL` → `BCV_URL` en `app/core/config.py`
+- Subtítulos descriptivos de vistas admin alineados con el catálogo (`.page-subtitle` global con `margin-left: 48px`)
+- Spinner de rueda de moto reemplazado por aro moderno en overlay y botones
+
+---
+
 ## [1.8.0] - 2026-07-25
 
 ### Added
