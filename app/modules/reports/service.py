@@ -141,9 +141,10 @@ def get_rendimiento_mecanicos(db: Session, fecha_inicio: Optional[datetime] = No
 
 
 def get_ganancias_semana(db: Session):
-    """Ganancias en USD de órdenes completadas, agrupadas por día, últimos 7 días."""
+    """Ganancias en USD de órdenes completadas, agrupadas por día, de lunes a sábado de la semana actual."""
     hoy = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
-    inicio = hoy - timedelta(days=6)
+    lunes = hoy - timedelta(days=hoy.weekday())
+    fin = lunes + timedelta(days=6)
 
     rows = (
         db.query(
@@ -152,8 +153,8 @@ def get_ganancias_semana(db: Session):
         )
         .filter(
             OrdenServicio.estado == "completada",
-            OrdenServicio.fecha_creacion >= inicio,
-            OrdenServicio.fecha_creacion < hoy + timedelta(days=1),
+            OrdenServicio.fecha_creacion >= lunes,
+            OrdenServicio.fecha_creacion < fin,
         )
         .group_by("dia")
         .order_by("dia")
@@ -162,13 +163,13 @@ def get_ganancias_semana(db: Session):
 
     por_dia = {str(r.dia): float(r.total_usd or 0) for r in rows}
 
-    dias_nombres = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
+    dias_nombres = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"]
     dias = []
-    for i in range(7):
-        fecha = inicio + timedelta(days=i)
+    for i in range(6):
+        fecha = lunes + timedelta(days=i)
         clave = fecha.strftime("%Y-%m-%d")
         dias.append({
-            "dia": dias_nombres[fecha.weekday()],
+            "dia": dias_nombres[i],
             "fecha": clave,
             "total_usd": round(por_dia.get(clave, 0.0), 2),
         })

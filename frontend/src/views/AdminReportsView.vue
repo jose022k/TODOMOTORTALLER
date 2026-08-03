@@ -301,7 +301,7 @@ export default {
                   ...baseOptions.scales,
                   y: {
                     ...baseOptions.scales.y,
-                    min: 15,
+                    min: 25,
                     max: 300,
                     ticks: {
                       ...baseOptions.scales.y.ticks,
