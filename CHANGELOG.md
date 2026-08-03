@@ -10,6 +10,7 @@ Todas las modificaciones siguen el estándar de versión semántica (https://sem
 
 ### Added
 
+- Reporte "Clientes Nuevos vs Recurrentes": proporción de personas que vuelven al taller frente a las que van por primera vez, con endpoint `GET /reports/clientes/nuevos-vs-recurrentes`, gráfico de dona, tabla impresa y filtro por rango de fechas
 - Montos de pago en órdenes de servicio: columnas `monto`, `moneda` (BS/USD), `tasa_bcv` y `monto_usd` en `OrdenServicio`, con migración automática
 - Conversión Bs → USD con tasa de referencia del BCV en `create_order` (el monto es obligatorio)
 - Tabla `configuracion` (con `ensure_schema_updates`) para persistir la tasa manual del admin

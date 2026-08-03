@@ -41,6 +41,16 @@ def clientes_recurrentes(
     return service.get_clientes_recurrentes(db, fecha_inicio=fecha_inicio, fecha_fin=fecha_fin)
 
 
+@router.get("/clientes/nuevos-vs-recurrentes")
+def clientes_nuevos_vs_recurrentes(
+    fecha_inicio: Optional[datetime] = Query(None),
+    fecha_fin: Optional[datetime] = Query(None),
+    db: Session = Depends(get_db),
+    admin=Depends(get_current_admin),
+):
+    return service.get_clientes_nuevos_vs_recurrentes(db, fecha_inicio=fecha_inicio, fecha_fin=fecha_fin)
+
+
 @router.get("/tiempo-promedio-reparacion")
 def tiempo_promedio_reparacion(
     fecha_inicio: Optional[datetime] = Query(None),

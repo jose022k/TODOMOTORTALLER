@@ -168,3 +168,58 @@ def get_ganancias_semana(db: Session):
             "total_usd": round(por_dia.get(clave, 0.0), 2),
         })
     return dias
+
+
+def get_clientes_nuevos_vs_recurrentes(db: Session, fecha_inicio: Optional[datetime] = None, fecha_fin: Optional[datetime] = None):
+    """Proporción de clientes nuevos (primera visita) vs recurrentes (vuelven al taller)."""
+    primeras = (
+        db.query(
+            OrdenServicio.cliente_id,
+            func.min(OrdenServicio.fecha_creacion).label("primera_visita"),
+        )
+        .group_by(OrdenServicio.cliente_id)
+        .all()
+    )
+    primeras_map = {cid: fecha for cid, fecha in primeras}
+
+    q = db.query(OrdenServicio.cliente_id).distinct()
+    if fecha_inicio:
+        q = q.filter(OrdenServicio.fecha_creacion >= fecha_inicio)
+    if fecha_fin:
+        q = q.filter(OrdenServicio.fecha_creacion <= fecha_fin)
+    visitaron = [r[0] for r in q.all()]
+
+    nuevos = 0
+    recurrentes = 0
+    for cid in visitaron:
+        primera = primeras_map.get(cid)
+        if primera is None:
+            continue
+        if not fecha_inicio or primera >= fecha_inicio:
+            nuevos += 1
+        else:
+            recurrentes += 1
+
+    if not fecha_inicio:
+        # Sin rango de fechas: se clasifica por total de órdenes históricas
+        # (1 orden = nuevo, 2+ órdenes = recurrente)
+        conteos = (
+            db.query(
+                OrdenServicio.cliente_id,
+                func.count(OrdenServicio.id).label("total"),
+            )
+            .group_by(OrdenServicio.cliente_id)
+            .all()
+        )
+        nuevos = sum(1 for _, t in conteos if t == 1)
+        recurrentes = sum(1 for _, t in conteos if t > 1)
+
+    total = nuevos + recurrentes
+
+    def _pct(n):
+        return round(n / total * 100, 1) if total else 0
+
+    return [
+        {"tipo": "Nuevos", "cantidad": nuevos, "porcentaje": _pct(nuevos)},
+        {"tipo": "Recurrentes", "cantidad": recurrentes, "porcentaje": _pct(recurrentes)},
+    ]

@@ -77,6 +77,7 @@
           <div v-if="s.data.length === 0" class="report-empty">Sin datos</div>
           <div v-else class="chart-wrapper screen-only">
             <Line v-if="s.key === 'ganancias'" :data="s.chartData" :options="s.chartOptions" />
+            <Doughnut v-else-if="s.key === 'clientes_vs_recurrentes'" :data="s.chartData" :options="s.chartOptions" />
             <Bar v-else :data="s.chartData" :options="s.chartOptions" />
           </div>
           <div v-if="s.data.length > 0" class="print-table-wrapper">
@@ -100,6 +101,8 @@
                     <template v-else-if="col.key === 'dia'">{{ row.dia }}</template>
                     <template v-else-if="col.key === 'total_dia'">{{ row.total }} órdenes</template>
                     <template v-else-if="col.key === 'total_usd'">$ {{ Number(row.total_usd).toFixed(2) }}</template>
+                    <template v-else-if="col.key === 'porcentaje'">{{ Number(row.porcentaje).toFixed(1) }}%</template>
+                    <template v-else-if="col.key === 'cantidad'">{{ row.cantidad }} {{ row.cantidad === 1 ? 'cliente' : 'clientes' }}</template>
                     <template v-else>{{ row[col.key] }}</template>
                   </td>
                 </tr>
@@ -113,7 +116,7 @@
 </template>
 
 <script>
-import { Bar, Line } from "vue-chartjs";
+import { Bar, Line, Doughnut } from "vue-chartjs";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -121,13 +124,14 @@ import {
   BarElement,
   PointElement,
   LineElement,
+  ArcElement,
   Title,
   Tooltip,
   Legend,
 } from "chart.js";
 import api from "@/services/api";
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, PointElement, LineElement, Title, Tooltip, Legend);
+ChartJS.register(CategoryScale, LinearScale, BarElement, PointElement, LineElement, ArcElement, Title, Tooltip, Legend);
 
 const COLORS = [
   "#ffaa00", "#f59e0b", "#eab308", "#d97706",
@@ -136,7 +140,7 @@ const COLORS = [
 
 export default {
   name: "AdminReports",
-  components: { Bar, Line },
+  components: { Bar, Line, Doughnut },
   data() {
     return {
       loading: true,
@@ -145,6 +149,7 @@ export default {
       topMotos: [],
       topServicios: [],
       topClientes: [],
+      clientesVsRecurrentes: [],
       rendimientoMecanicos: [],
       diasSemana: [],
       ganancias: [],
@@ -162,6 +167,7 @@ export default {
         { key: "servicios", label: "Top Servicios Realizados", checked: true },
         { key: "dias", label: "Días con más clientes", checked: true },
         { key: "clientes", label: "Clientes Recurrentes", checked: true },
+        { key: "clientes_vs_recurrentes", label: "Nuevos vs Recurrentes", checked: true },
         { key: "rendimiento", label: "Rendimiento por Mecánico", checked: true },
       ],
     };
@@ -178,6 +184,7 @@ export default {
         servicios: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>',
         dias: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',
         clientes: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>',
+        clientes_vs_recurrentes: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
         rendimiento: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20v-6"/><path d="M12 10V4"/><path d="M6 20v-4"/><path d="M6 12V4"/><path d="M18 20v-8"/><path d="M18 8V4"/></svg>',
       };
       const columns = {
@@ -187,6 +194,7 @@ export default {
         servicios: [{ key: "_rank", label: "#" }, { key: "descripcion", label: "Servicio" }, { key: "total", label: "Veces" }],
         dias: [{ key: "dia", label: "Día" }, { key: "total_dia", label: "Órdenes" }],
         clientes: [{ key: "_rank", label: "#" }, { key: "nombre", label: "Cliente" }, { key: "total_ordenes", label: "Órdenes" }],
+        clientes_vs_recurrentes: [{ key: "tipo", label: "Tipo" }, { key: "cantidad", label: "Clientes" }, { key: "porcentaje", label: "% del total" }],
         rendimiento: [{ key: "nombre", label: "Mecánico" }, { key: "total_ordenes", label: "Órdenes" }, { key: "minutos_promedio", label: "Tiempo Promedio" }],
       };
       const dataMap = {
@@ -196,6 +204,7 @@ export default {
         servicios: this.topServicios,
         dias: this.diasSemana,
         clientes: this.topClientes,
+        clientes_vs_recurrentes: this.clientesVsRecurrentes,
         rendimiento: this.rendimientoMecanicos,
       };
       const chartBuilders = {
@@ -236,6 +245,16 @@ export default {
           labels: d.map((c) => c.nombre),
           datasets: [{ label: "Órdenes", data: d.map((c) => c.total_ordenes), backgroundColor: COLORS.slice(0, d.length), borderRadius: 6 }],
         }),
+        clientes_vs_recurrentes: (d) => ({
+          labels: d.map((x) => x.tipo),
+          datasets: [{
+            label: "Clientes",
+            data: d.map((x) => x.cantidad),
+            backgroundColor: ["#ffaa00", "#94a3b8"],
+            borderColor: "#fff",
+            borderWidth: 2,
+          }],
+        }),
         rendimiento: (d) => ({
           labels: d.map((m) => m.nombre),
           datasets: [{ label: "Órdenes", data: d.map((m) => m.total_ordenes), backgroundColor: "#ffaa00", borderRadius: 6 }],
@@ -257,9 +276,17 @@ export default {
       return this.printSections
         .map((s) => {
           const raw = dataMap[s.key];
-          const isHoriz = s.key !== "dias" && s.key !== "ganancias";
+          const isHoriz = s.key !== "dias" && s.key !== "ganancias" && s.key !== "clientes_vs_recurrentes";
             let opts;
-            if (s.key === "ganancias") {
+            if (s.key === "clientes_vs_recurrentes") {
+              opts = {
+                ...baseOptions,
+                plugins: {
+                  ...baseOptions.plugins,
+                  legend: { display: true, position: "bottom", labels: { font: { size: 12 }, boxWidth: 14, padding: 14 } },
+                },
+              };
+            } else if (s.key === "ganancias") {
               opts = {
                 ...baseOptions,
                 plugins: {
@@ -317,13 +344,14 @@ export default {
       this.loading = true;
       try {
         const dp = this.dateParams();
-        const [avgRes, mecRes, motoRes, servRes, diasRes, cliRes, rendRes, ganRes, tasaRes] = await Promise.all([
+        const [avgRes, mecRes, motoRes, servRes, diasRes, cliRes, cliVsRes, rendRes, ganRes, tasaRes] = await Promise.all([
           api.get("/reports/tiempo-promedio-reparacion", { params: dp }),
           api.get("/reports/mecanicos/mas-servicios", { params: dp }),
           api.get("/reports/motos/mas-atendidas", { params: dp }),
           api.get("/reports/servicios/top-descripciones", { params: dp }),
           api.get("/reports/ordenes/por-dia-semana"),
           api.get("/reports/clientes/recurrentes", { params: dp }),
+          api.get("/reports/clientes/nuevos-vs-recurrentes", { params: dp }),
           api.get("/reports/mecanicos/rendimiento", { params: dp }),
           api.get("/reports/ganancias"),
           api.get("/bcv/tasa"),
@@ -334,6 +362,7 @@ export default {
         this.topServicios = servRes.data;
         this.diasSemana = diasRes.data;
         this.topClientes = cliRes.data;
+        this.clientesVsRecurrentes = cliVsRes.data;
         this.rendimientoMecanicos = rendRes.data;
         this.ganancias = ganRes.data;
         this.tasaBcv = tasaRes.data.tasa;
