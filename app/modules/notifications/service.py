@@ -82,6 +82,21 @@ def create_notification(
 
     result = notificacion_dao.create(db, data)
 
+    # WebSocket: notificación instantánea
+    try:
+        targets = []
+        if admin_id:
+            targets.append((admin_id, "admin"))
+        if cliente_id:
+            targets.append((cliente_id, "cliente"))
+        if mecanico_id:
+            targets.append((mecanico_id, "mecanico"))
+        if targets:
+            from app.core.ws_manager import manager
+            manager.schedule_broadcast_notification(_build_response(result).model_dump(mode="json"), targets)
+    except Exception:
+        pass
+
     # También enviar Web Push si hay un destinatario
     try:
         if admin_id:

@@ -75,5 +75,11 @@ class ConnectionManager:
             cliente_id, mecanico_id, admin_ids,
         ))
 
+    def schedule_broadcast_notification(self, notificacion: dict, targets: List[tuple]):
+        _run_async(self.broadcast_to_users(
+            {"tipo": "notificacion_creada", "notificacion": notificacion},
+            targets,
+        ))
+
 
 manager = ConnectionManager()

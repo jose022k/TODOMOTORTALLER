@@ -14,7 +14,7 @@
             <label for="nombre">Nombre</label>
             <div class="input-wrapper">
               <svg class="input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-              <input id="nombre" v-model="form.nombre" type="text" placeholder="Juan Perez" required />
+              <input id="nombre" v-model="form.nombre" type="text" placeholder="Juan Perez" required @input="onNombreInput" />
             </div>
           </div>
           <div class="input-group">
@@ -30,7 +30,7 @@
             <label for="telefono">Teléfono</label>
             <div class="input-wrapper">
               <svg class="input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-              <input id="telefono" v-model="form.telefono" type="text" placeholder="+58 414 1234567" required />
+              <input id="telefono" v-model="form.telefono" type="tel" maxlength="10" placeholder="04121234567" required @input="onTelefonoInput" />
             </div>
           </div>
           <div class="input-group">
@@ -108,10 +108,33 @@ export default {
     };
   },
   methods: {
+    onNombreInput(e) {
+      const cleaned = e.target.value
+        .replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ ]/g, "")
+        .replace(/\s+/g, " ")
+        .trimStart();
+      this.form.nombre = cleaned
+        .split(" ")
+        .filter(Boolean)
+        .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+        .join(" ");
+    },
+    onTelefonoInput(e) {
+      this.form.telefono = e.target.value.replace(/\D/g, "").slice(0, 10);
+    },
     async handleRegister() {
       this.error = "";
       if (this.form.password !== this.confirmPassword) {
         this.error = "Las contraseñas no coinciden";
+        return;
+      }
+      const emailOk = /^[^\s@]+@(gmail|outlook|hotmail)\.(com|com\.ve|ve)$/i.test(this.form.email);
+      if (!emailOk) {
+        this.error = "El correo debe ser @gmail.com, @outlook.com o @hotmail.com";
+        return;
+      }
+      if (this.form.telefono.length < 10) {
+        this.error = "El teléfono debe tener al menos 10 dígitos";
         return;
       }
       this.loading = true;

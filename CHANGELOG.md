@@ -12,6 +12,9 @@ Todas las modificaciones siguen el estándar de versión semántica (https://sem
 
 - Reporte "Órdenes Completadas vs Canceladas": cantidad y proporción de órdenes completadas y canceladas, con endpoint `GET /reports/ordenes/completadas-canceladas`, gráfico de dona y tabla impresa
 - Montos de pago en órdenes de servicio: columnas `monto`, `moneda` (BS/USD), `tasa_bcv` y `monto_usd` en `OrdenServicio`, con migración automática
+- Notificaciones instantáneas en la web: toasts estilo Windows en la esquina inferior derecha al llegar una notificación, vía WebSocket (`notificacion_creada`) y componente `NotificationToasts.vue`; si la pestaña está en segundo plano o el navegador está minimizado se muestra además la notificación nativa del sistema operativo
+- Logo de la marca (el del login) como favicon de la página y como imagen (icon/badge) en las notificaciones del navegador, con versiones cuadradas `logo-192.png` y `logo-512.png`
+- Validaciones en el formulario de registro de clientes: campo Nombre solo acepta letras (sin números ni símbolos) con la primera letra de cada palabra en mayúscula automática; correo solo con dominio `@gmail.com`, `@outlook.com` o `@hotmail.com`; teléfono solo números con máximo 10 dígitos
 
 ### Changed
 
