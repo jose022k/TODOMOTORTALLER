@@ -305,6 +305,8 @@ export default {
                     max: 300,
                     ticks: {
                       ...baseOptions.scales.y.ticks,
+                      stepSize: 25,
+                      precision: 0,
                       callback: (v) => "$" + v,
                     },
                   },
