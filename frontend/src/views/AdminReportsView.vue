@@ -250,7 +250,7 @@ export default {
           datasets: [{
             label: "Órdenes",
             data: d.map((x) => x.cantidad),
-            backgroundColor: ["#22c55e", "#ef4444"],
+            backgroundColor: ["#fde68a", "#b45309"],
             borderColor: "#fff",
             borderWidth: 2,
           }],
@@ -285,6 +285,7 @@ export default {
                   ...baseOptions.plugins,
                   legend: { display: true, position: "bottom", labels: { font: { size: 12 }, boxWidth: 14, padding: 14 } },
                 },
+                scales: {},
               };
             } else if (s.key === "ganancias") {
               opts = {
