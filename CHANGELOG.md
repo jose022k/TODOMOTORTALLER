@@ -10,7 +10,12 @@ Todas las modificaciones siguen el estándar de versión semántica (https://sem
 
 ### Added
 
-- Reporte "Clientes Nuevos vs Recurrentes": proporción de personas que vuelven al taller frente a las que van por primera vez, con endpoint `GET /reports/clientes/nuevos-vs-recurrentes`, gráfico de dona, tabla impresa y filtro por rango de fechas
+- Reporte "Órdenes Completadas vs Canceladas": cantidad y proporción de órdenes completadas y canceladas, con endpoint `GET /reports/ordenes/completadas-canceladas`, gráfico de dona y tabla impresa
+- Montos de pago en órdenes de servicio: columnas `monto`, `moneda` (BS/USD), `tasa_bcv` y `monto_usd` en `OrdenServicio`, con migración automática
+
+### Changed
+
+- Card "Rendimiento por Mecánico": ahora grafica solo el tiempo promedio por orden (minutos), sin la columna de cantidad de órdenes
 - Montos de pago en órdenes de servicio: columnas `monto`, `moneda` (BS/USD), `tasa_bcv` y `monto_usd` en `OrdenServicio`, con migración automática
 - Conversión Bs → USD con tasa de referencia del BCV en `create_order` (el monto es obligatorio)
 - Tabla `configuracion` (con `ensure_schema_updates`) para persistir la tasa manual del admin

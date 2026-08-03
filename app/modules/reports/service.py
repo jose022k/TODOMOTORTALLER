@@ -118,7 +118,6 @@ def get_rendimiento_mecanicos(db: Session, fecha_inicio: Optional[datetime] = No
         db.query(
             Mecanico.id,
             Mecanico.nombre,
-            func.count(OrdenServicio.id).label("total_ordenes"),
             func.avg(
                 func.extract("epoch", OrdenServicio.fecha_cierre - OrdenServicio.fecha_creacion)
                 / 60
@@ -131,8 +130,14 @@ def get_rendimiento_mecanicos(db: Session, fecha_inicio: Optional[datetime] = No
         )
     )
     q = _apply_date_filter(q, OrdenServicio, fecha_inicio, fecha_fin)
-    rows = q.group_by(Mecanico.id).order_by(func.count(OrdenServicio.id).desc()).all()
-    return [_to_dict(r, ["id", "nombre", "total_ordenes", "minutos_promedio"]) for r in rows]
+    rows = q.group_by(Mecanico.id).order_by(func.avg(
+        func.extract("epoch", OrdenServicio.fecha_cierre - OrdenServicio.fecha_creacion)
+        / 60
+    ).desc()).all()
+    result = [_to_dict(r, ["id", "nombre", "minutos_promedio"]) for r in rows]
+    for item in result:
+        item["minutos_promedio"] = round(float(item["minutos_promedio"] or 0), 1)
+    return result
 
 
 def get_ganancias_semana(db: Session):
@@ -170,56 +175,27 @@ def get_ganancias_semana(db: Session):
     return dias
 
 
-def get_clientes_nuevos_vs_recurrentes(db: Session, fecha_inicio: Optional[datetime] = None, fecha_fin: Optional[datetime] = None):
-    """Proporción de clientes nuevos (primera visita) vs recurrentes (vuelven al taller)."""
-    primeras = (
-        db.query(
-            OrdenServicio.cliente_id,
-            func.min(OrdenServicio.fecha_creacion).label("primera_visita"),
-        )
-        .group_by(OrdenServicio.cliente_id)
-        .all()
-    )
-    primeras_map = {cid: fecha for cid, fecha in primeras}
+def get_ordenes_completadas_canceladas(db: Session, fecha_inicio: Optional[datetime] = None, fecha_fin: Optional[datetime] = None):
+    """Cantidad y proporción de órdenes completadas vs canceladas."""
+    q = db.query(
+        OrdenServicio.estado,
+        func.count(OrdenServicio.id).label("total"),
+    ).filter(OrdenServicio.estado.in_(["completada", "cancelada"]))
+    q = _apply_date_filter(q, OrdenServicio, fecha_inicio, fecha_fin)
+    rows = q.group_by(OrdenServicio.estado).all()
 
-    q = db.query(OrdenServicio.cliente_id).distinct()
-    if fecha_inicio:
-        q = q.filter(OrdenServicio.fecha_creacion >= fecha_inicio)
-    if fecha_fin:
-        q = q.filter(OrdenServicio.fecha_creacion <= fecha_fin)
-    visitaron = [r[0] for r in q.all()]
+    total_map = {"completada": 0, "cancelada": 0}
+    for estado, total in rows:
+        total_map[estado] = total
 
-    nuevos = 0
-    recurrentes = 0
-    for cid in visitaron:
-        primera = primeras_map.get(cid)
-        if primera is None:
-            continue
-        if not fecha_inicio or primera >= fecha_inicio:
-            nuevos += 1
-        else:
-            recurrentes += 1
-
-    if not fecha_inicio:
-        # Sin rango de fechas: se clasifica por total de órdenes históricas
-        # (1 orden = nuevo, 2+ órdenes = recurrente)
-        conteos = (
-            db.query(
-                OrdenServicio.cliente_id,
-                func.count(OrdenServicio.id).label("total"),
-            )
-            .group_by(OrdenServicio.cliente_id)
-            .all()
-        )
-        nuevos = sum(1 for _, t in conteos if t == 1)
-        recurrentes = sum(1 for _, t in conteos if t > 1)
-
-    total = nuevos + recurrentes
+    completadas = total_map["completada"]
+    canceladas = total_map["cancelada"]
+    total = completadas + canceladas
 
     def _pct(n):
         return round(n / total * 100, 1) if total else 0
 
     return [
-        {"tipo": "Nuevos", "cantidad": nuevos, "porcentaje": _pct(nuevos)},
-        {"tipo": "Recurrentes", "cantidad": recurrentes, "porcentaje": _pct(recurrentes)},
+        {"tipo": "Completadas", "cantidad": completadas, "porcentaje": _pct(completadas)},
+        {"tipo": "Canceladas", "cantidad": canceladas, "porcentaje": _pct(canceladas)},
     ]
