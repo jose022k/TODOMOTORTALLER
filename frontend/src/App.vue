@@ -32,11 +32,11 @@
             <button class="btn-logout" @click="handleLogout" :disabled="loggingOut">{{ loggingOut ? "Cerrando sesión..." : "Cerrar Sesión" }}</button>
           </div>
           <div v-else key="guest" class="nav-group">
-            <router-link v-if="!authStore.isMecanico && !authStore.isCliente" to="/" class="nav-text-link">
+            <router-link v-if="!authStore.isMecanico && !authStore.isCliente" to="/workshop" class="nav-text-link">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>
               Taller
             </router-link>
-            <router-link v-if="!authStore.isMecanico && !authStore.isCliente" to="/about" class="nav-text-link">
+            <router-link v-if="!authStore.isMecanico && !authStore.isCliente" to="/location" class="nav-text-link">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
               Ubicación
             </router-link>
