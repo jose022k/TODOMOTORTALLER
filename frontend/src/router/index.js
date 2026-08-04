@@ -1,21 +1,12 @@
 import { createRouter, createWebHistory } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
-import HomeView from "../views/HomeView.vue";
 import LoginView from "../views/LoginView.vue";
 
 const routes = [
   {
     path: "/",
-    name: "home",
-    component: HomeView,
+    redirect: "/login",
   },
-  {
-    path: "/about",
-    name: "about",
-    component: () =>
-      import(/* webpackChunkName: "about" */ "../views/AboutView.vue"),
-  },
-  // Login unificado
   {
     path: "/login",
     name: "login",
@@ -115,13 +106,6 @@ router.beforeEach((to, from, next) => {
 
   // Tracker público (sin auth)
   if (to.name === "tracker" || to.name === "tracker-moto") return next();
-
-  // Home page: redirigir según rol si está autenticado
-  if (to.path === "/" && authStore.isAuthenticated) {
-    if (authStore.isAdmin) return next("/admin");
-    if (authStore.isMecanico) return next("/mecanico/orders");
-    if (authStore.isCliente) return next("/cliente/orders");
-  }
 
   // Page requires auth
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
