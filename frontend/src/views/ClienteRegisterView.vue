@@ -170,32 +170,34 @@ export default {
 .auth-card {
   background: #fff;
   border-radius: 20px;
-  padding: 26px 36px 32px;
+  padding: 24px 40px 28px;
   width: 100%;
-  max-width: 520px;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.06), 0 1px 4px rgba(0,0,0,0.04);
+  max-width: 560px;
+}
+html:not(.dark) .auth-card {
+  box-shadow: 0 10px 40px rgba(0,0,0,0.18), 0 4px 12px rgba(0,0,0,0.08);
 }
 .auth-header {
   text-align: center;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
 .auth-logo {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 4px;
+  margin-bottom: 0;
 }
 .logo-img {
-  height: 80px;
+  height: 72px;
   width: auto;
   display: block;
 }
 .auth-title {
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 800;
   color: #1a1a1a;
   letter-spacing: -0.3px;
-  margin-bottom: 0;
+  margin: 6px 0 0;
 }
 .auth-desc {
   font-size: 14px;
@@ -211,11 +213,11 @@ export default {
   min-width: 0;
 }
 .input-group {
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 }
 .input-group label {
   display: block;
-  margin-bottom: 5px;
+  margin-bottom: 4px;
   font-size: 12.5px;
   font-weight: 700;
   color: #1a1a1a;
@@ -238,7 +240,7 @@ export default {
   padding: 10px 12px 10px 38px;
   border: 1.5px solid #e2e8f0;
   border-radius: 10px;
-  font-size: 13.5px;
+  font-size: 14px;
   color: #1a1a1a;
   background: #f8fafc;
   transition: all 0.2s;
@@ -254,11 +256,11 @@ export default {
 }
 .error-msg {
   color: #e74c3c;
-  font-size: 13px;
-  margin-bottom: 10px;
+  font-size: 12.5px;
+  margin-bottom: 6px;
   text-align: center;
   background: #fef2f2;
-  padding: 7px 12px;
+  padding: 5px 12px;
   border-radius: 8px;
 }
 .btn-submit {
@@ -315,7 +317,7 @@ export default {
   vertical-align: middle;
 }
 .auth-footer {
-  margin-top: 20px;
+  margin-top: 16px;
   text-align: center;
   font-size: 14px;
   color: #94a3b8;

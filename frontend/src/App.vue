@@ -163,7 +163,9 @@ export default {
 .logo {
   color: #ffaa00;
   font-size: 20px;
-  font-weight: bold;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
   text-decoration: none;
 }
 .app-nav {

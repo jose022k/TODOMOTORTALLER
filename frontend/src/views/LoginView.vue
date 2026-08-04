@@ -85,7 +85,9 @@ export default {
   padding: 32px 40px 36px;
   width: 100%;
   max-width: 400px;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.06), 0 1px 4px rgba(0,0,0,0.04);
+}
+html:not(.dark) .auth-card {
+  box-shadow: 0 10px 40px rgba(0,0,0,0.18), 0 4px 12px rgba(0,0,0,0.08);
 }
 .auth-header {
   text-align: center;
