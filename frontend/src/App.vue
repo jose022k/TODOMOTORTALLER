@@ -3,54 +3,58 @@
     <header class="app-header">
       <router-link :to="homeRoute" class="logo">Todomotortaller</router-link>
       <nav class="app-nav">
-        <template v-if="!authStore.isAuthenticated">
-          <router-link v-if="!authStore.isMecanico && !authStore.isCliente" to="/" class="nav-text-link">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>
-            Taller
-          </router-link>
-          <router-link v-if="!authStore.isMecanico && !authStore.isCliente" to="/about" class="nav-text-link">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-            Ubicación
-          </router-link>
-        </template>
-        <template v-if="authStore.isAuthenticated">
-          <router-link v-if="authStore.isAdmin" to="/admin" class="nav-icon-btn" data-tooltip="Panel Admin">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-          </router-link>
-          <router-link v-if="authStore.isAdmin" to="/admin/users" class="nav-icon-btn" data-tooltip="Gestionar Usuarios">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-          </router-link>
-          <router-link v-if="authStore.isAdmin" to="/admin/catalog" class="nav-icon-btn" data-tooltip="Catálogo de Motos">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h8v16H3z"/><path d="M13 4h8v16H13z"/><path d="M11 4v16"/><line x1="4" y1="8" x2="10" y2="8"/><line x1="4" y1="11" x2="10" y2="11"/><line x1="4" y1="14" x2="10" y2="14"/><line x1="14" y1="8" x2="20" y2="8"/><line x1="14" y1="11" x2="20" y2="11"/><line x1="14" y1="14" x2="20" y2="14"/></svg>
-          </router-link>
-          <router-link v-if="authStore.isAdmin" to="/admin/service-orders" class="nav-icon-btn" data-tooltip="Órdenes de Servicio">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M9 14l2 2 4-4"/></svg>
-          </router-link>
-          <router-link v-if="authStore.isAdmin" to="/admin/reports" class="nav-icon-btn" data-tooltip="Reportes">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16"/><path d="M4 20V4"/><path d="M8 14V8"/><path d="M12 14v-4"/><path d="M16 14v-6"/><path d="M20 14V6"/></svg>
-          </router-link>
-          <router-link v-if="authStore.isMecanico" to="/mecanico/orders" class="nav-icon-btn" data-tooltip="Mis Órdenes">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 14l2 2 4-4"/></svg>
-          </router-link>
-          <router-link v-if="authStore.isCliente" to="/cliente/orders" class="nav-icon-btn" data-tooltip="Mi Panel">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-          </router-link>
-          <NotificationsDropdown />
-          <span class="user-info">{{ authStore.user?.nombre }}</span>
-          <SettingsDropdown @theme-change="onThemeChange" />
-          <button class="btn-logout" @click="handleLogout" :disabled="loggingOut">{{ loggingOut ? "Cerrando sesión..." : "Cerrar Sesión" }}</button>
-        </template>
-        <template v-else>
-          <router-link v-if="$route.path !== '/login'" to="/login" class="nav-text-link">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
-            Iniciar Sesión
-          </router-link>
-          <button class="theme-toggle" @click="toggleTheme" :title="isDark ? 'Modo claro' : 'Modo oscuro'" v-html="isDark ? sunIcon : moonIcon"></button>
-        </template>
+        <transition name="nav-fade" mode="out-in">
+          <div v-if="authStore.isAuthenticated" key="auth" class="nav-group">
+            <router-link v-if="authStore.isAdmin" to="/admin" class="nav-icon-btn" data-tooltip="Panel Admin">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            </router-link>
+            <router-link v-if="authStore.isAdmin" to="/admin/users" class="nav-icon-btn" data-tooltip="Gestionar Usuarios">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </router-link>
+            <router-link v-if="authStore.isAdmin" to="/admin/catalog" class="nav-icon-btn" data-tooltip="Catálogo de Motos">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h8v16H3z"/><path d="M13 4h8v16H13z"/><path d="M11 4v16"/><line x1="4" y1="8" x2="10" y2="8"/><line x1="4" y1="11" x2="10" y2="11"/><line x1="4" y1="14" x2="10" y2="14"/><line x1="14" y1="8" x2="20" y2="8"/><line x1="14" y1="11" x2="20" y2="11"/><line x1="14" y1="14" x2="20" y2="14"/></svg>
+            </router-link>
+            <router-link v-if="authStore.isAdmin" to="/admin/service-orders" class="nav-icon-btn" data-tooltip="Órdenes de Servicio">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M9 14l2 2 4-4"/></svg>
+            </router-link>
+            <router-link v-if="authStore.isAdmin" to="/admin/reports" class="nav-icon-btn" data-tooltip="Reportes">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16"/><path d="M4 20V4"/><path d="M8 14V8"/><path d="M12 14v-4"/><path d="M16 14v-6"/><path d="M20 14V6"/></svg>
+            </router-link>
+            <router-link v-if="authStore.isMecanico" to="/mecanico/orders" class="nav-icon-btn" data-tooltip="Mis Órdenes">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 14l2 2 4-4"/></svg>
+            </router-link>
+            <router-link v-if="authStore.isCliente" to="/cliente/orders" class="nav-icon-btn" data-tooltip="Mi Panel">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            </router-link>
+            <NotificationsDropdown />
+            <span class="user-info">{{ authStore.user?.nombre }}</span>
+            <SettingsDropdown @theme-change="onThemeChange" />
+            <button class="btn-logout" @click="handleLogout" :disabled="loggingOut">{{ loggingOut ? "Cerrando sesión..." : "Cerrar Sesión" }}</button>
+          </div>
+          <div v-else key="guest" class="nav-group">
+            <router-link v-if="!authStore.isMecanico && !authStore.isCliente" to="/" class="nav-text-link">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>
+              Taller
+            </router-link>
+            <router-link v-if="!authStore.isMecanico && !authStore.isCliente" to="/about" class="nav-text-link">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              Ubicación
+            </router-link>
+            <router-link v-if="$route.path !== '/login'" to="/login" class="nav-text-link">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+              Iniciar Sesión
+            </router-link>
+            <button class="theme-toggle" @click="toggleTheme" :title="isDark ? 'Modo claro' : 'Modo oscuro'" v-html="isDark ? sunIcon : moonIcon"></button>
+          </div>
+        </transition>
       </nav>
     </header>
     <main class="app-main">
-      <router-view />
+      <router-view v-slot="{ Component }">
+        <transition name="page-fade" mode="out-in">
+          <component :is="Component" />
+        </transition>
+      </router-view>
     </main>
     <ConfirmModal
       :visible="showLogoutModal"
@@ -172,6 +176,35 @@ export default {
   display: flex;
   align-items: center;
   gap: 16px;
+}
+.nav-group {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.nav-fade-enter-active,
+.nav-fade-leave-active {
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+.nav-fade-enter-from {
+  opacity: 0;
+  transform: translateY(-6px);
+}
+.nav-fade-leave-to {
+  opacity: 0;
+  transform: translateY(6px);
+}
+.page-fade-enter-active,
+.page-fade-leave-active {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.page-fade-enter-from {
+  opacity: 0;
+  transform: translateY(8px);
+}
+.page-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
 }
 .app-nav a {
   color: #ffffff;
