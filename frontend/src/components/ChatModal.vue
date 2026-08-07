@@ -360,13 +360,13 @@ export default {
 }
 .msg-attached-imgs {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 4px;
   margin-bottom: 6px;
 }
 .attached-img {
   width: 100%;
-  max-height: 200px;
+  max-height: 280px;
   object-fit: cover;
   border-radius: 10px;
   cursor: pointer;
@@ -399,9 +399,12 @@ export default {
   font-size: 0.7rem;
   font-weight: 600;
   color: #9ca3af;
-  margin-bottom: 2px;
+  margin-bottom: 4px;
   text-transform: uppercase;
   letter-spacing: 0.3px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 .msg-text { line-height: 1.45; color: #1f2937; }
 .msg-footer {

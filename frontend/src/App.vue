@@ -66,7 +66,7 @@
       @cancel="showLogoutModal = false"
     />
     <LoadingOverlay :visible="loggingOut" text="Cerrando sesión..." />
-    <NotificationToasts />
+    <NotificationNative />
   </div>
 </template>
 
@@ -76,13 +76,13 @@ import NotificationsDropdown from "@/components/NotificationsDropdown.vue";
 import SettingsDropdown from "@/components/SettingsDropdown.vue";
 import ConfirmModal from "@/components/ConfirmModal.vue";
 import LoadingOverlay from "@/components/LoadingOverlay.vue";
-import NotificationToasts from "@/components/NotificationToasts.vue";
+import NotificationNative from "@/components/NotificationNative.vue";
 import { setupPush } from "@/services/push";
 import orderSocket from "@/services/orderSocket";
 
 export default {
   name: "App",
-  components: { NotificationsDropdown, SettingsDropdown, ConfirmModal, LoadingOverlay, NotificationToasts },
+  components: { NotificationsDropdown, SettingsDropdown, ConfirmModal, LoadingOverlay, NotificationNative },
   setup() {
     const authStore = useAuthStore();
     if (authStore.isAuthenticated && !authStore.user) {

@@ -83,7 +83,7 @@
         <thead>
           <tr>
             <th>Cédula</th>
-            <th>Nombre</th>
+            <th>Nombre y apellido</th>
             <th>Email</th>
             <th>Teléfono</th>
             <th>Estado</th>

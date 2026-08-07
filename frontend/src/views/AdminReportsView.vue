@@ -9,7 +9,9 @@
         <p class="page-subtitle">Visualiza y descarga reportes detallados del taller</p>
       </div>
       <div class="print-header">
-        <div class="print-header-spacer"></div>
+        <div class="print-header-left">
+          <div class="print-date">{{ todayDate }}</div>
+        </div>
         <div class="print-title-text">
           <div class="print-title">Reporte N° {{ pdfNumber }}</div>
           <div class="print-company">Todomotortaller 1703, C.A.</div>
@@ -99,6 +101,7 @@
                     <template v-else-if="col.key === 'nombre'">{{ row.nombre }}</template>
                     <template v-else-if="col.key === 'moto'">{{ row.marca }} {{ row.modelo }}</template>
                     <template v-else-if="col.key === 'dia'">{{ row.dia }}</template>
+                    <template v-else-if="col.key === 'fecha'">{{ formatDate(row.fecha) }}</template>
                     <template v-else-if="col.key === 'total_dia'">{{ row.total }} órdenes</template>
                     <template v-else-if="col.key === 'total_usd'">$ {{ Number(row.total_usd).toFixed(2) }}</template>
                     <template v-else-if="col.key === 'porcentaje'">{{ Number(row.porcentaje).toFixed(1) }}%</template>
@@ -176,6 +179,13 @@ export default {
     pdfNumber() {
       return String(this.pdfCounter).padStart(7, "0");
     },
+    todayDate() {
+      return new Date().toLocaleDateString("es-ES", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      });
+    },
     visibleSections() {
       const icons = {
         ganancias: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>',
@@ -188,7 +198,7 @@ export default {
         rendimiento: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20v-6"/><path d="M12 10V4"/><path d="M6 20v-4"/><path d="M6 12V4"/><path d="M18 20v-8"/><path d="M18 8V4"/></svg>',
       };
       const columns = {
-        ganancias: [{ key: "dia", label: "Día" }, { key: "total_usd", label: "Monto" }],
+        ganancias: [{ key: "dia", label: "Día" }, { key: "fecha", label: "Fecha" }, { key: "total_usd", label: "Monto" }],
         mecanicos: [{ key: "_rank", label: "#" }, { key: "nombre", label: "Nombre" }, { key: "total_servicios", label: "Servicios" }],
         motos: [{ key: "_rank", label: "#" }, { key: "moto", label: "Moto" }, { key: "total_ordenes", label: "Órdenes" }],
         servicios: [{ key: "_rank", label: "#" }, { key: "descripcion", label: "Servicio" }, { key: "total", label: "Veces" }],
@@ -288,6 +298,11 @@ export default {
                 scales: {},
               };
             } else if (s.key === "ganancias") {
+              const vals = raw.map((g) => g.total_usd);
+              const maxVal = Math.max(1, ...vals);
+              const niceMax = Math.ceil(maxVal * 1.15);
+              const stepRaw = niceMax / 6;
+              const step = stepRaw < 1 ? 0.5 : Math.max(1, Math.round(stepRaw));
               opts = {
                 ...baseOptions,
                 plugins: {
@@ -301,12 +316,12 @@ export default {
                   ...baseOptions.scales,
                   y: {
                     ...baseOptions.scales.y,
-                    min: 25,
-                    max: 300,
+                    beginAtZero: true,
+                    max: niceMax,
                     ticks: {
                       ...baseOptions.scales.y.ticks,
-                      stepSize: 25,
-                      precision: 0,
+                      stepSize: step,
+                      precision: step < 1 ? 1 : 0,
                       callback: (v) => "$" + v,
                     },
                   },
@@ -356,7 +371,7 @@ export default {
           api.get("/reports/clientes/recurrentes", { params: dp }),
           api.get("/reports/ordenes/completadas-canceladas", { params: dp }),
           api.get("/reports/mecanicos/rendimiento", { params: dp }),
-          api.get("/reports/ganancias"),
+          api.get("/reports/ganancias", { params: dp }),
           api.get("/bcv/tasa"),
         ]);
         this.avgMinutes = avgRes.data.minutos_promedio;
@@ -421,6 +436,12 @@ export default {
     capitalize(s) {
       if (!s) return "";
       return s.replace(/\b\w/g, (c) => c.toUpperCase());
+    },
+    formatDate(f) {
+      if (!f) return "";
+      const d = new Date(f + "T00:00:00");
+      if (isNaN(d)) return f;
+      return d.toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric" });
     },
   },
 };
@@ -692,9 +713,14 @@ html.dark .tasa-chip-value { color: var(--text-default); }
     justify-content: space-between !important;
   }
 
-  .print-header-spacer {
-    width: 55px;
-    height: 1px;
+  .print-header-left {
+    width: 110px;
+  }
+
+  .print-date {
+    font-size: 0.7rem !important;
+    font-weight: 600;
+    color: #64748b;
   }
 
   .print-title-text {

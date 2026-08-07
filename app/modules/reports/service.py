@@ -140,40 +140,96 @@ def get_rendimiento_mecanicos(db: Session, fecha_inicio: Optional[datetime] = No
     return result
 
 
-def get_ganancias_semana(db: Session):
-    """Ganancias en USD de órdenes completadas, agrupadas por día, de lunes a sábado de la semana actual."""
-    hoy = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
-    lunes = hoy - timedelta(days=hoy.weekday())
-    fin = lunes + timedelta(days=6)
-
-    rows = (
+def get_ganancias(db: Session, fecha_inicio: Optional[datetime] = None, fecha_fin: Optional[datetime] = None):
+    """
+    Ganancias en USD de órdenes completadas, con agrupación dinámica según el rango:
+      - <= 62 días: por día
+      - 63 a 440 días: por semana
+      - más de 440 días: por mes
+    Si no hay filtros, se toma desde la primera orden hasta hoy.
+    """
+    q = (
         db.query(
-            func.date(OrdenServicio.fecha_creacion).label("dia"),
-            func.sum(OrdenServicio.monto_usd).label("total_usd"),
-        )
-        .filter(
-            OrdenServicio.estado == "completada",
-            OrdenServicio.fecha_creacion >= lunes,
-            OrdenServicio.fecha_creacion < fin,
-        )
-        .group_by("dia")
-        .order_by("dia")
-        .all()
+            OrdenServicio.fecha_creacion,
+            OrdenServicio.monto_usd,
+        ).filter(OrdenServicio.estado == "completada")
     )
+    if fecha_inicio:
+        q = q.filter(OrdenServicio.fecha_creacion >= fecha_inicio)
+    if fecha_fin:
+        q = q.filter(OrdenServicio.fecha_creacion <= fecha_fin)
 
-    por_dia = {str(r.dia): float(r.total_usd or 0) for r in rows}
+    rows = q.all()
 
-    dias_nombres = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"]
-    dias = []
-    for i in range(6):
-        fecha = lunes + timedelta(days=i)
-        clave = fecha.strftime("%Y-%m-%d")
-        dias.append({
-            "dia": dias_nombres[i],
-            "fecha": clave,
-            "total_usd": round(por_dia.get(clave, 0.0), 2),
+    if not rows:
+        # Rango por defecto (semana actual) para no devolver vacío
+        hoy = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+        start = hoy - timedelta(days=hoy.weekday())
+        end = start + timedelta(days=5)
+    else:
+        fechas = [r[0] or datetime.utcnow() for r in rows]
+        start = min(fechas).replace(hour=0, minute=0, second=0, microsecond=0)
+        end = max(fechas).replace(hour=0, minute=0, second=0, microsecond=0)
+
+    dias_totales = (end - start).days + 1
+    key_format = "%Y-%m-%d"
+    if dias_totales > 440:
+        granularidad = "mes"
+    elif dias_totales > 31:
+        granularidad = "semana"
+    else:
+        granularidad = "dia"
+
+    def _bucket(date_obj):
+        d = date_obj.replace(hour=0, minute=0, second=0, microsecond=0)
+        if granularidad == "mes":
+            return d.replace(day=1)
+        if granularidad == "semana":
+            return d - timedelta(days=d.weekday())
+        return d
+
+    acumulado = {}
+    for r in rows:
+        b = _bucket(r[0])
+        acumulado[b] = acumulado.get(b, 0.0) + float(r[1] or 0)
+
+    # Generar todos los buckets del rango (incluyendo los de 0)
+    resultado = []
+    inicio_bucket = _bucket(start)
+    fin_bucket = _bucket(end)
+
+    if granularidad == "dia":
+        paso = timedelta(days=1)
+        fmt = "%d/%m"
+    elif granularidad == "semana":
+        paso = timedelta(days=7)
+        fmt = "%d/%m"
+    else:
+        paso = timedelta(days=1)
+
+    punt = inicio_bucket
+    while punt <= fin_bucket:
+        total = round(acumulado.get(punt, 0.0), 2)
+        if granularidad == "mes":
+            label = punt.strftime("%b %Y")
+        elif granularidad == "semana":
+            label = punt.strftime("%d/%m")
+        else:
+            label = punt.strftime("%d/%m")
+        resultado.append({
+            "dia": label,
+            "fecha": punt.strftime("%Y-%m-%d"),
+            "total_usd": total,
         })
-    return dias
+        if granularidad == "mes":
+            if punt.month == 12:
+                punt = punt.replace(year=punt.year + 1, month=1)
+            else:
+                punt = punt.replace(month=punt.month + 1)
+        else:
+            punt += paso
+
+    return resultado
 
 
 def get_ordenes_completadas_canceladas(db: Session, fecha_inicio: Optional[datetime] = None, fecha_fin: Optional[datetime] = None):
