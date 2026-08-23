@@ -19,14 +19,13 @@
         <img src="https://res.cloudinary.com/dorj3mvvr/image/upload/v1783609693/logos/logotaller01.png" alt="" class="print-logo" />
       </div>
       <div class="reports-toolbar no-print">
-        <label class="filter-group">
-          <span>Desde</span>
-          <input type="date" v-model="fechaInicio" @change="fetchAll" class="filter-date" />
-        </label>
-        <label class="filter-group">
-          <span>Hasta</span>
-          <input type="date" v-model="fechaFin" @change="fetchAll" class="filter-date" />
-        </label>
+        <DateRangePicker
+          :start="fechaInicio"
+          :end="fechaFin"
+          @update:start="fechaInicio = $event"
+          @update:end="fechaFin = $event"
+          @change="fetchAll"
+        />
         <button v-if="fechaInicio || fechaFin" class="btn-clear" @click="clearFilters">Limpiar filtros</button>
         <div class="tasa-chip" @click="editTasa = true" title="Editar tasa BCV">
           <span class="tasa-chip-label">Tasa BCV</span>
@@ -75,6 +74,7 @@
           <div class="report-card-header">
             <span v-html="s.icon"></span>
             <h3>{{ s.label }}</h3>
+            <span v-if="s.key === 'ganancias'" class="card-subtitle">{{ gananciasSubtitle }}</span>
           </div>
           <div v-if="s.data.length === 0" class="report-empty">Sin datos</div>
           <div v-else class="chart-wrapper screen-only">
@@ -133,6 +133,7 @@ import {
   Legend,
 } from "chart.js";
 import api from "@/services/api";
+import DateRangePicker from "@/components/DateRangePicker.vue";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, PointElement, LineElement, ArcElement, Title, Tooltip, Legend);
 
@@ -143,7 +144,7 @@ const COLORS = [
 
 export default {
   name: "AdminReports",
-  components: { Bar, Line, Doughnut },
+  components: { Bar, Line, Doughnut, DateRangePicker },
   data() {
     return {
       loading: true,
@@ -164,7 +165,7 @@ export default {
       showPdfMenu: false,
       pdfCounter: parseInt(localStorage.getItem("pdfCounter") || "1", 10),
       printSections: [
-        { key: "ganancias", label: "Ganancias", checked: true },
+        { key: "ganancias", label: "Ingresos", checked: true },
         { key: "mecanicos", label: "Top Mecánicos", checked: true },
         { key: "motos", label: "Top Motos Atendidas", checked: true },
         { key: "servicios", label: "Top Servicios Realizados", checked: true },
@@ -185,6 +186,31 @@ export default {
         month: "2-digit",
         year: "numeric",
       });
+    },
+    gananciasSubtitle() {
+      if (!this.fechaInicio && !this.fechaFin) return "Totales";
+      const fmt = (f) => {
+        const d = new Date(f + "T00:00:00");
+        return d.toLocaleDateString("es-ES", { day: "numeric", month: "long", year: "numeric" });
+      };
+      const fmtShort = (f) => {
+        const d = new Date(f + "T00:00:00");
+        return d.toLocaleDateString("es-ES", { day: "numeric", month: "short" });
+      };
+      if (this.fechaInicio && this.fechaFin) {
+        const d1 = new Date(this.fechaInicio + "T00:00:00");
+        const d2 = new Date(this.fechaFin + "T00:00:00");
+        const diffDays = Math.round((d2 - d1) / 86400000);
+        if (diffDays === 0) return "Día: " + fmt(this.fechaInicio);
+        if (diffDays === 6) return "Semana: " + fmtShort(this.fechaInicio) + " – " + fmtShort(this.fechaFin);
+        if (diffDays >= 27 && diffDays <= 31) {
+          const mes = d1.toLocaleDateString("es-ES", { month: "long", year: "numeric" });
+          return "Mes: " + mes;
+        }
+        return fmtShort(this.fechaInicio) + " – " + fmtShort(this.fechaFin);
+      }
+      if (this.fechaInicio) return "Desde " + fmt(this.fechaInicio);
+      return "Hasta " + fmt(this.fechaFin);
     },
     visibleSections() {
       const icons = {
@@ -221,7 +247,7 @@ export default {
         ganancias: (d) => ({
           labels: d.map((g) => g.dia),
           datasets: [{
-            label: "Ganancias ($)",
+            label: "Ingresos ($)",
             data: d.map((g) => g.total_usd),
             borderColor: "#ffaa00",
             backgroundColor: "#ffaa00",
@@ -534,6 +560,7 @@ html.dark .tasa-chip { background: #334155; border-color: var(--color-primary); 
 html.dark .tasa-chip:hover { background: #3b4a63; }
 html.dark .tasa-chip-label { color: #fbbf24; }
 html.dark .tasa-chip-value { color: var(--text-default); }
+html.dark .card-subtitle { background: #1e293b; color: #94a3b8; }
 .loading-state { text-align: center; padding: 60px; color: #64748b; font-size: 1rem; }
 
 /* PDF dropdown */
@@ -655,6 +682,16 @@ html.dark .tasa-chip-value { color: var(--text-default); }
   color: #ffaa00;
 }
 .report-card-header h3 { font-size: 1rem; font-weight: 700; color: #1a1a1a; }
+.card-subtitle {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #94a3b8;
+  margin-left: auto;
+  background: #f1f5f9;
+  padding: 3px 10px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
 .chart-wrapper { position: relative; height: 200px; }
 .chart-card .report-card-header { margin-bottom: 8px; }
 .report-empty { text-align: center; padding: 40px; color: #94a3b8; font-size: 0.85rem; }
