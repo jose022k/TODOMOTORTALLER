@@ -27,7 +27,7 @@ services:
     healthCheckPath: /
     autoDeploy: true
 
-  - type: static
+  - type: web
     name: todomotortaller-frontend
     runtime: static
     buildCommand: cd frontend && npm install && npm run build
