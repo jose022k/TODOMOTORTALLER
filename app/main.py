@@ -1,4 +1,5 @@
 import asyncio
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.database import engine, Base, ensure_schema_updates
@@ -36,9 +37,11 @@ app = FastAPI(
     version="0.1.0"
 )
 
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:8080")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[FRONTEND_URL, "http://localhost:8080"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

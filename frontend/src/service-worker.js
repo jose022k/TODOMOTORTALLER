@@ -8,6 +8,14 @@ import { ExpirationPlugin } from "workbox-expiration";
 
 precacheAndRoute(self.__WB_MANIFEST);
 
+self.addEventListener("install", () => {
+  self.skipWaiting();
+});
+
+self.addEventListener("activate", (event) => {
+  event.waitUntil(self.clients.claim());
+});
+
 registerRoute(
   ({ request }) => request.mode === "navigate",
   new StaleWhileRevalidate({
