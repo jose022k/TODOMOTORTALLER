@@ -130,6 +130,7 @@ def create_order(db: Session, data: OrdenServicioCreate, admin_user):
         cliente_id=data.cliente_id, mecanico_id=data.mecanico_id,
         admin_ids=admin_ids,
     )
+
     return order
 
 
