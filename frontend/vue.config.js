@@ -57,16 +57,6 @@ module.exports = defineConfig({
       clientsClaim: true,
       navigateFallback: "index.html",
       cleanupOutdatedCaches: true,
-      runtimeCaching: [
-        {
-          urlPattern: ({ url }) => url.pathname.startsWith("/uploads/"),
-          handler: "CacheFirst",
-          options: {
-            cacheName: "app-uploads",
-            expiration: { maxEntries: 100, maxAgeSeconds: 60 * 60 * 24 * 30 },
-          },
-        },
-      ],
     },
   },
 });
