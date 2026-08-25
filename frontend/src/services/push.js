@@ -20,7 +20,7 @@ export async function registerSw() {
   if (!("serviceWorker" in navigator)) return null;
   try {
     const reg = await navigator.serviceWorker.register(
-      `${process.env.BASE_URL}service-worker.js`
+      `${process.env.BASE_URL}sw.js`
     );
     swRegistration = reg;
     return reg;
