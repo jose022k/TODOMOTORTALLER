@@ -53,9 +53,6 @@ module.exports = defineConfig({
     },
     workboxPluginMode: process.env.NODE_ENV === "production" ? "GenerateSW" : "NONE",
     workboxOptions: {
-      skipWaiting: true,
-      clientsClaim: true,
-      navigateFallback: "index.html",
       cleanupOutdatedCaches: true,
     },
   },
