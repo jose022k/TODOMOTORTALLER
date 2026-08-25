@@ -3,6 +3,12 @@ module.exports = defineConfig({
   transpileDependencies: true,
   devServer: {
     allowedHosts: "all",
+    headers: {
+      "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+      "Pragma": "no-cache",
+      "Expires": "0",
+      "Surrogate-Control": "no-store",
+    },
     proxy: {
       "/uploads": {
         target: "http://localhost:8000",
@@ -29,6 +35,8 @@ module.exports = defineConfig({
     manifestOptions: {
       id: "/",
       display: "standalone",
+      display_override: ["standalone", "minimal-ui"],
+      orientation: "portrait",
       start_url: "/",
       scope: "/",
       description: "Sistema de gestión del taller mecánico",
@@ -38,14 +46,27 @@ module.exports = defineConfig({
       icons: [
         { src: "img/icons/logo-192.png", sizes: "192x192", type: "image/png" },
         { src: "img/icons/logo-512.png", sizes: "512x512", type: "image/png" },
-        { src: "img/icons/android-chrome-maskable-192x192.png", sizes: "192x192", type: "image/png", purpose: "maskable" },
-        { src: "img/icons/android-chrome-maskable-512x512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
+        { src: "img/icons/logo-192.png", sizes: "192x192", type: "image/png", purpose: "maskable" },
+        { src: "img/icons/logo-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
+        { src: "img/icons/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
       ],
     },
-    workboxPluginMode: "GenerateSW",
+    workboxPluginMode: process.env.NODE_ENV === "production" ? "GenerateSW" : "NONE",
     workboxOptions: {
       skipWaiting: true,
       clientsClaim: true,
+      navigateFallback: "index.html",
+      cleanupOutdatedCaches: true,
+      runtimeCaching: [
+        {
+          urlPattern: ({ url }) => url.pathname.startsWith("/uploads/"),
+          handler: "CacheFirst",
+          options: {
+            cacheName: "app-uploads",
+            expiration: { maxEntries: 100, maxAgeSeconds: 60 * 60 * 24 * 30 },
+          },
+        },
+      ],
     },
   },
 });

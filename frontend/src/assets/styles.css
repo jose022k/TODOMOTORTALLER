@@ -1,3 +1,20 @@
+html,
+body {
+  height: 100%;
+  overscroll-behavior-y: none;
+}
+body {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+}
+/* Evita el zoom automático de iOS al enfocar inputs pequeños (sensación nativa) */
+input,
+select,
+textarea,
+button {
+  font-size: 16px;
+}
+
 :root {
   --color-primary: #FFAA00;
   --color-dark: #1A1A1A;

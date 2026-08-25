@@ -67,6 +67,7 @@
     />
     <LoadingOverlay :visible="loggingOut" text="Cerrando sesión..." />
     <NotificationNative />
+    <SplashScreen />
   </div>
 </template>
 
@@ -77,12 +78,13 @@ import SettingsDropdown from "@/components/SettingsDropdown.vue";
 import ConfirmModal from "@/components/ConfirmModal.vue";
 import LoadingOverlay from "@/components/LoadingOverlay.vue";
 import NotificationNative from "@/components/NotificationNative.vue";
+import SplashScreen from "@/components/SplashScreen.vue";
 import { setupPush } from "@/services/push";
 import orderSocket from "@/services/orderSocket";
 
 export default {
   name: "App",
-  components: { NotificationsDropdown, SettingsDropdown, ConfirmModal, LoadingOverlay, NotificationNative },
+  components: { NotificationsDropdown, SettingsDropdown, ConfirmModal, LoadingOverlay, NotificationNative, SplashScreen },
   setup() {
     const authStore = useAuthStore();
     if (authStore.isAuthenticated && !authStore.user) {
@@ -156,10 +158,14 @@ export default {
   -moz-osx-font-smoothing: grayscale;
   color: #1a1a1a;
   min-height: 100vh;
+  min-height: 100dvh;
 }
 .app-header {
   background-color: #1a1a1a;
   padding: 16px 32px;
+  padding-top: calc(16px + env(safe-area-inset-top));
+  padding-left: max(32px, env(safe-area-inset-left));
+  padding-right: max(32px, env(safe-area-inset-right));
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -298,5 +304,8 @@ html.dark .theme-toggle { color: #94a3b8; }
 html.dark .theme-toggle:hover { color: #ffaa00; }
 .app-main {
   padding: 12px 20px;
+  padding-left: max(20px, env(safe-area-inset-left));
+  padding-right: max(20px, env(safe-area-inset-right));
+  padding-bottom: calc(12px + env(safe-area-inset-bottom));
 }
 </style>
