@@ -56,7 +56,7 @@ module.exports = defineConfig({
       skipWaiting: true,
       clientsClaim: true,
       cleanupOutdatedCaches: true,
-      swDest: "sw.js",
+      swDest: "service-worker.js",
     },
   },
 });
