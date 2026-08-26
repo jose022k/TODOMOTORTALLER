@@ -77,15 +77,17 @@ export default {
   position: relative;
   display: flex;
   align-items: center;
+  z-index: 120;
 }
 .settings-trigger {
   background: none;
   border: none;
-  color: #b0b5b9;
+  color: #8b9299;
   cursor: pointer;
-  padding: 4px;
+  padding: 6px;
   display: flex;
   align-items: center;
+  justify-content: center;
   border-radius: 6px;
   transition: all 0.15s;
 }
