@@ -103,7 +103,7 @@ export default {
   box-shadow: 0 4px 16px rgba(0,0,0,0.15);
   padding: 12px 0;
   min-width: 220px;
-  z-index: 200;
+  z-index: 300;
 }
 .settings-above {
   top: auto;

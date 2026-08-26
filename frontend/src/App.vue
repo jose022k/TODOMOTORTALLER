@@ -96,14 +96,6 @@
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
         <span>Panel</span>
       </router-link>
-      <router-link to="/admin/users" class="pwa-nav-item" :class="{ active: $route.path === '/admin/users' }">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-        <span>Usuarios</span>
-      </router-link>
-      <router-link to="/admin/catalog" class="pwa-nav-item" :class="{ active: $route.path === '/admin/catalog' }">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h8v16H3z"/><path d="M13 4h8v16H13z"/><path d="M11 4v16"/><line x1="4" y1="8" x2="10" y2="8"/><line x1="4" y1="11" x2="10" y2="11"/><line x1="4" y1="14" x2="10" y2="14"/><line x1="14" y1="8" x2="20" y2="8"/><line x1="14" y1="11" x2="20" y2="11"/><line x1="14" y1="14" x2="20" y2="14"/></svg>
-        <span>Catálogo</span>
-      </router-link>
       <router-link to="/admin/service-orders" class="pwa-nav-item" :class="{ active: $route.path === '/admin/service-orders' }">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M9 14l2 2 4-4"/></svg>
         <span>Órdenes</span>
@@ -482,16 +474,16 @@ html.dark .theme-toggle:hover { color: #ffaa00; }
   right: 0;
   background: #1a1a1a;
   display: flex;
-  justify-content: center;
+  justify-content: space-evenly;
   align-items: stretch;
-  padding: 8px 10px;
+  padding: 8px 4px;
   padding-bottom: calc(8px + env(safe-area-inset-bottom));
   z-index: 100;
   border-top: 1px solid rgba(255, 170, 0, 0.2);
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
-  gap: 4px;
+  gap: 0;
 }
 .pwa-bottom-nav::-webkit-scrollbar {
   display: none;
@@ -509,7 +501,7 @@ html.dark .theme-toggle:hover { color: #ffaa00; }
   background: none;
   border: none;
   cursor: pointer;
-  padding: 6px 14px;
+  padding: 6px 10px;
   border-radius: 8px;
   transition: color 0.15s;
   white-space: nowrap;
@@ -528,6 +520,7 @@ html.dark .theme-toggle:hover { color: #ffaa00; }
 .pwa-nav-settings {
   cursor: default;
   position: relative;
+  z-index: 110;
 }
 .pwa-nav-settings span {
   color: #8b9299;
