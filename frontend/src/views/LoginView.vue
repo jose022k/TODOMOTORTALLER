@@ -235,4 +235,85 @@ html:not(.dark) .auth-card {
 .auth-footer a:hover {
   text-decoration: underline;
 }
+
+/* ===== MOBILE / PWA native feel ===== */
+@media (max-width: 768px) {
+  .auth-container {
+    align-items: flex-start;
+    padding-top: 16px;
+    padding-bottom: 80px;
+  }
+  .auth-card {
+    border-radius: 16px;
+    padding: 20px 20px 24px;
+    margin: 0 4px;
+  }
+  .logo-img {
+    height: 60px;
+  }
+  .auth-title {
+    font-size: 22px;
+  }
+  .auth-desc {
+    font-size: 13px;
+  }
+  .input-group {
+    margin-bottom: 16px;
+  }
+  .input-group label {
+    font-size: 13px;
+    margin-bottom: 6px;
+  }
+  .input-wrapper input {
+    padding: 14px 14px 14px 42px;
+    border-radius: 12px;
+    font-size: 16px;
+  }
+  .input-icon {
+    left: 14px;
+  }
+  .btn-submit {
+    padding: 15px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 800;
+    margin-top: 4px;
+  }
+  .toggle-pw {
+    right: 10px;
+    padding: 8px;
+  }
+  .auth-footer {
+    font-size: 14px;
+    margin-top: 20px;
+  }
+}
+html.dark .auth-card {
+  background: #1a1f2e;
+}
+html.dark .auth-title {
+  color: #e2e8f0;
+}
+html.dark .auth-desc {
+  color: #64748b;
+}
+html.dark .input-group label {
+  color: #cbd5e1;
+}
+html.dark .input-wrapper input {
+  background: #0f172a;
+  border-color: #1e293b;
+  color: #e2e8f0;
+}
+html.dark .input-wrapper input:focus {
+  border-color: #ffaa00;
+  background: #1e293b;
+}
+html.dark .input-wrapper input::placeholder {
+  color: #475569;
+}
+html.dark .error-msg {
+  background: #2d1215;
+  color: #fca5a5;
+}
 </style>
