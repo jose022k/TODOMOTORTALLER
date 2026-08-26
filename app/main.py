@@ -39,7 +39,7 @@ app = FastAPI(
     version="0.1.0"
 )
 
-FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:8080")
+FRONTEND_URL = os.getenv("FRONTEND_URL", "https://todomotortaller2026-ozk4.onrender.com")
 
 ALLOWED_ORIGINS = [
     FRONTEND_URL,
@@ -48,7 +48,7 @@ ALLOWED_ORIGINS = [
     "http://192.168.0.194:8080",
     "https://todomotortaller-ozk4.onrender.com",
     "https://todomotortaller.onrender.com",
-    "https://todomotortaller2026.onrender.com",
+    "https://todomotortaller2026-ozk4.onrender.com",
     "https://hilarious-shortbread-e0ccc7.netlify.app",
 ]
 
