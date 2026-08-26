@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: todomotortaller-api
+    name: todomotortaller2026
     runtime: docker
     dockerfilePath: Dockerfile
     envVars:
@@ -21,18 +21,4 @@ services:
       - key: VAPID_PUBLIC_KEY
         sync: false
     healthCheckPath: /
-    autoDeploy: true
-
-  - type: web
-    name: todomotortaller
-    runtime: static
-    buildCommand: cd frontend && npm install --legacy-peer-deps && npm run build
-    staticPublishPath: frontend/dist
-    envVars:
-      - key: VUE_APP_API_URL
-        sync: false
-    routes:
-      - type: rewrite
-        source: /*
-        destination: /index.html
     autoDeploy: true

@@ -57,7 +57,7 @@ module.exports = defineConfig({
       clientsClaim: true,
       cleanupOutdatedCaches: true,
       swDest: "service-worker.js",
-      exclude: [/\.html$/],
+      exclude: [/\.html$/, /index\.html$/],
       navigateFallback: null,
       runtimeCaching: [
         {

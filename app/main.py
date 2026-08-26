@@ -1,7 +1,9 @@
 import asyncio
 import os
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from app.core.database import engine, Base, ensure_schema_updates
 
 # Import models so SQLAlchemy discovers them for create_all
@@ -42,9 +44,11 @@ FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:8080")
 ALLOWED_ORIGINS = [
     FRONTEND_URL,
     "http://localhost:8080",
+    "http://localhost:8000",
     "http://192.168.0.194:8080",
     "https://todomotortaller-ozk4.onrender.com",
     "https://todomotortaller.onrender.com",
+    "https://todomotortaller2026.onrender.com",
     "https://hilarious-shortbread-e0ccc7.netlify.app",
 ]
 
@@ -56,7 +60,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include routers
+# Include API routers FIRST
 app.include_router(auth_router)
 app.include_router(users_router)
 app.include_router(motorcycles_router)
@@ -75,6 +79,42 @@ async def startup():
     from app.core.ws_manager import init_ws
     init_ws()
 
-@app.get("/")
-def root():
-    return {"message": "Todomotortaller API funcionando"}
+# --- SERVIR FRONTEND VUE (MONOLITO) ---
+DIST_DIR = os.path.join(os.path.dirname(__file__), "..", "frontend", "dist")
+ASSETS_DIR = os.path.join(DIST_DIR, "assets")
+
+if os.path.isdir(ASSETS_DIR):
+    app.mount("/assets", StaticFiles(directory=ASSETS_DIR), name="static-assets")
+
+@app.get("/service-worker.js")
+async def service_worker():
+    sw_path = os.path.join(DIST_DIR, "service-worker.js")
+    if os.path.isfile(sw_path):
+        response = FileResponse(sw_path, media_type="application/javascript")
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+        return response
+    from fastapi.responses import JSONResponse
+    return JSONResponse({"error": "not found"}, status_code=404)
+
+@app.get("/manifest.webmanifest")
+async def manifest():
+    path = os.path.join(DIST_DIR, "manifest.webmanifest")
+    if os.path.isfile(path):
+        return FileResponse(path, media_type="application/manifest+json")
+    from fastapi.responses import JSONResponse
+    return JSONResponse({"error": "not found"}, status_code=404)
+
+@app.get("/{full_path:path}")
+async def serve_spa(full_path: str):
+    file_path = os.path.join(DIST_DIR, full_path)
+    if full_path and os.path.isfile(file_path):
+        return FileResponse(file_path)
+    index_path = os.path.join(DIST_DIR, "index.html")
+    if os.path.isfile(index_path):
+        response = FileResponse(index_path)
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        return response
+    from fastapi.responses import JSONResponse
+    return JSONResponse({"error": "not found"}, status_code=404)

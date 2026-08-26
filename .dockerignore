@@ -9,8 +9,5 @@ venv
 .dockerignore
 docker-compose*.yml
 *.md
-frontend
 scripts
-node_modules
-dist
 *.log

@@ -10,14 +10,7 @@ function getWebSocketUrl() {
   const token = localStorage.getItem('access_token')
   if (!token) return null
   const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-  const apiUrl = process.env.VUE_APP_API_URL
-  let host
-  if (apiUrl) {
-    const url = new URL(apiUrl)
-    host = url.host
-  } else {
-    host = window.location.host
-  }
+  const host = window.location.host
   return `${protocol}//${host}/socket/orders?token=${encodeURIComponent(token)}`
 }
 

@@ -66,7 +66,7 @@
       </router-view>
     </main>
 
-    <!-- BOTTOM NAV PWA: solo en modo PWA en paginas publicas -->
+    <!-- BOTTOM NAV PWA: paginas publicas -->
     <nav v-if="isPwa && !authStore.isAuthenticated && isPublicPage" class="pwa-bottom-nav">
       <router-link to="/workshop" class="pwa-nav-item" :class="{ active: $route.path === '/workshop' }">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>
@@ -88,6 +88,42 @@
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
         <span>Registrar</span>
       </router-link>
+    </nav>
+
+    <!-- BOTTOM NAV PWA: usuarios autenticados -->
+    <nav v-if="isPwa && authStore.isAuthenticated" class="pwa-bottom-nav">
+      <router-link v-if="authStore.isAdmin" to="/admin" class="pwa-nav-item" :class="{ active: $route.path === '/admin' }">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        <span>Panel</span>
+      </router-link>
+      <router-link v-if="authStore.isAdmin" to="/admin/users" class="pwa-nav-item" :class="{ active: $route.path === '/admin/users' }">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span>Usuarios</span>
+      </router-link>
+      <router-link v-if="authStore.isAdmin" to="/admin/service-orders" class="pwa-nav-item" :class="{ active: $route.path === '/admin/service-orders' }">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M9 14l2 2 4-4"/></svg>
+        <span>Órdenes</span>
+      </router-link>
+      <router-link v-if="authStore.isAdmin" to="/admin/reports" class="pwa-nav-item" :class="{ active: $route.path === '/admin/reports' }">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16"/><path d="M4 20V4"/><path d="M8 14V8"/><path d="M12 14v-4"/><path d="M16 14v-6"/><path d="M20 14V6"/></svg>
+        <span>Reportes</span>
+      </router-link>
+      <router-link v-if="authStore.isMecanico" to="/mecanico/orders" class="pwa-nav-item" :class="{ active: $route.path === '/mecanico/orders' }">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 14l2 2 4-4"/></svg>
+        <span>Mis Órdenes</span>
+      </router-link>
+      <router-link v-if="authStore.isCliente" to="/cliente/orders" class="pwa-nav-item" :class="{ active: $route.path === '/cliente/orders' }">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        <span>Mi Panel</span>
+      </router-link>
+      <button class="pwa-nav-item" @click="toggleTheme">
+        <span v-html="isDark ? sunIcon : moonIcon"></span>
+        <span>{{ isDark ? 'Claro' : 'Oscuro' }}</span>
+      </button>
+      <button class="pwa-nav-item" @click="handleLogout">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        <span>Salir</span>
+      </button>
     </nav>
     <ConfirmModal
       :visible="showLogoutModal"
