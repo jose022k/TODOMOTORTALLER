@@ -2,14 +2,10 @@
   <div id="app" :class="{ 'pwa-mode': showMobileNav }">
     <!-- HEADER MOBILE -->
     <header v-if="showMobileNav" class="pwa-header">
-      <button class="hamburger-btn" @click="drawerOpen = true" aria-label="Menu">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-      </button>
       <div class="pwa-header-title">
         <img class="pwa-header-logo" src="https://res.cloudinary.com/dorj3mvvr/image/upload/v1783609693/logos/logotaller01.png" alt="Logo" />
         <span>Todomotortaller</span>
       </div>
-      <div class="pwa-header-spacer"></div>
     </header>
 
     <!-- HEADER NORMAL: navegador web desktop -->
@@ -63,100 +59,6 @@
       </nav>
     </header>
 
-    <!-- SIDEBAR DRAWER -->
-    <transition name="drawer-overlay">
-      <div v-if="drawerOpen" class="drawer-overlay" @click="drawerOpen = false"></div>
-    </transition>
-    <transition name="drawer-slide">
-      <div v-if="drawerOpen" class="drawer-panel">
-        <div class="drawer-header">
-          <img class="drawer-logo" src="https://res.cloudinary.com/dorj3mvvr/image/upload/v1783609693/logos/logotaller01.png" alt="Logo" />
-          <div class="drawer-user">
-            <span class="drawer-user-name">{{ authStore.user?.nombre || 'Invitado' }}</span>
-            <span v-if="authStore.isAuthenticated" class="drawer-user-role">{{ authStore.user?.rol }}</span>
-          </div>
-          <button class="drawer-close" @click="drawerOpen = false">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-          </button>
-        </div>
-
-        <div class="drawer-body">
-          <!-- Auth links -->
-          <template v-if="authStore.isAuthenticated">
-            <router-link v-if="authStore.isAdmin" to="/admin" class="drawer-item" @click="drawerOpen = false">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-              <span>Panel Admin</span>
-            </router-link>
-            <router-link v-if="authStore.isAdmin" to="/admin/users" class="drawer-item" @click="drawerOpen = false">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-              <span>Usuarios</span>
-            </router-link>
-            <router-link v-if="authStore.isAdmin" to="/admin/catalog" class="drawer-item" @click="drawerOpen = false">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h8v16H3z"/><path d="M13 4h8v16H13z"/><path d="M11 4v16"/><line x1="4" y1="8" x2="10" y2="8"/><line x1="4" y1="11" x2="10" y2="11"/><line x1="4" y1="14" x2="10" y2="14"/><line x1="14" y1="8" x2="20" y2="8"/><line x1="14" y1="11" x2="20" y2="11"/><line x1="14" y1="14" x2="20" y2="14"/></svg>
-              <span>Catálogo de Motos</span>
-            </router-link>
-            <router-link v-if="authStore.isAdmin" to="/admin/service-orders" class="drawer-item" @click="drawerOpen = false">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M9 14l2 2 4-4"/></svg>
-              <span>Órdenes de Servicio</span>
-            </router-link>
-            <router-link v-if="authStore.isAdmin" to="/admin/reports" class="drawer-item" @click="drawerOpen = false">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16"/><path d="M4 20V4"/><path d="M8 14V8"/><path d="M12 14v-4"/><path d="M16 14v-6"/><path d="M20 14V6"/></svg>
-              <span>Reportes</span>
-            </router-link>
-            <router-link v-if="authStore.isMecanico" to="/mecanico/orders" class="drawer-item" @click="drawerOpen = false">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 14l2 2 4-4"/></svg>
-              <span>Mis Órdenes</span>
-            </router-link>
-            <router-link v-if="authStore.isCliente" to="/cliente/orders" class="drawer-item" @click="drawerOpen = false">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-              <span>Mi Panel</span>
-            </router-link>
-            <router-link to="/notifications" class="drawer-item" @click="drawerOpen = false">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-              <span>Notificaciones</span>
-            </router-link>
-            <div class="drawer-divider"></div>
-            <div class="drawer-item drawer-theme" @click="toggleTheme">
-              <span v-html="isDark ? sunIcon : moonIcon"></span>
-              <span>{{ isDark ? 'Modo Claro' : 'Modo Oscuro' }}</span>
-            </div>
-          </template>
-          <!-- Guest links -->
-          <template v-else>
-            <router-link v-if="!authStore.isMecanico && !authStore.isCliente" to="/workshop" class="drawer-item" @click="drawerOpen = false">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>
-              <span>Taller</span>
-            </router-link>
-            <router-link v-if="!authStore.isMecanico && !authStore.isCliente" to="/location" class="drawer-item" @click="drawerOpen = false">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-              <span>Ubicación</span>
-            </router-link>
-            <router-link v-if="$route.path !== '/login'" to="/login" class="drawer-item" @click="drawerOpen = false">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
-              <span>Iniciar Sesión</span>
-            </router-link>
-            <router-link v-if="$route.path === '/login'" to="/register/cliente" class="drawer-item" @click="drawerOpen = false">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
-              <span>Registrar</span>
-            </router-link>
-            <div class="drawer-divider"></div>
-            <div class="drawer-item drawer-theme" @click="toggleTheme">
-              <span v-html="isDark ? sunIcon : moonIcon"></span>
-              <span>{{ isDark ? 'Modo Claro' : 'Modo Oscuro' }}</span>
-            </div>
-          </template>
-
-          <template v-if="authStore.isAuthenticated">
-            <div class="drawer-divider"></div>
-            <button class="drawer-item drawer-logout" @click="drawerLogout">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-              <span>Cerrar Sesión</span>
-            </button>
-          </template>
-        </div>
-      </div>
-    </transition>
-
     <main class="app-main" :class="{ 'pwa-main': showMobileNav }">
       <router-view v-slot="{ Component }">
         <transition name="page-fade" mode="out-in">
@@ -168,52 +70,100 @@
     <!-- BOTTOM NAV MOBILE: paginas publicas -->
     <nav v-if="showMobileNav && !authStore.isAuthenticated && isPublicPage" class="pwa-bottom-nav">
       <router-link to="/workshop" class="pwa-nav-item" :class="{ active: $route.path === '/workshop' }">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>
         <span>Taller</span>
       </router-link>
       <router-link to="/location" class="pwa-nav-item" :class="{ active: $route.path === '/location' }">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
         <span>Ubicación</span>
+      </router-link>
+      <router-link v-if="$route.path !== '/login'" to="/login" class="pwa-nav-item" :class="{ active: $route.path === '/login' }">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+        <span>Iniciar</span>
+      </router-link>
+      <router-link v-if="$route.path === '/login'" to="/register/cliente" class="pwa-nav-item">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+        <span>Registrar</span>
       </router-link>
       <button class="pwa-nav-item" @click="toggleTheme">
         <span v-html="isDark ? sunIcon : moonIcon"></span>
         <span>{{ isDark ? 'Claro' : 'Oscuro' }}</span>
       </button>
-      <router-link v-if="$route.path !== '/login'" to="/login" class="pwa-nav-item" :class="{ active: $route.path === '/login' }">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
-        <span>Iniciar</span>
-      </router-link>
-      <router-link v-if="$route.path === '/login'" to="/register/cliente" class="pwa-nav-item">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
-        <span>Registrar</span>
-      </router-link>
     </nav>
 
-    <!-- BOTTOM NAV MOBILE: usuarios autenticados -->
-    <nav v-if="showMobileNav && authStore.isAuthenticated" class="pwa-bottom-nav">
-      <router-link v-if="authStore.isAdmin" to="/admin" class="pwa-nav-item" :class="{ active: $route.path === '/admin' }">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+    <!-- BOTTOM NAV MOBILE: ADMIN -->
+    <nav v-if="showMobileNav && authStore.isAuthenticated && authStore.isAdmin" class="pwa-bottom-nav">
+      <router-link to="/admin" class="pwa-nav-item" :class="{ active: $route.path === '/admin' }">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
         <span>Panel</span>
       </router-link>
-      <router-link v-if="authStore.isAdmin" to="/admin/service-orders" class="pwa-nav-item" :class="{ active: $route.path === '/admin/service-orders' }">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M9 14l2 2 4-4"/></svg>
+      <router-link to="/admin/users" class="pwa-nav-item" :class="{ active: $route.path === '/admin/users' }">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span>Usuarios</span>
+      </router-link>
+      <router-link to="/admin/catalog" class="pwa-nav-item" :class="{ active: $route.path === '/admin/catalog' }">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h8v16H3z"/><path d="M13 4h8v16H13z"/><path d="M11 4v16"/><line x1="4" y1="8" x2="10" y2="8"/><line x1="4" y1="11" x2="10" y2="11"/><line x1="4" y1="14" x2="10" y2="14"/><line x1="14" y1="8" x2="20" y2="8"/><line x1="14" y1="11" x2="20" y2="11"/><line x1="14" y1="14" x2="20" y2="14"/></svg>
+        <span>Catálogo</span>
+      </router-link>
+      <router-link to="/admin/service-orders" class="pwa-nav-item" :class="{ active: $route.path === '/admin/service-orders' }">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M9 14l2 2 4-4"/></svg>
         <span>Órdenes</span>
       </router-link>
-      <router-link v-if="authStore.isMecanico" to="/mecanico/orders" class="pwa-nav-item" :class="{ active: $route.path === '/mecanico/orders' }">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 14l2 2 4-4"/></svg>
-        <span>Mis Órdenes</span>
-      </router-link>
-      <router-link v-if="authStore.isCliente" to="/cliente/orders" class="pwa-nav-item" :class="{ active: $route.path === '/cliente/orders' }">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-        <span>Panel</span>
+      <router-link to="/admin/reports" class="pwa-nav-item" :class="{ active: $route.path === '/admin/reports' }">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16"/><path d="M4 20V4"/><path d="M8 14V8"/><path d="M12 14v-4"/><path d="M16 14v-6"/><path d="M20 14V6"/></svg>
+        <span>Reportes</span>
       </router-link>
       <router-link to="/notifications" class="pwa-nav-item" :class="{ active: $route.path === '/notifications' }">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
         <span>Alertas</span>
       </router-link>
-      <button class="pwa-nav-item" @click="drawerOpen = true">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
-        <span>Más</span>
+      <button class="pwa-nav-item" @click="toggleTheme">
+        <span v-html="isDark ? sunIcon : moonIcon"></span>
+        <span>{{ isDark ? 'Claro' : 'Oscuro' }}</span>
+      </button>
+      <button class="pwa-nav-item pwa-nav-logout" @click="handleLogout">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        <span>Salir</span>
+      </button>
+    </nav>
+
+    <!-- BOTTOM NAV MOBILE: MECANICO -->
+    <nav v-if="showMobileNav && authStore.isAuthenticated && authStore.isMecanico" class="pwa-bottom-nav">
+      <router-link to="/mecanico/orders" class="pwa-nav-item" :class="{ active: $route.path === '/mecanico/orders' }">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 14l2 2 4-4"/></svg>
+        <span>Mis Órdenes</span>
+      </router-link>
+      <router-link to="/notifications" class="pwa-nav-item" :class="{ active: $route.path === '/notifications' }">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span>Alertas</span>
+      </router-link>
+      <button class="pwa-nav-item" @click="toggleTheme">
+        <span v-html="isDark ? sunIcon : moonIcon"></span>
+        <span>{{ isDark ? 'Claro' : 'Oscuro' }}</span>
+      </button>
+      <button class="pwa-nav-item pwa-nav-logout" @click="handleLogout">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        <span>Salir</span>
+      </button>
+    </nav>
+
+    <!-- BOTTOM NAV MOBILE: CLIENTE -->
+    <nav v-if="showMobileNav && authStore.isAuthenticated && authStore.isCliente" class="pwa-bottom-nav">
+      <router-link to="/cliente/orders" class="pwa-nav-item" :class="{ active: $route.path === '/cliente/orders' }">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        <span>Mi Panel</span>
+      </router-link>
+      <router-link to="/notifications" class="pwa-nav-item" :class="{ active: $route.path === '/notifications' }">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span>Alertas</span>
+      </router-link>
+      <button class="pwa-nav-item" @click="toggleTheme">
+        <span v-html="isDark ? sunIcon : moonIcon"></span>
+        <span>{{ isDark ? 'Claro' : 'Oscuro' }}</span>
+      </button>
+      <button class="pwa-nav-item pwa-nav-logout" @click="handleLogout">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        <span>Salir</span>
       </button>
     </nav>
 
@@ -304,7 +254,6 @@ export default {
     return {
       showLogoutModal: false,
       loggingOut: false,
-      drawerOpen: false,
       isDark: document.documentElement.classList.contains("dark"),
       sunIcon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>',
       moonIcon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>',
@@ -320,10 +269,6 @@ export default {
       document.documentElement.classList.toggle("dark", this.isDark);
     },
     handleLogout() {
-      this.showLogoutModal = true;
-    },
-    drawerLogout() {
-      this.drawerOpen = false;
       this.showLogoutModal = true;
     },
     confirmLogout() {
@@ -508,26 +453,11 @@ html.dark .theme-toggle:hover { color: #ffaa00; }
   padding: 10px 16px;
   padding-top: calc(10px + env(safe-area-inset-top));
   display: flex;
+  justify-content: center;
   align-items: center;
   position: sticky;
   top: 0;
   z-index: 50;
-}
-.hamburger-btn {
-  background: none;
-  border: none;
-  color: #ffffff;
-  cursor: pointer;
-  padding: 6px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.15s;
-  flex-shrink: 0;
-}
-.hamburger-btn:hover {
-  background: rgba(255, 170, 0, 0.15);
 }
 .pwa-header-title {
   display: flex;
@@ -536,148 +466,11 @@ html.dark .theme-toggle:hover { color: #ffaa00; }
   color: #ffffff;
   font-weight: 700;
   font-size: 16px;
-  flex: 1;
-  justify-content: center;
 }
 .pwa-header-logo {
   width: 28px;
   height: 28px;
   border-radius: 6px;
-}
-.pwa-header-spacer {
-  width: 36px;
-  flex-shrink: 0;
-}
-
-/* ===== SIDEBAR DRAWER ===== */
-.drawer-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 200;
-}
-.drawer-panel {
-  position: fixed;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  width: 280px;
-  max-width: 85vw;
-  background: #1a1a1a;
-  z-index: 210;
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.3);
-}
-.drawer-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 20px 16px;
-  padding-top: calc(20px + env(safe-area-inset-top));
-  border-bottom: 1px solid rgba(255, 170, 0, 0.15);
-}
-.drawer-logo {
-  width: 40px;
-  height: 40px;
-  border-radius: 8px;
-  flex-shrink: 0;
-}
-.drawer-user {
-  flex: 1;
-  min-width: 0;
-}
-.drawer-user-name {
-  display: block;
-  color: #ffffff;
-  font-weight: 700;
-  font-size: 15px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.drawer-user-role {
-  display: block;
-  color: #ffaa00;
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: capitalize;
-}
-.drawer-close {
-  background: none;
-  border: none;
-  color: #b0b5b9;
-  cursor: pointer;
-  padding: 6px;
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-.drawer-close:hover {
-  background: rgba(255, 255, 255, 0.08);
-}
-.drawer-body {
-  flex: 1;
-  padding: 8px 0;
-}
-.drawer-item {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 13px 20px;
-  color: #b0b5b9;
-  text-decoration: none;
-  font-size: 14px;
-  font-weight: 600;
-  border: none;
-  background: none;
-  width: 100%;
-  cursor: pointer;
-  transition: background 0.15s, color 0.15s;
-}
-.drawer-item:hover,
-.drawer-item.router-link-exact-active {
-  background: rgba(255, 170, 0, 0.1);
-  color: #ffaa00;
-}
-.drawer-item svg {
-  flex-shrink: 0;
-}
-.drawer-divider {
-  height: 1px;
-  background: rgba(255, 255, 255, 0.08);
-  margin: 8px 16px;
-}
-.drawer-theme {
-  color: #b0b5b9;
-}
-.drawer-logout {
-  color: #dc2626;
-}
-.drawer-logout:hover {
-  background: rgba(220, 38, 38, 0.1);
-  color: #dc2626;
-}
-
-/* Drawer transitions */
-.drawer-overlay-enter-active,
-.drawer-overlay-leave-active {
-  transition: opacity 0.25s ease;
-}
-.drawer-overlay-enter-from,
-.drawer-overlay-leave-to {
-  opacity: 0;
-}
-.drawer-slide-enter-active,
-.drawer-slide-leave-active {
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.drawer-slide-enter-from,
-.drawer-slide-leave-to {
-  transform: translateX(-100%);
 }
 
 /* ===== PWA MAIN & BOTTOM NAV ===== */
@@ -692,8 +485,8 @@ html.dark .theme-toggle:hover { color: #ffaa00; }
   right: 0;
   background: #1a1a1a;
   display: flex;
-  align-items: center;
-  padding: 6px 8px;
+  align-items: stretch;
+  padding: 6px 4px;
   padding-bottom: calc(6px + env(safe-area-inset-bottom));
   z-index: 100;
   border-top: 1px solid rgba(255, 170, 0, 0.2);
@@ -709,38 +502,38 @@ html.dark .theme-toggle:hover { color: #ffaa00; }
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 3px;
+  justify-content: center;
+  gap: 2px;
   color: #8b9299;
   text-decoration: none;
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 600;
   background: none;
   border: none;
   cursor: pointer;
-  padding: 6px 14px;
+  padding: 6px 10px;
   border-radius: 8px;
   transition: color 0.15s;
   white-space: nowrap;
   flex-shrink: 0;
+  min-width: 0;
 }
 .pwa-nav-item.active,
 .pwa-nav-item:hover {
   color: #ffaa00;
 }
 .pwa-nav-item svg {
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+.pwa-nav-logout {
+  color: #dc2626;
+}
+.pwa-nav-logout:hover {
+  color: #dc2626;
 }
 html.dark .pwa-bottom-nav {
   background: #0d1117;
-}
-html.dark .drawer-panel {
-  background: #0d1117;
-}
-html.dark .drawer-header {
-  border-bottom-color: rgba(255, 170, 0, 0.1);
-}
-html.dark .drawer-divider {
-  background: rgba(255, 255, 255, 0.06);
 }
 </style>
