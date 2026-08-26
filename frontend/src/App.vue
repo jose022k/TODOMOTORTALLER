@@ -484,14 +484,14 @@ html.dark .theme-toggle:hover { color: #ffaa00; }
   display: flex;
   justify-content: center;
   align-items: stretch;
-  padding: 6px 8px;
-  padding-bottom: calc(6px + env(safe-area-inset-bottom));
+  padding: 8px 10px;
+  padding-bottom: calc(8px + env(safe-area-inset-bottom));
   z-index: 100;
   border-top: 1px solid rgba(255, 170, 0, 0.2);
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
-  gap: 0;
+  gap: 4px;
 }
 .pwa-bottom-nav::-webkit-scrollbar {
   display: none;
@@ -501,7 +501,7 @@ html.dark .theme-toggle:hover { color: #ffaa00; }
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
+  gap: 3px;
   color: #8b9299;
   text-decoration: none;
   font-size: 9px;
@@ -509,7 +509,7 @@ html.dark .theme-toggle:hover { color: #ffaa00; }
   background: none;
   border: none;
   cursor: pointer;
-  padding: 6px 12px;
+  padding: 6px 14px;
   border-radius: 8px;
   transition: color 0.15s;
   white-space: nowrap;
