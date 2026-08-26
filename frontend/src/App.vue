@@ -145,11 +145,22 @@ export default {
       return "/";
     },
     isPwa() {
-      return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+      try {
+        if (typeof window === "undefined") return false;
+        const mq = window.matchMedia && window.matchMedia("(display-mode: standalone)").matches;
+        const ios = window.navigator && window.navigator.standalone === true;
+        return mq || ios;
+      } catch (e) {
+        return false;
+      }
     },
     isPublicPage() {
-      const publicPaths = ["/login", "/register/cliente", "/workshop", "/location"];
-      return publicPaths.includes(this.$route.path);
+      try {
+        const publicPaths = ["/login", "/register/cliente", "/workshop", "/location"];
+        return publicPaths.includes(this.$route.path);
+      } catch (e) {
+        return false;
+      }
     },
   },
   data() {

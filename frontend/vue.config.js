@@ -57,6 +57,21 @@ module.exports = defineConfig({
       clientsClaim: true,
       cleanupOutdatedCaches: true,
       swDest: "service-worker.js",
+      runtimeCaching: [
+        {
+          urlPattern: /^https:\/\/fonts\.googleapis\.com/,
+          handler: "StaleWhileRevalidate",
+          options: { cacheName: "google-fonts-stylesheets" },
+        },
+        {
+          urlPattern: /^https:\/\/res\.cloudinary\.com/,
+          handler: "CacheFirst",
+          options: {
+            cacheName: "cloudinary-images",
+            expiration: { maxEntries: 50, maxAgeSeconds: 60 * 60 * 24 * 30 },
+          },
+        },
+      ],
     },
   },
 });
