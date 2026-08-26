@@ -1,6 +1,15 @@
 <template>
-  <div id="app">
-    <header class="app-header">
+  <div id="app" :class="{ 'pwa-mode': isPwa }">
+    <!-- HEADER PWA: solo en modo PWA -->
+    <header v-if="isPwa" class="pwa-header">
+      <div class="pwa-header-title">
+        <img class="pwa-header-logo" src="https://res.cloudinary.com/dorj3mvvr/image/upload/v1783609693/logos/logotaller01.png" alt="Logo" />
+        <span>Todomotortaller PWA</span>
+      </div>
+    </header>
+
+    <!-- HEADER NORMAL: modo navegador web -->
+    <header v-else class="app-header">
       <router-link :to="homeRoute" class="logo">Todomotortaller</router-link>
       <nav class="app-nav">
         <transition name="nav-fade" mode="out-in">
@@ -49,13 +58,37 @@
         </transition>
       </nav>
     </header>
-    <main class="app-main">
+    <main class="app-main" :class="{ 'pwa-main': isPwa }">
       <router-view v-slot="{ Component }">
         <transition name="page-fade" mode="out-in">
           <component :is="Component" />
         </transition>
       </router-view>
     </main>
+
+    <!-- BOTTOM NAV PWA: solo en modo PWA en paginas publicas -->
+    <nav v-if="isPwa && !authStore.isAuthenticated && isPublicPage" class="pwa-bottom-nav">
+      <router-link to="/workshop" class="pwa-nav-item" :class="{ active: $route.path === '/workshop' }">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>
+        <span>Taller</span>
+      </router-link>
+      <router-link to="/location" class="pwa-nav-item" :class="{ active: $route.path === '/location' }">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        <span>Ubicación</span>
+      </router-link>
+      <button class="pwa-nav-item" @click="toggleTheme">
+        <span v-html="isDark ? sunIcon : moonIcon"></span>
+        <span>{{ isDark ? 'Claro' : 'Oscuro' }}</span>
+      </button>
+      <router-link v-if="$route.path !== '/login'" to="/login" class="pwa-nav-item" :class="{ active: $route.path === '/login' }">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+        <span>Iniciar</span>
+      </router-link>
+      <router-link v-if="$route.path === '/login'" to="/register/cliente" class="pwa-nav-item">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+        <span>Registrar</span>
+      </router-link>
+    </nav>
     <ConfirmModal
       :visible="showLogoutModal"
       title="Cerrar Sesión"
@@ -110,6 +143,13 @@ export default {
       if (this.authStore.isMecanico) return "/mecanico/orders";
       if (this.authStore.isCliente) return "/cliente/orders";
       return "/";
+    },
+    isPwa() {
+      return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+    },
+    isPublicPage() {
+      const publicPaths = ["/login", "/register/cliente", "/workshop", "/location"];
+      return publicPaths.includes(this.$route.path);
     },
   },
   data() {
@@ -307,5 +347,76 @@ html.dark .theme-toggle:hover { color: #ffaa00; }
   padding-left: max(20px, env(safe-area-inset-left));
   padding-right: max(20px, env(safe-area-inset-right));
   padding-bottom: calc(12px + env(safe-area-inset-bottom));
+}
+
+/* ===== PWA MODE ===== */
+.pwa-header {
+  background-color: #1a1a1a;
+  padding: 10px 16px;
+  padding-top: calc(10px + env(safe-area-inset-top));
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+.pwa-header-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 16px;
+}
+.pwa-header-logo {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+}
+.pwa-main {
+  padding: 12px 16px;
+  padding-bottom: calc(80px + env(safe-area-inset-bottom));
+}
+.pwa-bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #1a1a1a;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 6px 0;
+  padding-bottom: calc(6px + env(safe-area-inset-bottom));
+  z-index: 100;
+  border-top: 1px solid rgba(255, 170, 0, 0.2);
+}
+.pwa-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  color: #b0b5b9;
+  text-decoration: none;
+  font-size: 10px;
+  font-weight: 600;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: color 0.15s;
+}
+.pwa-nav-item.active,
+.pwa-nav-item:hover {
+  color: #ffaa00;
+}
+.pwa-nav-item svg {
+  width: 20px;
+  height: 20px;
+}
+html.dark .pwa-bottom-nav {
+  background: #0d1117;
 }
 </style>
