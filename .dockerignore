@@ -7,7 +7,6 @@ venv
 .git
 .gitignore
 .dockerignore
-Dockerfile
 docker-compose*.yml
 *.md
 frontend
