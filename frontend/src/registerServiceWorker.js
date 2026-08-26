@@ -29,7 +29,7 @@ if (process.env.NODE_ENV === "production") {
 
   let refreshing = false;
   navigator.serviceWorker.addEventListener("controllerchange", () => {
-    if (!refreshing) {
+    if (!refreshing && navigator.serviceWorker.controller) {
       refreshing = true;
       window.location.reload();
     }
