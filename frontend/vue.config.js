@@ -51,12 +51,14 @@ module.exports = defineConfig({
         { src: "img/icons/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
       ],
     },
-    workboxPluginMode: process.env.NODE_ENV === "production" ? "GenerateSW" : "NONE",
+    workboxPluginMode: "GenerateSW",
     workboxOptions: {
       skipWaiting: true,
       clientsClaim: true,
       cleanupOutdatedCaches: true,
       swDest: "service-worker.js",
+      exclude: [/\.html$/],
+      navigateFallback: null,
       runtimeCaching: [
         {
           urlPattern: /^https:\/\/fonts\.googleapis\.com/,
