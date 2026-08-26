@@ -11,3 +11,5 @@ docker-compose*.yml
 *.md
 scripts
 *.log
+frontend/node_modules
+frontend/dist
