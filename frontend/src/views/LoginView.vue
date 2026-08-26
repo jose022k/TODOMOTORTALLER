@@ -239,8 +239,8 @@ html:not(.dark) .auth-card {
 /* ===== MOBILE / PWA native feel ===== */
 @media (max-width: 768px) {
   .auth-container {
-    align-items: flex-start;
-    padding-top: 16px;
+    align-items: center;
+    padding-top: 10px;
     padding-bottom: 80px;
   }
   .auth-card {
