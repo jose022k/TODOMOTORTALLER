@@ -37,7 +37,7 @@ export const useAuthStore = defineStore('auth', {
         const { data } = await api.get('/auth/me')
         this.user = data
       } catch {
-        this.logout()
+        // Don't auto-logout — server might be cold-starting
       }
     },
     logout() {

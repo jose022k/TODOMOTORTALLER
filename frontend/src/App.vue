@@ -1,5 +1,12 @@
 <template>
   <div id="app" :class="{ 'pwa-mode': isPwa }">
+    <!-- LOADING: restaurando sesion -->
+    <div v-if="restoringSession" class="session-loading">
+      <img class="session-loading-logo" src="https://res.cloudinary.com/dorj3mvvr/image/upload/v1783609693/logos/logotaller01.png" alt="Todomotortaller" />
+      <div class="session-loading-spinner"></div>
+      <p>Restaurando sesión...</p>
+    </div>
+    <template v-else>
     <!-- HEADER PWA: solo en modo PWA -->
     <header v-if="isPwa" class="pwa-header">
       <div class="pwa-header-title">
@@ -137,6 +144,7 @@
     <LoadingOverlay :visible="loggingOut" text="Cerrando sesión..." />
     <NotificationNative />
     <SplashScreen />
+    </template>
   </div>
 </template>
 
@@ -156,9 +164,6 @@ export default {
   components: { NotificationsDropdown, SettingsDropdown, ConfirmModal, LoadingOverlay, NotificationNative, SplashScreen },
   setup() {
     const authStore = useAuthStore();
-    if (authStore.isAuthenticated && !authStore.user) {
-      authStore.fetchUser();
-    }
     return { authStore };
   },
   watch: {
@@ -171,6 +176,17 @@ export default {
         }
       },
     },
+  },
+  async created() {
+    if (this.authStore.isAuthenticated && !this.authStore.user) {
+      this.restoringSession = true;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        await this.authStore.fetchUser();
+        if (this.authStore.user) break;
+        await new Promise(r => setTimeout(r, 3000));
+      }
+      this.restoringSession = false;
+    }
   },
   computed: {
     homeRoute() {
@@ -201,6 +217,7 @@ export default {
   },
   data() {
     return {
+      restoringSession: false,
       showLogoutModal: false,
       loggingOut: false,
       isDark: document.documentElement.classList.contains("dark"),
@@ -465,5 +482,38 @@ html.dark .theme-toggle:hover { color: #ffaa00; }
 }
 html.dark .pwa-bottom-nav {
   background: #0d1117;
+}
+
+/* ===== SESSION LOADING ===== */
+.session-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: #1a1a1a;
+  color: #ffffff;
+  gap: 16px;
+  padding: 20px;
+}
+.session-loading-logo {
+  width: 100px;
+  height: auto;
+}
+.session-loading-spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid rgba(255, 170, 0, 0.25);
+  border-top-color: #ffaa00;
+  border-radius: 50%;
+  animation: session-spin 0.8s linear infinite;
+}
+.session-loading p {
+  color: #b0b5b9;
+  font-size: 14px;
+}
+@keyframes session-spin {
+  to { transform: rotate(360deg); }
 }
 </style>
