@@ -480,13 +480,8 @@ html.dark .theme-toggle:hover { color: #ffaa00; }
   padding-bottom: calc(8px + env(safe-area-inset-bottom));
   z-index: 100;
   border-top: 1px solid rgba(255, 170, 0, 0.2);
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
   gap: 0;
-}
-.pwa-bottom-nav::-webkit-scrollbar {
-  display: none;
+  overflow: visible;
 }
 .pwa-nav-item {
   display: flex;
