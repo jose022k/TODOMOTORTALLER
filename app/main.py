@@ -39,7 +39,13 @@ app = FastAPI(
 
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:8080")
 
-ALLOWED_ORIGINS = [FRONTEND_URL, "http://localhost:8080", "http://192.168.0.194:8080"]
+ALLOWED_ORIGINS = [
+    FRONTEND_URL,
+    "http://localhost:8080",
+    "http://192.168.0.194:8080",
+    "https://todomotortaller-ozk4.onrender.com",
+    "https://todomotortaller.onrender.com",
+]
 
 app.add_middleware(
     CORSMiddleware,
