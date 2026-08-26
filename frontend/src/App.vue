@@ -462,7 +462,7 @@ html.dark .theme-toggle:hover { color: #ffaa00; }
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #ffffff;
+  color: #ffaa00;
   font-weight: 900;
   font-size: 18px;
   text-transform: uppercase;
