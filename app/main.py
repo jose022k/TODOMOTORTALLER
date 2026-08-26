@@ -45,6 +45,7 @@ ALLOWED_ORIGINS = [
     "http://192.168.0.194:8080",
     "https://todomotortaller-ozk4.onrender.com",
     "https://todomotortaller.onrender.com",
+    "https://hilarious-shortbread-e0ccc7.netlify.app",
 ]
 
 app.add_middleware(
