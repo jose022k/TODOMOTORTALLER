@@ -1,7 +1,7 @@
 <template>
-  <div id="app" :class="{ 'pwa-mode': isPwa }">
-    <!-- HEADER PWA: solo en modo PWA -->
-    <header v-if="isPwa" class="pwa-header">
+  <div id="app" :class="{ 'pwa-mode': showMobileNav }">
+    <!-- HEADER MOBILE: PWA o navegador movil -->
+    <header v-if="showMobileNav" class="pwa-header">
       <div class="pwa-header-title">
         <img class="pwa-header-logo" src="https://res.cloudinary.com/dorj3mvvr/image/upload/v1783609693/logos/logotaller01.png" alt="Logo" />
         <span>Todomotortaller PWA</span>
@@ -58,7 +58,7 @@
         </transition>
       </nav>
     </header>
-    <main class="app-main" :class="{ 'pwa-main': isPwa }">
+    <main class="app-main" :class="{ 'pwa-main': showMobileNav }">
       <router-view v-slot="{ Component }">
         <transition name="page-fade" mode="out-in">
           <component :is="Component" />
@@ -66,8 +66,8 @@
       </router-view>
     </main>
 
-    <!-- BOTTOM NAV PWA: paginas publicas -->
-    <nav v-if="isPwa && !authStore.isAuthenticated && isPublicPage" class="pwa-bottom-nav">
+    <!-- BOTTOM NAV MOBILE: paginas publicas -->
+    <nav v-if="showMobileNav && !authStore.isAuthenticated && isPublicPage" class="pwa-bottom-nav">
       <router-link to="/workshop" class="pwa-nav-item" :class="{ active: $route.path === '/workshop' }">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>
         <span>Taller</span>
@@ -90,8 +90,8 @@
       </router-link>
     </nav>
 
-    <!-- BOTTOM NAV PWA: usuarios autenticados -->
-    <nav v-if="isPwa && authStore.isAuthenticated" class="pwa-bottom-nav">
+    <!-- BOTTOM NAV MOBILE: usuarios autenticados -->
+    <nav v-if="showMobileNav && authStore.isAuthenticated" class="pwa-bottom-nav">
       <router-link v-if="authStore.isAdmin" to="/admin" class="pwa-nav-item" :class="{ active: $route.path === '/admin' }">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
         <span>Panel</span>
@@ -102,7 +102,7 @@
       </router-link>
       <router-link v-if="authStore.isAdmin" to="/admin/service-orders" class="pwa-nav-item" :class="{ active: $route.path === '/admin/service-orders' }">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M9 14l2 2 4-4"/></svg>
-        <span>Órdenes</span>
+        <span>Órdenes de servicio</span>
       </router-link>
       <router-link v-if="authStore.isAdmin" to="/admin/reports" class="pwa-nav-item" :class="{ active: $route.path === '/admin/reports' }">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16"/><path d="M4 20V4"/><path d="M8 14V8"/><path d="M12 14v-4"/><path d="M16 14v-6"/><path d="M20 14V6"/></svg>
@@ -115,6 +115,24 @@
       <router-link v-if="authStore.isCliente" to="/cliente/orders" class="pwa-nav-item" :class="{ active: $route.path === '/cliente/orders' }">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
         <span>Mi Panel</span>
+      </router-link>
+      <!-- Notificaciones -->
+      <router-link to="/notifications" class="pwa-nav-item" :class="{ active: $route.path === '/notifications' }">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span>Notificaciones</span>
+      </router-link>
+      <!-- Mensajes y evidencias -->
+      <router-link v-if="authStore.isAdmin" to="/admin/service-orders?open_chat=1" class="pwa-nav-item">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span>Mensajes</span>
+      </router-link>
+      <router-link v-if="authStore.isMecanico" to="/mecanico/orders?open_chat=1" class="pwa-nav-item">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span>Mensajes</span>
+      </router-link>
+      <router-link v-if="authStore.isCliente" to="/cliente/orders?open_chat=1" class="pwa-nav-item">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span>Mensajes</span>
       </router-link>
       <button class="pwa-nav-item" @click="toggleTheme">
         <span v-html="isDark ? sunIcon : moonIcon"></span>
@@ -191,6 +209,13 @@ export default {
       } catch (e) {
         return false;
       }
+    },
+    isMobile() {
+      if (typeof window === "undefined") return false;
+      return window.innerWidth <= 768;
+    },
+    showMobileNav() {
+      return this.isPwa || this.isMobile;
     },
     isPublicPage() {
       try {
@@ -434,12 +459,19 @@ html.dark .theme-toggle:hover { color: #ffaa00; }
   right: 0;
   background: #1a1a1a;
   display: flex;
-  justify-content: space-around;
+  justify-content: flex-start;
   align-items: center;
-  padding: 6px 0;
+  gap: 2px;
+  padding: 6px 4px;
   padding-bottom: calc(6px + env(safe-area-inset-bottom));
   z-index: 100;
   border-top: 1px solid rgba(255, 170, 0, 0.2);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.pwa-bottom-nav::-webkit-scrollbar {
+  display: none;
 }
 .pwa-nav-item {
   display: flex;

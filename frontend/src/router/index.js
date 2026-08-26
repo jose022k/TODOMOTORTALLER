@@ -93,6 +93,14 @@ const routes = [
       import(/* webpackChunkName: "cliente-orders" */ "../views/ClienteOrdersView.vue"),
     meta: { requiresAuth: true, rol: "cliente" },
   },
+  // Notificaciones
+  {
+    path: "/notifications",
+    name: "notifications",
+    component: () =>
+      import(/* webpackChunkName: "notifications" */ "../views/NotificationsView.vue"),
+    meta: { requiresAuth: true },
+  },
   // Tracker público (desde QR)
   {
     path: "/tracker/moto/:motoClienteId",
