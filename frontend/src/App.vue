@@ -482,14 +482,20 @@ html.dark .theme-toggle:hover { color: #ffaa00; }
   right: 0;
   background: #1a1a1a;
   display: flex;
-  justify-content: space-evenly;
+  justify-content: flex-start;
   align-items: stretch;
-  padding: 8px 4px;
+  padding: 8px 8px;
   padding-bottom: calc(8px + env(safe-area-inset-bottom));
   z-index: 100;
   border-top: 1px solid rgba(255, 170, 0, 0.2);
-  gap: 0;
-  overflow: visible;
+  gap: 4px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.pwa-bottom-nav::-webkit-scrollbar {
+  display: none;
 }
 .pwa-nav-item {
   display: flex;
@@ -504,12 +510,12 @@ html.dark .theme-toggle:hover { color: #ffaa00; }
   background: none;
   border: none;
   cursor: pointer;
-  padding: 6px 10px;
+  padding: 6px 14px;
   border-radius: 8px;
   transition: color 0.15s;
   white-space: nowrap;
   flex-shrink: 0;
-  min-width: 0;
+  min-width: 52px;
 }
 .pwa-nav-item.active,
 .pwa-nav-item:hover {
