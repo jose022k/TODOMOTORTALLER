@@ -86,26 +86,6 @@ ASSETS_DIR = os.path.join(DIST_DIR, "assets")
 if os.path.isdir(ASSETS_DIR):
     app.mount("/assets", StaticFiles(directory=ASSETS_DIR), name="static-assets")
 
-@app.get("/service-worker.js")
-async def service_worker():
-    sw_path = os.path.join(DIST_DIR, "service-worker.js")
-    if os.path.isfile(sw_path):
-        response = FileResponse(sw_path, media_type="application/javascript")
-        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
-        response.headers["Pragma"] = "no-cache"
-        response.headers["Expires"] = "0"
-        return response
-    from fastapi.responses import JSONResponse
-    return JSONResponse({"error": "not found"}, status_code=404)
-
-@app.get("/manifest.webmanifest")
-async def manifest():
-    path = os.path.join(DIST_DIR, "manifest.webmanifest")
-    if os.path.isfile(path):
-        return FileResponse(path, media_type="application/manifest+json")
-    from fastapi.responses import JSONResponse
-    return JSONResponse({"error": "not found"}, status_code=404)
-
 @app.get("/{full_path:path}")
 async def serve_spa(full_path: str):
     file_path = os.path.join(DIST_DIR, full_path)
