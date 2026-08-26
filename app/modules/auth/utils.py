@@ -6,7 +6,7 @@ from app.core.config import (
     SECRET_KEY,
     ALGORITHM,
     ACCESS_TOKEN_EXPIRE_MINUTES,
-    REFRESH_TOKEN_EXPIRE_DAYS,
+    REFRESH_TOKEN_EXPIRE_HOURS,
 )
 
 def hash_password(password: str) -> str:
@@ -26,7 +26,7 @@ def create_access_token(data: Dict[str, Any]) -> str:
 
 def create_refresh_token(data: Dict[str, Any]) -> str:
     to_encode = data.copy()
-    expire = datetime.utcnow() + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
+    expire = datetime.utcnow() + timedelta(hours=REFRESH_TOKEN_EXPIRE_HOURS)
     to_encode.update({"exp": expire, "type": "refresh"})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
