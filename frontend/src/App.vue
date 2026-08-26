@@ -3,7 +3,6 @@
     <!-- HEADER MOBILE -->
     <header v-if="showMobileNav" class="pwa-header">
       <div class="pwa-header-title">
-        <img class="pwa-header-logo" src="https://res.cloudinary.com/dorj3mvvr/image/upload/v1783609693/logos/logotaller01.png" alt="Logo" />
         <span>Todomotortaller</span>
       </div>
     </header>
@@ -117,10 +116,10 @@
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
         <span>Alertas</span>
       </router-link>
-      <button class="pwa-nav-item" @click="toggleTheme">
-        <span v-html="isDark ? sunIcon : moonIcon"></span>
-        <span>{{ isDark ? 'Claro' : 'Oscuro' }}</span>
-      </button>
+      <div class="pwa-nav-item pwa-nav-settings">
+        <SettingsDropdown :above="true" @theme-change="onThemeChange" />
+        <span>Ajustes</span>
+      </div>
       <button class="pwa-nav-item pwa-nav-logout" @click="handleLogout">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
         <span>Salir</span>
@@ -137,10 +136,10 @@
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
         <span>Alertas</span>
       </router-link>
-      <button class="pwa-nav-item" @click="toggleTheme">
-        <span v-html="isDark ? sunIcon : moonIcon"></span>
-        <span>{{ isDark ? 'Claro' : 'Oscuro' }}</span>
-      </button>
+      <div class="pwa-nav-item pwa-nav-settings">
+        <SettingsDropdown :above="true" @theme-change="onThemeChange" />
+        <span>Ajustes</span>
+      </div>
       <button class="pwa-nav-item pwa-nav-logout" @click="handleLogout">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
         <span>Salir</span>
@@ -157,10 +156,10 @@
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
         <span>Alertas</span>
       </router-link>
-      <button class="pwa-nav-item" @click="toggleTheme">
-        <span v-html="isDark ? sunIcon : moonIcon"></span>
-        <span>{{ isDark ? 'Claro' : 'Oscuro' }}</span>
-      </button>
+      <div class="pwa-nav-item pwa-nav-settings">
+        <SettingsDropdown :above="true" @theme-change="onThemeChange" />
+        <span>Ajustes</span>
+      </div>
       <button class="pwa-nav-item pwa-nav-logout" @click="handleLogout">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
         <span>Salir</span>
@@ -450,8 +449,8 @@ html.dark .theme-toggle:hover { color: #ffaa00; }
 /* ===== PWA HEADER ===== */
 .pwa-header {
   background-color: #1a1a1a;
-  padding: 10px 16px;
-  padding-top: calc(10px + env(safe-area-inset-top));
+  padding: 12px 16px;
+  padding-top: calc(12px + env(safe-area-inset-top));
   display: flex;
   justify-content: center;
   align-items: center;
@@ -462,15 +461,13 @@ html.dark .theme-toggle:hover { color: #ffaa00; }
 .pwa-header-title {
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
   color: #ffffff;
-  font-weight: 700;
-  font-size: 16px;
-}
-.pwa-header-logo {
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
+  font-weight: 900;
+  font-size: 18px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  width: 100%;
 }
 
 /* ===== PWA MAIN & BOTTOM NAV ===== */
@@ -485,8 +482,9 @@ html.dark .theme-toggle:hover { color: #ffaa00; }
   right: 0;
   background: #1a1a1a;
   display: flex;
+  justify-content: center;
   align-items: stretch;
-  padding: 6px 4px;
+  padding: 6px 8px;
   padding-bottom: calc(6px + env(safe-area-inset-bottom));
   z-index: 100;
   border-top: 1px solid rgba(255, 170, 0, 0.2);
@@ -511,7 +509,7 @@ html.dark .theme-toggle:hover { color: #ffaa00; }
   background: none;
   border: none;
   cursor: pointer;
-  padding: 6px 10px;
+  padding: 6px 12px;
   border-radius: 8px;
   transition: color 0.15s;
   white-space: nowrap;
@@ -527,6 +525,13 @@ html.dark .theme-toggle:hover { color: #ffaa00; }
   height: 20px;
   flex-shrink: 0;
 }
+.pwa-nav-settings {
+  cursor: default;
+  position: relative;
+}
+.pwa-nav-settings span {
+  color: #8b9299;
+}
 .pwa-nav-logout {
   color: #dc2626;
 }
@@ -535,5 +540,17 @@ html.dark .theme-toggle:hover { color: #ffaa00; }
 }
 html.dark .pwa-bottom-nav {
   background: #0d1117;
+}
+html.dark .settings-panel {
+  background: #1a1f2e;
+}
+html.dark .settings-section h4 {
+  color: #64748b;
+}
+html.dark .settings-row {
+  color: #e2e8f0;
+}
+html.dark .settings-section + .settings-section {
+  border-top-color: #1e293b;
 }
 </style>
