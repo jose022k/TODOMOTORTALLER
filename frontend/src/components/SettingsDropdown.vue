@@ -97,19 +97,23 @@ export default {
   background: rgba(255,170,0,0.1);
 }
 .settings-panel {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
+  position: fixed;
+  bottom: calc(56px + env(safe-area-inset-bottom, 0px));
+  right: 12px;
   background: var(--settings-bg, #fff);
-  border-radius: 10px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
-  padding: 12px 0;
-  min-width: 220px;
-  z-index: 300;
+  border-radius: 14px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+  padding: 14px 0;
+  min-width: 230px;
+  z-index: 9999;
+  animation: settings-pop 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+@keyframes settings-pop {
+  from { opacity: 0; transform: translateY(8px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 .settings-above {
-  top: auto;
-  bottom: calc(100% + 8px);
+  bottom: calc(56px + env(safe-area-inset-bottom, 0px));
 }
 .settings-section {
   padding: 0 14px;
