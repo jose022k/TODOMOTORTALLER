@@ -227,4 +227,55 @@ export default {
 .dash-card:hover .dash-footer svg {
   transform: translateX(4px);
 }
+/* ===== MOBILE / PWA native feel ===== */
+@media (max-width: 768px) {
+  .admin-panel {
+    padding: 12px 16px 80px;
+    height: auto;
+    min-height: calc(100vh - 92px);
+  }
+  .welcome-section h1 {
+    font-size: 1.2rem;
+  }
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .dash-card {
+    padding: 18px 20px;
+    border-radius: 14px;
+  }
+  .dash-icon-wrap {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+  }
+  .dash-icon-wrap svg {
+    width: 24px;
+    height: 24px;
+  }
+  .dash-info h2 {
+    font-size: 1rem;
+  }
+  .dash-card p {
+    font-size: 0.82rem;
+  }
+  .dash-footer {
+    font-size: 0.8rem;
+    padding-top: 8px;
+  }
+}
+html.dark .admin-panel .dash-card {
+  background: #1a1f2e;
+  border-color: #1e293b;
+}
+html.dark .admin-panel .dash-info h2 {
+  color: #e2e8f0;
+}
+html.dark .admin-panel .dash-card p {
+  color: #94a3b8;
+}
+html.dark .admin-panel .dash-footer {
+  border-top-color: #1e293b;
+}
 </style>

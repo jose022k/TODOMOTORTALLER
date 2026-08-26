@@ -56,12 +56,12 @@
       </thead>
       <tbody>
         <tr v-for="o in orders" :key="o.id">
-          <td>{{ o.id }}</td>
-          <td>{{ capitalize(o.cliente_nombre) }}</td>
-          <td>{{ o.moto_marca }} {{ o.moto_modelo }} ({{ o.moto_placa }})</td>
-          <td>{{ capitalize(o.mecanico_nombre) }}</td>
-          <td><span :class="['badge', 'badge-' + o.estado]">{{ statusLabel(o.estado) }}</span></td>
-          <td>{{ formatDate(o.fecha_creacion) }}</td>
+          <td data-label="ID">{{ o.id }}</td>
+          <td data-label="Cliente">{{ capitalize(o.cliente_nombre) }}</td>
+          <td data-label="Moto">{{ o.moto_marca }} {{ o.moto_modelo }} ({{ o.moto_placa }})</td>
+          <td data-label="Mecánico">{{ capitalize(o.mecanico_nombre) }}</td>
+          <td data-label="Estado"><span :class="['badge', 'badge-' + o.estado]">{{ statusLabel(o.estado) }}</span></td>
+          <td data-label="Fecha">{{ formatDate(o.fecha_creacion) }}</td>
           <td class="actions-cell">
             <button class="btn-sm btn-view" @click="openDetailModal(o)">Ver</button>
             <button v-if="o.estado === 'en_proceso'" class="btn-sm btn-chat" @click="openChat(o)">Chat</button>
@@ -1413,5 +1413,132 @@ html.dark .monto-tasa.warn { color: #fbbf24; }
   color: #64748b;
   min-width: 60px;
   text-align: center;
+}
+/* ===== MOBILE / PWA native feel ===== */
+@media (max-width: 768px) {
+  .admin-orders {
+    padding: 12px 12px 80px;
+  }
+  .orders-header h1 {
+    font-size: 1.2rem;
+  }
+  .orders-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .toolbar {
+    flex-direction: column;
+    gap: 8px;
+  }
+  .filter-select {
+    min-width: 100%;
+    width: 100%;
+    padding: 12px;
+    border-radius: 10px;
+    font-size: 14px;
+  }
+  .btn-primary {
+    width: 100%;
+    padding: 14px;
+    border-radius: 12px;
+    font-size: 15px;
+    text-align: center;
+    justify-content: center;
+  }
+  .data-table {
+    display: block;
+    overflow-x: hidden;
+    background: transparent;
+    box-shadow: none;
+    border-radius: 0;
+  }
+  .data-table thead { display: none; }
+  .data-table tbody { display: flex; flex-direction: column; gap: 10px; }
+  .data-table tr {
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    border-radius: 14px;
+    padding: 14px 16px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    border: 1px solid #f1f5f9;
+    gap: 6px;
+  }
+  .data-table td {
+    padding: 2px 0;
+    border-bottom: none;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .data-table td::before {
+    content: attr(data-label);
+    font-weight: 700;
+    color: #94a3b8;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    min-width: 70px;
+  }
+  .data-table td:last-child {
+    padding-top: 8px;
+    border-top: 1px solid #f1f5f9;
+  }
+  .actions-cell {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .btn-sm {
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .modal {
+    width: 95%;
+    max-width: none;
+    border-radius: 16px;
+    max-height: 80vh;
+  }
+  .modal-body {
+    padding: 16px;
+  }
+  .detail-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .detail-item {
+    padding: 10px;
+  }
+  .actions-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+  .action-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 14px;
+    border-radius: 12px;
+    font-size: 14px;
+  }
+  .reassign-inline {
+    flex-direction: column;
+    margin-left: 0;
+  }
+  .reassign-inline .form-control {
+    width: 100%;
+    min-width: 100%;
+  }
+  .pagination {
+    padding: 8px 0 20px;
+  }
+}
+html.dark .data-table tr {
+  background: #1a1f2e;
+  border-color: #1e293b;
+}
+html.dark .data-table td {
+  color: #e2e8f0;
 }
 </style>

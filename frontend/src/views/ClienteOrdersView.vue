@@ -42,12 +42,12 @@
         </thead>
         <tbody>
           <tr v-for="o in orders" :key="o.id">
-            <td>{{ o.id }}</td>
-            <td>{{ o.moto_marca }} {{ o.moto_modelo }} ({{ o.moto_placa }})</td>
-            <td>{{ o.mecanico_nombre }}</td>
-            <td class="desc-cell">{{ o.descripcion }}</td>
-            <td><span :class="['badge', 'badge-' + o.estado]">{{ statusLabel(o.estado) }}</span></td>
-            <td>{{ formatDate(o.fecha_creacion) }}</td>
+            <td data-label="ID">{{ o.id }}</td>
+            <td data-label="Moto">{{ o.moto_marca }} {{ o.moto_modelo }} ({{ o.moto_placa }})</td>
+            <td data-label="Mecánico">{{ o.mecanico_nombre }}</td>
+            <td data-label="Descripción" class="desc-cell">{{ o.descripcion }}</td>
+            <td data-label="Estado"><span :class="['badge', 'badge-' + o.estado]">{{ statusLabel(o.estado) }}</span></td>
+            <td data-label="Fecha">{{ formatDate(o.fecha_creacion) }}</td>
             <td>
               <button class="btn-sm btn-view" @click="openDetail(o)">Ver</button>
               <button v-if="o.estado === 'en_proceso'" class="btn-sm btn-chat" @click="openChat(o)">Chat</button>
@@ -604,5 +604,107 @@ export default {
   color: #64748b;
   min-width: 60px;
   text-align: center;
+}
+/* ===== MOBILE / PWA native feel ===== */
+@media (max-width: 768px) {
+  .cliente-orders {
+    padding: 12px 12px 80px;
+  }
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .header h1 {
+    font-size: 1.2rem;
+  }
+  .nav-tabs {
+    width: 100%;
+    display: flex;
+  }
+  .nav-tab {
+    flex: 1;
+    justify-content: center;
+    padding: 10px 12px;
+    font-size: 13px;
+    border-radius: 8px;
+  }
+  .data-table {
+    display: block;
+    overflow-x: hidden;
+    background: transparent;
+    box-shadow: none;
+  }
+  .data-table thead { display: none; }
+  .data-table tbody { display: flex; flex-direction: column; gap: 10px; }
+  .data-table tr {
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    border-radius: 14px;
+    padding: 14px 16px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    border: 1px solid #f1f5f9;
+    gap: 6px;
+  }
+  .data-table td {
+    padding: 2px 0;
+    border-bottom: none;
+    font-size: 13px;
+  }
+  .data-table td::before {
+    content: attr(data-label);
+    font-weight: 700;
+    color: #94a3b8;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    display: block;
+    margin-bottom: 2px;
+  }
+  .data-table td:last-child {
+    padding-top: 8px;
+    border-top: 1px solid #f1f5f9;
+  }
+  .desc-cell {
+    max-width: none;
+    white-space: normal;
+  }
+  .btn-sm {
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .modal {
+    width: 95%;
+    border-radius: 16px;
+    padding: 20px;
+    max-height: 80vh;
+  }
+  .detail-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .progress-tracker {
+    transform: scale(0.85);
+  }
+  .progress-line {
+    width: 30px;
+  }
+  .motos-grid {
+    grid-template-columns: 1fr;
+  }
+  .pagination {
+    padding: 8px 0 20px;
+  }
+}
+html.dark .data-table tr {
+  background: #1a1f2e;
+  border-color: #1e293b;
+}
+html.dark .moto-card {
+  background: #1a1f2e;
+  border-color: #1e293b;
 }
 </style>

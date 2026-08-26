@@ -698,6 +698,100 @@ html.dark .card-subtitle { background: #1e293b; color: #94a3b8; }
 
 /* Print table (hidden on screen) */
 .print-table-wrapper { display: none; }
+
+/* ===== MOBILE / PWA native feel ===== */
+@media (max-width: 768px) {
+  .reports-page {
+    padding: 12px 12px 80px;
+  }
+  .reports-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .reports-header h1 {
+    font-size: 1.2rem;
+  }
+  .reports-toolbar {
+    margin-left: 0;
+    width: 100%;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .tasa-chip {
+    width: 100%;
+    justify-content: center;
+    padding: 10px 14px;
+    border-radius: 10px;
+  }
+  .btn-pdf {
+    width: 100%;
+    justify-content: center;
+    padding: 12px 16px;
+    border-radius: 10px;
+    font-size: 14px;
+  }
+  .pdf-dropdown-content {
+    width: calc(100vw - 40px);
+    right: -10px;
+    border-radius: 14px;
+  }
+  .highlight-card {
+    padding: 24px 16px;
+    margin-bottom: 16px;
+    border-radius: 14px;
+  }
+  .highlight-value {
+    font-size: 2rem;
+  }
+  .highlight-label {
+    font-size: 0.85rem;
+  }
+  .reports-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  .report-card {
+    padding: 16px;
+    border-radius: 14px;
+  }
+  .report-card-header h3 {
+    font-size: 0.9rem;
+  }
+  .chart-wrapper {
+    height: 180px;
+  }
+  .filter-date {
+    width: 100%;
+    padding: 12px;
+    border-radius: 10px;
+    font-size: 14px;
+  }
+  .btn-clear {
+    width: 100%;
+    padding: 12px;
+    border-radius: 10px;
+    text-align: center;
+  }
+  .tasa-editor {
+    width: 100%;
+    flex-direction: column;
+  }
+  .tasa-editor input {
+    width: 100%;
+  }
+}
+html.dark .report-card {
+  background: #1a1f2e;
+  border-color: #1e293b;
+}
+html.dark .highlight-card {
+  background: linear-gradient(135deg, #1e293b, #1a1f2e);
+  border-color: var(--color-primary);
+}
+html.dark .highlight-value {
+  color: #e2e8f0;
+}
 </style>
 
 <style>

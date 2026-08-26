@@ -976,6 +976,95 @@ export default {
   }
 }
 
+/* ===== MOBILE / PWA native feel ===== */
+@media (max-width: 768px) {
+  .catalog-container {
+    padding: 16px 12px 80px;
+  }
+  .catalog-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .header-content h1 {
+    font-size: 1.3rem;
+  }
+  .header-content p {
+    margin-left: 0;
+    font-size: 0.9rem;
+  }
+  .header-buttons {
+    width: 100%;
+    flex-direction: column;
+  }
+  .btn-add, .btn-add-brand {
+    width: 100%;
+    justify-content: center;
+    padding: 14px 20px;
+    border-radius: 12px;
+    font-size: 15px;
+  }
+  .filter-bar {
+    margin-bottom: 20px;
+  }
+  .search-input {
+    max-width: 100%;
+    padding: 14px 16px;
+    border-radius: 12px;
+    font-size: 15px;
+  }
+  .catalog-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .catalog-card {
+    padding: 18px;
+    border-radius: 14px;
+  }
+  .card-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    font-size: 1.8rem;
+    margin-bottom: 14px;
+  }
+  .card-title {
+    font-size: 1.15rem;
+  }
+  .card-subtitle {
+    font-size: 0.82rem;
+  }
+  .modal-card {
+    width: 95%;
+    padding: 20px;
+    border-radius: 16px;
+  }
+  .modal-header h2 {
+    font-size: 1.2rem;
+  }
+  .modal-footer {
+    flex-direction: column;
+    gap: 8px;
+  }
+  .modal-footer button {
+    width: 100%;
+    padding: 14px;
+    border-radius: 12px;
+    font-size: 15px;
+  }
+  .brand-drop-zone {
+    padding: 16px;
+    min-height: 90px;
+  }
+}
+html.dark .catalog-card {
+  background: #1a1f2e;
+  border-color: #1e293b;
+}
+html.dark .card-title {
+  color: #e2e8f0;
+}
+
 /* Animaciones */
 @keyframes spin {
   0% { transform: rotate(0deg); }
