@@ -210,11 +210,6 @@ export default {
     return { authStore };
   },
   watch: {
-    $route() {
-      if (this.isSwiping) {
-        setTimeout(() => { this.isSwiping = false; }, 350);
-      }
-    },
     "authStore.isAuthenticated": {
       immediate: true,
       handler(val) {
@@ -350,20 +345,25 @@ export default {
     },
     onTouchEnd(e) {
       if (!this.showMobileNav || !this.isSwiping) return;
-      this.isSwiping = false;
       const dx = e.changedTouches[0].clientX - this.touchStartX;
       const dt = Date.now() - this.touchStartTime;
+      this.isSwiping = false;
+      this.swipeDirection = "left";
       if (Math.abs(dx) < 60 || dt > 500) return;
       const idx = this.currentSwipeIndex;
       if (idx === -1) return;
       if (dx < 0 && idx < this.swipePages.length - 1) {
         this.swipeDirection = "left";
         this.isSwiping = true;
-        this.$router.push(this.swipePages[idx + 1]);
+        this.$router.push(this.swipePages[idx + 1]).then(() => {
+          this.$nextTick(() => { this.isSwiping = false; });
+        });
       } else if (dx > 0 && idx > 0) {
         this.swipeDirection = "right";
         this.isSwiping = true;
-        this.$router.push(this.swipePages[idx - 1]);
+        this.$router.push(this.swipePages[idx - 1]).then(() => {
+          this.$nextTick(() => { this.isSwiping = false; });
+        });
       }
     },
   },
