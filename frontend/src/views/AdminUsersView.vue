@@ -971,4 +971,117 @@ html.dark .data-table tr {
 html.dark .modal-card {
   background: #1a1f2e;
 }
+html.dark .users-header h1 {
+  color: #e2e8f0;
+}
+html.dark .page-subtitle {
+  color: #94a3b8;
+}
+html.dark .tabs {
+  background: #1e293b;
+}
+html.dark .tab {
+  color: #94a3b8;
+}
+html.dark .tab.active {
+  background: #0d1117;
+  color: #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+html.dark .tab:hover {
+  color: #e2e8f0;
+}
+html.dark .search-input {
+  background: #0d1117;
+  border-color: #334155;
+  color: #e2e8f0;
+}
+html.dark .data-table {
+  background: transparent;
+}
+html.dark .data-table th {
+  background: #1e293b;
+  color: #94a3b8;
+  border-bottom-color: #334155;
+}
+html.dark .data-table td {
+  color: #cbd5e1;
+  border-bottom-color: #1e293b;
+}
+html.dark .data-table td::before {
+  color: #64748b;
+}
+html.dark .data-table td:last-child {
+  border-top-color: #1e293b;
+}
+html.dark .btn-view {
+  background: #1e3a5f;
+  color: #60a5fa;
+}
+html.dark .btn-edit {
+  background: #422006;
+  color: #fbbf24;
+}
+html.dark .btn-deactivate {
+  background: #450a0a;
+  color: #f87171;
+}
+html.dark .btn-activate {
+  background: #052e16;
+  color: #4ade80;
+}
+html.dark .badge-active {
+  background: #052e16;
+  color: #4ade80;
+}
+html.dark .badge-inactive {
+  background: #1e293b;
+  color: #94a3b8;
+}
+html.dark .form-group label {
+  color: #94a3b8;
+}
+html.dark .form-group input {
+  background: #0d1117;
+  border-color: #334155;
+  color: #e2e8f0;
+}
+html.dark .btn-secondary {
+  background: #1e293b;
+  color: #94a3b8;
+}
+html.dark .btn-secondary:hover {
+  background: #334155;
+}
+html.dark .page-btn {
+  background: #0d1117;
+  border-color: #334155;
+  color: #94a3b8;
+}
+html.dark .page-info {
+  color: #94a3b8;
+}
+html.dark .motos-title {
+  color: #e2e8f0;
+}
+html.dark .detail-grid div {
+  color: #cbd5e1;
+}
+html.dark .detail-grid strong {
+  color: #94a3b8;
+}
+html.dark .empty-state,
+html.dark .loading-state {
+  color: #64748b;
+}
+html.dark .alert-success {
+  background: #052e16;
+  color: #4ade80;
+  border-color: #166534;
+}
+html.dark .alert-error {
+  background: #450a0a;
+  color: #f87171;
+  border-color: #991b1b;
+}
 </style>
