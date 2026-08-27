@@ -1,7 +1,10 @@
 <template>
   <div class="mecanico-orders">
     <div class="header">
-      <h1>Mis Órdenes de Servicio</h1>
+      <div class="header-content">
+        <h1>Mis Órdenes de Servicio</h1>
+        <p class="page-subtitle">Gestiona las órdenes asignadas</p>
+      </div>
     </div>
 
     <div v-if="alert.message" :class="['alert', 'alert-' + alert.type]">
@@ -316,7 +319,13 @@ export default {
   padding: 24px;
 }
 .header { margin-bottom: 20px; }
-.header h1 { font-size: 1.8rem; color: #1a1a1a; }
+.header h1 { font-size: 1.8rem; color: #1a1a1a; font-weight: 800; }
+.page-subtitle {
+  color: #666;
+  margin-top: 5px;
+  margin-left: 48px;
+  font-size: 1.05rem;
+}
 .loading-state, .empty-state {
   text-align: center; padding: 40px; color: #64748b; font-size: 1rem;
 }
@@ -502,6 +511,10 @@ export default {
   }
   .header h1 {
     font-size: 1.3rem;
+  }
+  .page-subtitle {
+    margin-left: 0;
+    font-size: 0.9rem;
   }
   .data-table {
     display: block;

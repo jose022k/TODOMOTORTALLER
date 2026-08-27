@@ -775,6 +775,12 @@ export default {
   color: #1a1a1a;
   font-weight: 800;
 }
+.page-subtitle {
+  color: #666;
+  margin-top: 5px;
+  margin-left: 48px;
+  font-size: 1.05rem;
+}
 .toolbar {
   display: flex;
   gap: 12px;
@@ -1421,6 +1427,10 @@ html.dark .monto-tasa.warn { color: #fbbf24; }
   }
   .orders-header h1 {
     font-size: 1.3rem;
+  }
+  .page-subtitle {
+    margin-left: 0;
+    font-size: 0.9rem;
   }
   .orders-header {
     flex-direction: column;

@@ -499,6 +499,12 @@ export default {
   color: #1a1a1a;
   font-weight: 800;
 }
+.page-subtitle {
+  color: #666;
+  margin-top: 5px;
+  margin-left: 48px;
+  font-size: 1.05rem;
+}
 .alert {
   padding: 12px 16px;
   border-radius: 8px;
@@ -848,6 +854,10 @@ export default {
   }
   .users-header h1 {
     font-size: 1.3rem;
+  }
+  .page-subtitle {
+    margin-left: 0;
+    font-size: 0.9rem;
   }
   .tabs {
     border-radius: 10px;

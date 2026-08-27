@@ -488,6 +488,12 @@ export default {
   gap: 12px;
 }
 .reports-header h1 { font-size: 1.8rem; color: #1a1a1a; font-weight: 800; }
+.page-subtitle {
+  color: #666;
+  margin-top: 5px;
+  margin-left: 48px;
+  font-size: 1.05rem;
+}
 .print-header { display: none; }
 .reports-toolbar {
   display: flex;
@@ -711,6 +717,10 @@ html.dark .card-subtitle { background: #1e293b; color: #94a3b8; }
   }
   .reports-header h1 {
     font-size: 1.3rem;
+  }
+  .page-subtitle {
+    margin-left: 0;
+    font-size: 0.9rem;
   }
   .reports-toolbar {
     margin-left: 0;

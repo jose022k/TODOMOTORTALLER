@@ -6,6 +6,7 @@
           <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 10px; vertical-align: middle;"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
           Panel de Administración
         </h1>
+        <p class="page-subtitle">Gestiona los usuarios, órdenes y reportes del taller</p>
       </div>
     </div>
 
@@ -132,6 +133,12 @@ export default {
   font-weight: 800;
   letter-spacing: -0.5px;
 }
+.page-subtitle {
+  color: #666;
+  margin-top: 5px;
+  margin-left: 48px;
+  font-size: 1.05rem;
+}
 .dashboard-grid {
   flex: 1;
   display: grid;
@@ -236,6 +243,10 @@ export default {
   }
   .welcome-section h1 {
     font-size: 1.3rem;
+  }
+  .page-subtitle {
+    margin-left: 0;
+    font-size: 0.9rem;
   }
   .dashboard-grid {
     grid-template-columns: 1fr;
