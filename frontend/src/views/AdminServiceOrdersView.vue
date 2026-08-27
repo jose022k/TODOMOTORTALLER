@@ -63,7 +63,7 @@
           <td data-label="Estado"><span :class="['badge', 'badge-' + o.estado]">{{ statusLabel(o.estado) }}</span></td>
           <td data-label="Fecha">{{ formatDate(o.fecha_creacion) }}</td>
           <td class="actions-cell">
-            <button class="btn-sm btn-view" @click="openDetailModal(o)">Ver</button>
+            <button class="btn-sm btn-view" @click="openDetailModal(o)">Ver detalles</button>
             <button v-if="o.estado === 'en_proceso'" class="btn-sm btn-chat" @click="openChat(o)">Chat</button>
           </td>
         </tr>
@@ -1496,6 +1496,8 @@ html.dark .monto-tasa.warn { color: #fbbf24; }
     border-top: 1px solid #f1f5f9;
   }
   .actions-cell {
+    order: -1;
+    justify-content: flex-start;
     flex-wrap: wrap;
     gap: 8px;
   }
