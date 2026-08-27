@@ -44,7 +44,7 @@
             Generar PDF
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="margin-left:2px;"><polyline points="6 9 12 15 18 9"/></svg>
           </button>
-          <div v-if="showPdfMenu" class="pdf-dropdown-content pdf-hide-mobile">
+          <div v-if="showPdfMenu" class="pdf-dropdown-content">
             <div class="pdf-dropdown-header">Seleccionar secciones</div>
             <label class="pdf-check" v-for="s in printSections" :key="s.key">
               <input type="checkbox" v-model="s.checked" />
@@ -116,22 +116,6 @@
       </div>
     </template>
 
-    <!-- PDF Sheet Mobile -->
-    <Teleport to="body">
-      <div v-if="showPdfMenu" class="pdf-sheet-backdrop" @click="showPdfMenu = false"></div>
-      <div v-if="showPdfMenu" class="pdf-sheet">
-        <div class="pdf-sheet-handle"></div>
-        <div class="pdf-sheet-header">Seleccionar secciones</div>
-        <label class="pdf-sheet-check" v-for="s in printSections" :key="s.key">
-          <input type="checkbox" v-model="s.checked" />
-          <span>{{ s.label }}</span>
-        </label>
-        <div class="pdf-sheet-actions">
-          <button class="btn-pdf-sheet-cancel" @click="showPdfMenu = false">Cancelar</button>
-          <button class="btn-pdf-sheet-generate" @click="printReport">Generar PDF</button>
-        </div>
-      </div>
-    </Teleport>
   </div>
 </template>
 
@@ -759,7 +743,28 @@ html.dark .card-subtitle { background: #1e293b; color: #94a3b8; }
     border-radius: 10px;
     font-size: 15px;
   }
-}
+  .pdf-dropdown-content {
+    position: static;
+    width: 100%;
+    box-shadow: none;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    margin-top: 8px;
+  }
+  .pdf-check {
+    font-size: 15px;
+    padding: 10px 8px;
+    gap: 12px;
+  }
+  .pdf-check input {
+    width: 20px;
+    height: 20px;
+  }
+  .btn-pdf-generate {
+    padding: 14px;
+    font-size: 15px;
+    border-radius: 10px;
+  }
   .highlight-card {
     padding: 24px 16px;
     margin-bottom: 16px;
@@ -949,125 +954,5 @@ html.dark .card-subtitle { background: #1e293b; color: #94a3b8; }
   .app-main {
     padding: 0 !important;
   }
-}
-
-/* PDF Sheet */
-.pdf-sheet-backdrop {
-  display: none;
-}
-.pdf-sheet {
-  display: none;
-}
-@media (max-width: 768px) {
-  .pdf-hide-mobile {
-    display: none !important;
-  }
-  .pdf-sheet-backdrop {
-    display: block;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
-    z-index: 2000;
-  }
-  .pdf-sheet {
-    display: block;
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: #fff;
-    border-radius: 16px 16px 0 0;
-    padding: 12px 20px 24px;
-    z-index: 2001;
-    max-height: 65vh;
-    overflow-y: auto;
-    box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.2);
-  }
-  .pdf-sheet-handle {
-    width: 36px;
-    height: 4px;
-    background: #d1d5db;
-    border-radius: 2px;
-    margin: 0 auto 14px;
-  }
-  .pdf-sheet-header {
-    font-size: 15px;
-    font-weight: 700;
-    color: #1a1a1a;
-    text-align: center;
-    margin-bottom: 14px;
-    padding-bottom: 12px;
-    border-bottom: 1px solid #e2e8f0;
-  }
-  .pdf-sheet-check {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 10px;
-    font-size: 15px;
-    font-weight: 600;
-    color: #1a1a1a;
-    border-radius: 10px;
-    cursor: pointer;
-  }
-  .pdf-sheet-check input {
-    width: 20px;
-    height: 20px;
-    accent-color: #ffaa00;
-    flex-shrink: 0;
-  }
-  .pdf-sheet-check span {
-    flex: 1;
-  }
-  .pdf-sheet-actions {
-    display: flex;
-    gap: 10px;
-    margin-top: 16px;
-    padding-top: 14px;
-    border-top: 1px solid #e2e8f0;
-  }
-  .btn-pdf-sheet-cancel {
-    flex: 1;
-    padding: 14px;
-    border: 1.5px solid #d1d5db;
-    border-radius: 12px;
-    background: #fff;
-    font-size: 15px;
-    font-weight: 600;
-    color: #475569;
-    cursor: pointer;
-  }
-  .btn-pdf-sheet-generate {
-    flex: 1;
-    padding: 14px;
-    border: none;
-    border-radius: 12px;
-    background: #ffaa00;
-    font-size: 15px;
-    font-weight: 700;
-    color: #1a1a1a;
-    cursor: pointer;
-  }
-}
-html.dark .pdf-sheet {
-  background: #1a1f2e;
-}
-html.dark .pdf-sheet-header {
-  color: #e2e8f0;
-  border-bottom-color: #334155;
-}
-html.dark .pdf-sheet-check {
-  color: #e2e8f0;
-}
-html.dark .pdf-sheet-actions {
-  border-top-color: #334155;
-}
-html.dark .btn-pdf-sheet-cancel {
-  background: #334155;
-  border-color: #475569;
-  color: #94a3b8;
 }
 </style>
