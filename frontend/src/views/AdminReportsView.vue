@@ -117,19 +117,21 @@
     </template>
 
     <!-- PDF Sheet Mobile -->
-    <div v-if="showPdfMenu" class="pdf-sheet-backdrop" @click="showPdfMenu = false"></div>
-    <div v-if="showPdfMenu" class="pdf-sheet">
-      <div class="pdf-sheet-handle"></div>
-      <div class="pdf-sheet-header">Seleccionar secciones</div>
-      <label class="pdf-sheet-check" v-for="s in printSections" :key="s.key">
-        <input type="checkbox" v-model="s.checked" />
-        <span>{{ s.label }}</span>
-      </label>
-      <div class="pdf-sheet-actions">
-        <button class="btn-pdf-sheet-cancel" @click="showPdfMenu = false">Cancelar</button>
-        <button class="btn-pdf-sheet-generate" @click="printReport">Generar PDF</button>
+    <Teleport to="body">
+      <div v-if="showPdfMenu" class="pdf-sheet-backdrop" @click="showPdfMenu = false"></div>
+      <div v-if="showPdfMenu" class="pdf-sheet">
+        <div class="pdf-sheet-handle"></div>
+        <div class="pdf-sheet-header">Seleccionar secciones</div>
+        <label class="pdf-sheet-check" v-for="s in printSections" :key="s.key">
+          <input type="checkbox" v-model="s.checked" />
+          <span>{{ s.label }}</span>
+        </label>
+        <div class="pdf-sheet-actions">
+          <button class="btn-pdf-sheet-cancel" @click="showPdfMenu = false">Cancelar</button>
+          <button class="btn-pdf-sheet-generate" @click="printReport">Generar PDF</button>
+        </div>
       </div>
-    </div>
+    </Teleport>
   </div>
 </template>
 
