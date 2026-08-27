@@ -38,21 +38,21 @@
           <button class="btn-clear" @click="saveTasa">Guardar</button>
           <button class="btn-clear" @click="editTasa = false">Cancelar</button>
         </div>
-        <div class="pdf-dropdown">
-          <button class="btn-pdf" @click="showPdfMenu = !showPdfMenu">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-            Generar PDF
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="margin-left:2px;"><polyline points="6 9 12 15 18 9"/></svg>
-          </button>
-          <div v-if="showPdfMenu" class="pdf-dropdown-content">
-            <div class="pdf-dropdown-header">Seleccionar secciones</div>
-            <label class="pdf-check" v-for="s in printSections" :key="s.key">
-              <input type="checkbox" v-model="s.checked" />
-              <span>{{ s.label }}</span>
-            </label>
-            <div class="pdf-dropdown-actions">
-              <button class="btn-pdf-generate" @click="printReport">Generar PDF</button>
-            </div>
+      </div>
+      <div class="pdf-dropdown no-print">
+        <button class="btn-pdf" @click="showPdfMenu = !showPdfMenu">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          Generar PDF
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="margin-left:2px;"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div v-if="showPdfMenu" class="pdf-dropdown-content">
+          <div class="pdf-dropdown-header">Seleccionar secciones</div>
+          <label class="pdf-check" v-for="s in printSections" :key="s.key">
+            <input type="checkbox" v-model="s.checked" />
+            <span>{{ s.label }}</span>
+          </label>
+          <div class="pdf-dropdown-actions">
+            <button class="btn-pdf-generate" @click="printReport">Generar PDF</button>
           </div>
         </div>
       </div>
@@ -736,16 +736,15 @@ html.dark .card-subtitle { background: #1e293b; color: #94a3b8; }
     border-radius: 10px;
     font-size: 14px;
   }
+  .pdf-dropdown {
+    width: 100%;
+  }
   .btn-pdf {
     width: 100%;
     justify-content: center;
     padding: 14px 16px;
     border-radius: 10px;
     font-size: 15px;
-  }
-  .pdf-dropdown {
-    position: relative;
-    z-index: 150;
   }
   .pdf-dropdown-content {
     position: absolute;
