@@ -963,22 +963,6 @@ export default {
   .pagination {
     padding: 8px 0 20px;
   }
-  html.dark .data-table tr {
-    background: #1a1f2e;
-    border-color: #1e293b;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.3);
-  }
-  html.dark .data-table td::before {
-    color: #64748b;
-  }
-  html.dark .data-table td:last-child {
-    border-top-color: #1e293b;
-  }
-  html.dark .tab.active {
-    background: #1a1f2e;
-    color: #f1f5f9;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-  }
 }
 html.dark .data-table tr {
   background: #1a1f2e;
