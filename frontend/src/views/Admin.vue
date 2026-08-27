@@ -236,68 +236,59 @@ export default {
 /* ===== MOBILE / PWA native feel ===== */
 @media (max-width: 768px) {
   .admin-panel {
-    padding: 8px 10px 90px;
+    padding: 10px 12px 80px;
     height: auto;
     min-height: calc(100vh - 92px);
   }
   .welcome-section h1 {
-    font-size: 1.1rem;
-    margin-bottom: 6px;
+    font-size: 1.3rem;
   }
   .page-subtitle {
+    margin-left: 0;
+    font-size: 0.9rem;
     display: none;
   }
   .dashboard-grid {
     grid-template-columns: 1fr 1fr;
-    gap: 8px;
+    gap: 10px;
+    align-content: start;
   }
   .dash-card {
-    padding: 10px 10px 8px;
-    border-radius: 12px;
+    padding: 14px 14px 10px;
+    border-radius: 14px;
     gap: 6px;
   }
-  .dash-card > .dash-icon-wrap {
-    width: 100%;
-    height: 32px;
-    border-radius: 8px;
-    background: #fff7e6;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  .dash-icon-wrap {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
   }
-  .dash-card > .dash-icon-wrap svg {
-    width: 18px;
-    height: 18px;
+  .dash-icon-wrap svg {
+    width: 20px;
+    height: 20px;
   }
   .dash-info {
-    gap: 4px;
-    flex-direction: column;
-    align-items: flex-start;
+    gap: 6px;
   }
   .dash-info h2 {
-    font-size: 0.95rem;
+    font-size: 1rem;
     font-weight: 800;
   }
   .dash-badge {
-    display: none;
+    font-size: 0.6rem;
+    padding: 1px 6px;
   }
   .dash-card p {
     font-size: 0.75rem;
     line-height: 1.3;
-    color: #94a3b8;
-    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
   .dash-footer {
     font-size: 0.72rem;
-    padding-top: 4px;
-    margin-top: auto;
-    gap: 4px;
-    color: #ffaa00;
-    border-top: 1px solid #f1f5f9;
-  }
-  .dash-footer svg {
-    width: 12px;
-    height: 12px;
+    padding-top: 6px;
   }
 }
 html.dark .admin-panel .dash-card {
