@@ -252,9 +252,10 @@ export default {
     display: grid;
     grid-template-columns: 1fr 1fr;
     grid-template-rows: auto auto;
-    gap: 8px;
+    gap: 12px 8px;
     flex: none;
     height: auto;
+    margin-top: 8px;
   }
   .dash-card {
     padding: 16px 14px 12px;
