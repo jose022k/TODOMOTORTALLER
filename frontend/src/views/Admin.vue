@@ -255,7 +255,7 @@ export default {
     gap: 16px 8px;
     flex: none;
     height: auto;
-    margin-top: 20px;
+    margin-top: 28px;
   }
   .dash-card {
     padding: 16px 14px 12px;
