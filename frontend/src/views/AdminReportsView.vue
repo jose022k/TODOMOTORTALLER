@@ -744,12 +744,17 @@ html.dark .card-subtitle { background: #1e293b; color: #94a3b8; }
     font-size: 15px;
   }
   .pdf-dropdown-content {
-    position: static;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
     width: 100%;
-    box-shadow: none;
+    z-index: 150;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
     border: 1px solid #e2e8f0;
     border-radius: 12px;
-    margin-top: 8px;
+    margin-top: 6px;
+    background: #fff;
   }
   .pdf-check {
     font-size: 15px;
