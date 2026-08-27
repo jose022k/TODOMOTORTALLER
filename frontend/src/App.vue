@@ -68,22 +68,22 @@
 
     <!-- BOTTOM NAV MOBILE: paginas publicas -->
     <nav v-if="showMobileNav && !authStore.isAuthenticated && isPublicPage" class="pwa-bottom-nav pwa-bottom-nav--centered">
-      <router-link to="/workshop" class="pwa-nav-item" exact>
+      <a href="/workshop" class="pwa-nav-item" @click.prevent="$router.push('/workshop')">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>
         <span>Taller</span>
-      </router-link>
-      <router-link to="/location" class="pwa-nav-item" exact>
+      </a>
+      <a href="/location" class="pwa-nav-item" @click.prevent="$router.push('/location')">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
         <span>Ubicación</span>
-      </router-link>
-      <router-link v-if="$route.path !== '/login'" to="/login" class="pwa-nav-item" exact>
+      </a>
+      <a v-if="$route.path !== '/login'" href="/login" class="pwa-nav-item" @click.prevent="$router.push('/login')">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
         <span>Iniciar</span>
-      </router-link>
-      <router-link v-if="$route.path === '/login'" to="/register/cliente" class="pwa-nav-item">
+      </a>
+      <a v-if="$route.path === '/login'" href="/register/cliente" class="pwa-nav-item" @click.prevent="$router.push('/register/cliente')">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
         <span>Registrar</span>
-      </router-link>
+      </a>
       <button class="pwa-nav-item" @click="toggleTheme">
         <span v-html="isDark ? sunIcon : moonIcon"></span>
         <span>{{ isDark ? 'Claro' : 'Oscuro' }}</span>
@@ -92,33 +92,33 @@
 
     <!-- BOTTOM NAV MOBILE: ADMIN -->
     <nav v-if="showMobileNav && authStore.isAuthenticated && authStore.isAdmin" class="pwa-bottom-nav">
-      <router-link to="/admin" class="pwa-nav-item" exact>
+      <a href="/admin" class="pwa-nav-item" @click.prevent="$router.push('/admin')">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
         <span>Panel</span>
-      </router-link>
-      <router-link to="/admin/service-orders" class="pwa-nav-item" exact>
+      </a>
+      <a href="/admin/service-orders" class="pwa-nav-item" @click.prevent="$router.push('/admin/service-orders')">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M9 14l2 2 4-4"/></svg>
         <span>Órdenes</span>
-      </router-link>
-      <router-link to="/admin/reports" class="pwa-nav-item" exact>
+      </a>
+      <a href="/admin/reports" class="pwa-nav-item" @click.prevent="$router.push('/admin/reports')">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16"/><path d="M4 20V4"/><path d="M8 14V8"/><path d="M12 14v-4"/><path d="M16 14v-6"/><path d="M20 14V6"/></svg>
         <span>Reportes</span>
-      </router-link>
-      <router-link to="/admin/catalog" class="pwa-nav-item" exact>
+      </a>
+      <a href="/admin/catalog" class="pwa-nav-item" @click.prevent="$router.push('/admin/catalog')">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h8v16H3z"/><path d="M13 4h8v16H13z"/><path d="M11 4v16"/></svg>
         <span>Catálogo</span>
-      </router-link>
-      <router-link to="/admin/users" class="pwa-nav-item" exact>
+      </a>
+      <a href="/admin/users" class="pwa-nav-item" @click.prevent="$router.push('/admin/users')">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         <span>Usuarios</span>
-      </router-link>
-      <router-link to="/notifications" class="pwa-nav-item" exact>
+      </a>
+      <a href="/notifications" class="pwa-nav-item" @click.prevent="$router.push('/notifications')">
         <span class="notif-badge-wrap">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
           <span v-if="unreadCount > 0" class="notif-badge">{{ unreadCount > 99 ? '99+' : unreadCount }}</span>
         </span>
         <span>Alertas</span>
-      </router-link>
+      </a>
       <div class="pwa-nav-item pwa-nav-settings">
         <SettingsDropdown :above="true" @theme-change="onThemeChange" />
         <span>Ajustes</span>
@@ -131,17 +131,17 @@
 
     <!-- BOTTOM NAV MOBILE: MECANICO -->
     <nav v-if="showMobileNav && authStore.isAuthenticated && authStore.isMecanico" class="pwa-bottom-nav">
-      <router-link to="/mecanico/orders" class="pwa-nav-item" exact>
+      <a href="/mecanico/orders" class="pwa-nav-item" @click.prevent="$router.push('/mecanico/orders')">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 14l2 2 4-4"/></svg>
         <span>Mis Órdenes</span>
-      </router-link>
-      <router-link to="/notifications" class="pwa-nav-item" exact>
+      </a>
+      <a href="/notifications" class="pwa-nav-item" @click.prevent="$router.push('/notifications')">
         <span class="notif-badge-wrap">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
           <span v-if="unreadCount > 0" class="notif-badge">{{ unreadCount > 99 ? '99+' : unreadCount }}</span>
         </span>
         <span>Alertas</span>
-      </router-link>
+      </a>
       <div class="pwa-nav-item pwa-nav-settings">
         <SettingsDropdown :above="true" @theme-change="onThemeChange" />
         <span>Ajustes</span>
@@ -154,17 +154,17 @@
 
     <!-- BOTTOM NAV MOBILE: CLIENTE -->
     <nav v-if="showMobileNav && authStore.isAuthenticated && authStore.isCliente" class="pwa-bottom-nav">
-      <router-link to="/cliente/orders" class="pwa-nav-item" exact>
+      <a href="/cliente/orders" class="pwa-nav-item" @click.prevent="$router.push('/cliente/orders')">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
         <span>Mi Panel</span>
-      </router-link>
-      <router-link to="/notifications" class="pwa-nav-item" exact>
+      </a>
+      <a href="/notifications" class="pwa-nav-item" @click.prevent="$router.push('/notifications')">
         <span class="notif-badge-wrap">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
           <span v-if="unreadCount > 0" class="notif-badge">{{ unreadCount > 99 ? '99+' : unreadCount }}</span>
         </span>
         <span>Alertas</span>
-      </router-link>
+      </a>
       <div class="pwa-nav-item pwa-nav-settings">
         <SettingsDropdown :above="true" @theme-change="onThemeChange" />
         <span>Ajustes</span>
@@ -210,6 +210,11 @@ export default {
     return { authStore };
   },
   watch: {
+    "$route"() {
+      this.$nextTick(() => {
+        this.syncNavActive();
+      });
+    },
     "authStore.isAuthenticated": {
       immediate: true,
       handler(val) {
@@ -230,6 +235,12 @@ export default {
     if (this.authStore.isAuthenticated && !this.authStore.user) {
       this.authStore.fetchUser();
     }
+    this.$nextTick(() => {
+      this.syncNavActive();
+    });
+  },
+  mounted() {
+    this.syncNavActive();
   },
   beforeUnmount() {
     clearInterval(this.unreadPollInterval);
@@ -300,6 +311,15 @@ export default {
     };
   },
   methods: {
+    syncNavActive() {
+      const items = document.querySelectorAll(".pwa-bottom-nav .pwa-nav-item");
+      const path = this.$route.path;
+      items.forEach(el => {
+        const href = el.getAttribute("href");
+        const isActive = href && (href === path || path.startsWith(href + "/"));
+        el.style.color = isActive ? "#ffaa00" : "";
+      });
+    },
     onThemeChange(dark) {
       this.isDark = dark;
       document.documentElement.classList.toggle("dark", dark);
@@ -632,7 +652,7 @@ html.dark .theme-toggle:hover { color: #ffaa00; }
   flex-shrink: 0;
   min-width: 52px;
 }
-.pwa-nav-item.router-link-exact-active,
+.pwa-nav-item.is-active,
 .pwa-nav-item:hover {
   color: #ffaa00;
 }
