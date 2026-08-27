@@ -250,36 +250,36 @@ export default {
   }
   .dashboard-grid {
     grid-template-columns: 1fr 1fr;
-    gap: 10px;
+    gap: 8px;
     align-content: start;
   }
   .dash-card {
-    padding: 14px 14px 10px;
-    border-radius: 14px;
-    gap: 6px;
+    padding: 10px 10px 8px;
+    border-radius: 12px;
+    gap: 4px;
   }
   .dash-icon-wrap {
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
   }
   .dash-icon-wrap svg {
-    width: 20px;
-    height: 20px;
+    width: 18px;
+    height: 18px;
   }
   .dash-info {
     gap: 6px;
   }
   .dash-info h2 {
-    font-size: 1rem;
+    font-size: 1.1rem;
     font-weight: 800;
   }
   .dash-badge {
-    font-size: 0.6rem;
-    padding: 1px 6px;
+    font-size: 0.55rem;
+    padding: 1px 5px;
   }
   .dash-card p {
-    font-size: 0.75rem;
+    font-size: 0.78rem;
     line-height: 1.3;
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -287,8 +287,8 @@ export default {
     overflow: hidden;
   }
   .dash-footer {
-    font-size: 0.72rem;
-    padding-top: 6px;
+    font-size: 0.7rem;
+    padding-top: 4px;
   }
 }
 html.dark .admin-panel .dash-card {
