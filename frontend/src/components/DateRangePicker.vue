@@ -560,51 +560,53 @@ html.dark .drp-nav:hover { background: #334155; }
     position: fixed;
     top: auto;
     bottom: 0;
-    left: 0;
-    right: 0;
-    width: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% - 24px);
+    max-width: 380px;
     border-radius: 16px 16px 0 0;
-    padding: 14px 12px;
-    max-height: 75vh;
+    padding: 12px 10px;
+    max-height: 70vh;
     overflow-y: auto;
     z-index: 999;
   }
+  .drp-quick {
+    gap: 4px;
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .drp-quick-btn {
+    padding: 5px 10px;
+    font-size: 11px;
+    border-radius: 16px;
+  }
   .drp-calendars {
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
   }
   .drp-month-header {
-    margin-bottom: 4px;
+    margin-bottom: 2px;
   }
   .drp-month-title {
-    font-size: 13px;
+    font-size: 12px;
   }
   .drp-nav {
-    width: 24px;
-    height: 24px;
+    width: 22px;
+    height: 22px;
   }
   .drp-weekdays span {
-    font-size: 10px;
+    font-size: 9px;
     padding: 2px 0;
   }
   .drp-days {
     gap: 0;
   }
   .drp-day {
-    font-size: 12px;
-    aspect-ratio: 1;
+    font-size: 11px;
+    height: 30px;
     border-radius: 6px;
-  }
-  .drp-quick {
-    gap: 5px;
-    margin-bottom: 8px;
-    padding-bottom: 8px;
-    justify-content: center;
-  }
-  .drp-quick-btn {
-    padding: 6px 12px;
-    font-size: 12px;
-    border-radius: 20px;
   }
   .drp-actions {
     margin-top: 8px;
@@ -612,9 +614,9 @@ html.dark .drp-nav:hover { background: #334155; }
   }
   .drp-btn-clear,
   .drp-btn-apply {
-    padding: 10px 20px;
-    font-size: 14px;
-    border-radius: 10px;
+    padding: 9px 16px;
+    font-size: 13px;
+    border-radius: 8px;
     flex: 1;
   }
 }
