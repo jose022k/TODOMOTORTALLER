@@ -236,12 +236,13 @@ export default {
 /* ===== MOBILE / PWA native feel ===== */
 @media (max-width: 768px) {
   .admin-panel {
-    padding: 12px 16px 80px;
+    padding: 10px 12px 90px;
     height: auto;
     min-height: calc(100vh - 92px);
   }
   .welcome-section h1 {
-    font-size: 1.3rem;
+    font-size: 1.2rem;
+    margin-bottom: 4px;
   }
   .page-subtitle {
     margin-left: 0;
@@ -249,31 +250,42 @@ export default {
     display: none;
   }
   .dashboard-grid {
-    grid-template-columns: 1fr;
-    gap: 12px;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 10px;
   }
   .dash-card {
-    padding: 18px 20px;
-    border-radius: 14px;
+    padding: 14px 14px 12px;
+    border-radius: 12px;
+    gap: 6px;
   }
   .dash-icon-wrap {
-    width: 42px;
-    height: 42px;
+    width: 36px;
+    height: 36px;
     border-radius: 10px;
   }
   .dash-icon-wrap svg {
-    width: 24px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
   }
   .dash-info h2 {
-    font-size: 1rem;
+    font-size: 0.9rem;
+  }
+  .dash-badge {
+    font-size: 0.6rem;
+    padding: 1px 6px;
   }
   .dash-card p {
-    font-size: 0.82rem;
+    font-size: 0.72rem;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
   .dash-footer {
-    font-size: 0.8rem;
-    padding-top: 8px;
+    font-size: 0.72rem;
+    padding-top: 6px;
   }
 }
 html.dark .admin-panel .dash-card {
