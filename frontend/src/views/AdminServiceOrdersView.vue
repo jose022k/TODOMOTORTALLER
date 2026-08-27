@@ -1500,6 +1500,7 @@ html.dark .monto-tasa.warn { color: #fbbf24; }
     align-items: flex-start;
     flex-wrap: wrap;
     gap: 8px;
+    padding-left: 0;
   }
   .btn-sm {
     padding: 8px 14px;
