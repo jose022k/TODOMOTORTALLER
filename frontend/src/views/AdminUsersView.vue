@@ -847,7 +847,7 @@ export default {
     padding: 12px 12px 80px;
   }
   .users-header h1 {
-    font-size: 1.2rem;
+    font-size: 1.3rem;
   }
   .tabs {
     border-radius: 10px;

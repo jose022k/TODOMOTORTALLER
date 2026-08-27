@@ -281,6 +281,74 @@ export default {
   flex-shrink: 0;
   margin-top: 12px;
 }
+
+/* ===== MOBILE / PWA Android-style ===== */
+@media (max-width: 768px) {
+  .notifications-page {
+    padding: 0 0 80px;
+    max-width: 100%;
+  }
+  .notif-page-header {
+    padding: 12px 16px;
+    margin-bottom: 0;
+    background: #fff;
+    border-bottom: 1px solid #f1f5f9;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .notif-page-header h2 {
+    font-size: 1.1rem;
+    font-weight: 700;
+  }
+  .notif-action-btn {
+    font-size: 12px;
+    padding: 6px 10px;
+    border-radius: 8px;
+  }
+  .notif-page-item {
+    padding: 14px 16px;
+    border-bottom: 1px solid #f1f5f9;
+    border-radius: 0;
+    gap: 14px;
+    margin: 0;
+  }
+  .notif-page-unread {
+    background: #fffbeb;
+    border-left: 3px solid #ffaa00;
+  }
+  .notif-page-icon-wrap {
+    width: 40px;
+    height: 40px;
+  }
+  .notif-page-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    font-size: 16px;
+  }
+  .notif-page-text {
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+  .notif-page-time {
+    font-size: 0.72rem;
+    margin-top: 4px;
+    display: block;
+  }
+  .notif-page-dot {
+    width: 8px;
+    height: 8px;
+    margin-top: 8px;
+  }
+  .notif-page-empty {
+    padding: 80px 24px;
+  }
+}
+html.dark .notifications-page .notif-page-header {
+  background: #0d1117;
+  border-bottom-color: #1e293b;
+}
 </style>
 
 <style>

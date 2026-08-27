@@ -501,7 +501,7 @@ export default {
     padding: 12px 12px 80px;
   }
   .header h1 {
-    font-size: 1.2rem;
+    font-size: 1.3rem;
   }
   .data-table {
     display: block;

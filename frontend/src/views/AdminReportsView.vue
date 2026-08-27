@@ -710,7 +710,7 @@ html.dark .card-subtitle { background: #1e293b; color: #94a3b8; }
     gap: 10px;
   }
   .reports-header h1 {
-    font-size: 1.2rem;
+    font-size: 1.3rem;
   }
   .reports-toolbar {
     margin-left: 0;

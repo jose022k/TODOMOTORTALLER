@@ -235,7 +235,7 @@ export default {
     min-height: calc(100vh - 92px);
   }
   .welcome-section h1 {
-    font-size: 1.2rem;
+    font-size: 1.3rem;
   }
   .dashboard-grid {
     grid-template-columns: 1fr;

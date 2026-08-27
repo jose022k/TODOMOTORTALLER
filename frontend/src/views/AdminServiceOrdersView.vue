@@ -1420,7 +1420,7 @@ html.dark .monto-tasa.warn { color: #fbbf24; }
     padding: 12px 12px 80px;
   }
   .orders-header h1 {
-    font-size: 1.2rem;
+    font-size: 1.3rem;
   }
   .orders-header {
     flex-direction: column;
