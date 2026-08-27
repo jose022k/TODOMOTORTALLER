@@ -60,8 +60,8 @@
 
     <main class="app-main" :class="{ 'pwa-main': showMobileNav }" ref="mainContent" @touchstart="onTouchStart" @touchmove="onTouchMove" @touchend="onTouchEnd">
       <router-view v-slot="{ Component }">
-        <transition name="page-fade" mode="out-in">
-          <component :is="Component" />
+        <transition :name="showMobileNav && isSwiping ? 'slide-' + swipeDirection : 'page-fade'" mode="out-in">
+          <component :is="Component" :key="$route.path" />
         </transition>
       </router-view>
     </main>
@@ -210,6 +210,11 @@ export default {
     return { authStore };
   },
   watch: {
+    $route() {
+      if (this.isSwiping) {
+        setTimeout(() => { this.isSwiping = false; }, 350);
+      }
+    },
     "authStore.isAuthenticated": {
       immediate: true,
       handler(val) {
@@ -269,13 +274,13 @@ export default {
     },
     swipePages() {
       if (this.authStore.isAdmin) {
-        return ["/admin", "/admin/service-orders", "/admin/reports", "/admin/catalog", "/admin/users"];
+        return ["/admin", "/admin/service-orders", "/admin/reports", "/admin/catalog", "/admin/users", "/notifications"];
       }
       if (this.authStore.isMecanico) {
-        return ["/mecanico/orders"];
+        return ["/mecanico/orders", "/notifications"];
       }
       if (this.authStore.isCliente) {
-        return ["/cliente/orders"];
+        return ["/cliente/orders", "/notifications"];
       }
       return [];
     },
@@ -296,6 +301,7 @@ export default {
       touchStartY: 0,
       touchStartTime: 0,
       isSwiping: false,
+      swipeDirection: "left",
     };
   },
   methods: {
@@ -351,8 +357,12 @@ export default {
       const idx = this.currentSwipeIndex;
       if (idx === -1) return;
       if (dx < 0 && idx < this.swipePages.length - 1) {
+        this.swipeDirection = "left";
+        this.isSwiping = true;
         this.$router.push(this.swipePages[idx + 1]);
       } else if (dx > 0 && idx > 0) {
+        this.swipeDirection = "right";
+        this.isSwiping = true;
         this.$router.push(this.swipePages[idx - 1]);
       }
     },
@@ -425,6 +435,29 @@ export default {
 .page-fade-leave-to {
   opacity: 0;
   transform: translateY(-8px);
+}
+.slide-left-enter-active,
+.slide-left-leave-active,
+.slide-right-enter-active,
+.slide-right-leave-active {
+  transition: transform 0.28s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.28s ease;
+  will-change: transform, opacity;
+}
+.slide-left-enter-from {
+  opacity: 0;
+  transform: translateX(40px);
+}
+.slide-left-leave-to {
+  opacity: 0;
+  transform: translateX(-40px);
+}
+.slide-right-enter-from {
+  opacity: 0;
+  transform: translateX(-40px);
+}
+.slide-right-leave-to {
+  opacity: 0;
+  transform: translateX(40px);
 }
 .app-nav a {
   color: #ffffff;
