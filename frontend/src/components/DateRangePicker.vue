@@ -564,40 +564,58 @@ html.dark .drp-nav:hover { background: #334155; }
     right: 0;
     width: 100%;
     border-radius: 16px 16px 0 0;
-    padding: 16px;
-    max-height: 80vh;
+    padding: 14px 12px;
+    max-height: 75vh;
     overflow-y: auto;
     z-index: 999;
   }
   .drp-calendars {
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
+  }
+  .drp-month-header {
+    margin-bottom: 4px;
   }
   .drp-month-title {
-    font-size: 14px;
+    font-size: 13px;
+  }
+  .drp-nav {
+    width: 24px;
+    height: 24px;
+  }
+  .drp-weekdays span {
+    font-size: 10px;
+    padding: 2px 0;
+  }
+  .drp-days {
+    gap: 0;
   }
   .drp-day {
-    font-size: 13px;
+    font-size: 12px;
+    aspect-ratio: 1;
+    border-radius: 6px;
   }
   .drp-quick {
-    gap: 6px;
-    margin-bottom: 10px;
-    padding-bottom: 10px;
+    gap: 5px;
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+    justify-content: center;
   }
   .drp-quick-btn {
-    padding: 7px 14px;
-    font-size: 13px;
+    padding: 6px 12px;
+    font-size: 12px;
     border-radius: 20px;
   }
   .drp-actions {
-    margin-top: 10px;
-    padding-top: 10px;
+    margin-top: 8px;
+    padding-top: 8px;
   }
   .drp-btn-clear,
   .drp-btn-apply {
     padding: 10px 20px;
     font-size: 14px;
     border-radius: 10px;
+    flex: 1;
   }
 }
 </style>

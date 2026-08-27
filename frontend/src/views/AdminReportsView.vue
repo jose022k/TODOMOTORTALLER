@@ -44,7 +44,9 @@
             Generar PDF
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="margin-left:2px;"><polyline points="6 9 12 15 18 9"/></svg>
           </button>
+          <div v-if="showPdfMenu" class="pdf-backdrop" @click="showPdfMenu = false"></div>
           <div v-if="showPdfMenu" class="pdf-dropdown-content">
+            <div class="pdf-drag-handle"></div>
             <div class="pdf-dropdown-header">Seleccionar secciones</div>
             <label class="pdf-check" v-for="s in printSections" :key="s.key">
               <input type="checkbox" v-model="s.checked" />
@@ -749,20 +751,51 @@ html.dark .card-subtitle { background: #1e293b; color: #94a3b8; }
     right: 0;
     width: 100%;
     border-radius: 16px 16px 0 0;
-    padding: 20px;
-    max-height: 70vh;
+    padding: 12px 16px 20px;
+    max-height: 60vh;
     overflow-y: auto;
-    z-index: 999;
+    z-index: 1001;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
+  }
+  .pdf-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 1000;
+  }
+  .pdf-drag-handle {
+    width: 36px;
+    height: 4px;
+    background: #d1d5db;
+    border-radius: 2px;
+    margin: 0 auto 12px;
+  }
+  .pdf-dropdown-header {
+    font-size: 13px;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
   }
   .pdf-check {
-    padding: 6px 0;
-    font-size: 14px;
+    padding: 10px 8px;
+    font-size: 15px;
+    border-radius: 8px;
+  }
+  .pdf-check input {
+    width: 18px;
+    height: 18px;
+  }
+  .pdf-dropdown-actions {
+    margin-top: 14px;
+    padding-top: 14px;
   }
   .btn-pdf-generate {
     width: 100%;
     padding: 14px;
-    border-radius: 10px;
-    font-size: 15px;
+    border-radius: 12px;
+    font-size: 16px;
     text-align: center;
   }
   .highlight-card {
