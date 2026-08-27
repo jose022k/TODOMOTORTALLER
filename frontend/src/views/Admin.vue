@@ -96,17 +96,50 @@
         </div>
       </router-link>
     </div>
+
+    <!-- Daily Stats Banner -->
+    <div v-if="dailyStats" class="daily-stats-banner">
+      <div class="daily-stats-track">
+        <span class="daily-stat">Clientes registrados hoy: <strong>{{ dailyStats.clientes_registrados_hoy }}</strong></span>
+        <span class="daily-stat">Motos atendidas hoy: <strong>{{ dailyStats.motos_atendidas_hoy }}</strong></span>
+        <span class="daily-stat">Clientes nuevos hoy: <strong>{{ dailyStats.clientes_nuevos_hoy }}</strong></span>
+        <span class="daily-stat">Servicio más realizado: <strong>{{ dailyStats.servicio_mas_realizado_hoy }}</strong></span>
+        <span class="daily-stat">Marca más atendida: <strong>{{ dailyStats.marca_mas_atendida_hoy }}</strong></span>
+        <span class="daily-stat">Clientes registrados hoy: <strong>{{ dailyStats.clientes_registrados_hoy }}</strong></span>
+        <span class="daily-stat">Motos atendidas hoy: <strong>{{ dailyStats.motos_atendidas_hoy }}</strong></span>
+        <span class="daily-stat">Clientes nuevos hoy: <strong>{{ dailyStats.clientes_nuevos_hoy }}</strong></span>
+        <span class="daily-stat">Servicio más realizado: <strong>{{ dailyStats.servicio_mas_realizado_hoy }}</strong></span>
+        <span class="daily-stat">Marca más atendida: <strong>{{ dailyStats.marca_mas_atendida_hoy }}</strong></span>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
 import { useAuthStore } from "@/stores/auth";
+import api from "@/services/api";
 
 export default {
   name: "AdminPanel",
   setup() {
     const authStore = useAuthStore();
     return { authStore };
+  },
+  data() {
+    return {
+      dailyStats: null,
+    };
+  },
+  mounted() {
+    this.fetchDailyStats();
+  },
+  methods: {
+    async fetchDailyStats() {
+      try {
+        const { data } = await api.get("/admin/daily-stats");
+        this.dailyStats = data;
+      } catch { /* silent */ }
+    },
   },
 };
 </script>
@@ -300,5 +333,47 @@ html.dark .admin-panel .dash-card p {
 }
 html.dark .admin-panel .dash-footer {
   border-top-color: #1e293b;
+}
+
+/* ===== DAILY STATS BANNER ===== */
+.daily-stats-banner {
+  margin-top: 16px;
+  background: #ffaa00;
+  border-radius: 10px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.daily-stats-track {
+  display: inline-flex;
+  gap: 40px;
+  padding: 10px 0;
+  animation: scroll-banner 20s linear infinite;
+}
+.daily-stat {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  white-space: nowrap;
+}
+.daily-stat strong {
+  font-weight: 800;
+}
+@keyframes scroll-banner {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+@media (max-width: 768px) {
+  .daily-stats-banner {
+    margin-top: 12px;
+    border-radius: 8px;
+  }
+  .daily-stats-track {
+    gap: 32px;
+    padding: 8px 0;
+  }
+  .daily-stat {
+    font-size: 0.82rem;
+  }
 }
 </style>
