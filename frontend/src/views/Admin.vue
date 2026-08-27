@@ -257,25 +257,25 @@ export default {
     height: auto;
   }
   .dash-card {
-    padding: 12px;
+    padding: 16px 14px 12px;
     border-radius: 14px;
     gap: 8px;
     justify-content: flex-start;
   }
   .dash-icon-wrap {
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
     border-radius: 10px;
   }
   .dash-icon-wrap svg {
-    width: 22px;
-    height: 22px;
+    width: 24px;
+    height: 24px;
   }
   .dash-info {
     gap: 6px;
   }
   .dash-info h2 {
-    font-size: 1.15rem;
+    font-size: 1.2rem;
     font-weight: 800;
   }
   .dash-badge {
@@ -283,12 +283,12 @@ export default {
     padding: 1px 6px;
   }
   .dash-card p {
-    font-size: 0.85rem;
+    font-size: 0.88rem;
     line-height: 1.3;
     margin: 0;
   }
   .dash-footer {
-    font-size: 0.78rem;
+    font-size: 0.8rem;
     padding-top: 6px;
     margin-top: 0;
     border-top: none;
