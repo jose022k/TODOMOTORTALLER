@@ -511,7 +511,7 @@ html.dark .tab.active { color: #f1f5f9 !important; border-bottom-color: var(--co
 html.dark .tab:hover { color: #f1f5f9 !important; }
 
 /* ── Admin / Cliente / Mecanico tables ── */
-html.dark .data-table { background: var(--bg-card) !important; }
+html.dark .data-table { background: transparent !important; }
 html.dark .data-table th { background: var(--bg-muted) !important; color: var(--text-secondary) !important; border-bottom-color: var(--border-default) !important; }
 html.dark .data-table td { border-bottom-color: var(--border-light) !important; color: var(--text-default) !important; }
 html.dark .data-table td::before { color: var(--text-muted) !important; }
