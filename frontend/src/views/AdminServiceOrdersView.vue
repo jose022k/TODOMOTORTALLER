@@ -1479,7 +1479,7 @@ html.dark .monto-tasa.warn { color: #fbbf24; }
     border-bottom: none;
     font-size: 13px;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 8px;
   }
   .data-table td::before {
