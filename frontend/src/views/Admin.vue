@@ -252,48 +252,45 @@ export default {
     gap: 8px;
   }
   .dash-card {
-    padding: 12px;
+    padding: 10px 10px 8px;
     border-radius: 12px;
-    gap: 4px;
-  }
-  .dash-card > .dash-icon-wrap {
-    display: none;
-  }
-  .dash-card::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: #ffaa00;
-  }
-  .dash-info {
     gap: 6px;
   }
+  .dash-card > .dash-icon-wrap {
+    width: 100%;
+    height: 32px;
+    border-radius: 8px;
+    background: #fff7e6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .dash-card > .dash-icon-wrap svg {
+    width: 18px;
+    height: 18px;
+  }
+  .dash-info {
+    gap: 4px;
+    flex-direction: column;
+    align-items: flex-start;
+  }
   .dash-info h2 {
-    font-size: 0.85rem;
+    font-size: 0.95rem;
     font-weight: 800;
   }
   .dash-badge {
-    font-size: 0.55rem;
-    padding: 1px 5px;
     display: none;
   }
   .dash-card p {
-    font-size: 0.68rem;
-    line-height: 1.25;
+    font-size: 0.75rem;
+    line-height: 1.3;
     color: #94a3b8;
     margin: 0;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
   }
   .dash-footer {
-    font-size: 0.68rem;
+    font-size: 0.72rem;
     padding-top: 4px;
-    margin-top: 2px;
+    margin-top: auto;
     gap: 4px;
     color: #ffaa00;
     border-top: 1px solid #f1f5f9;
