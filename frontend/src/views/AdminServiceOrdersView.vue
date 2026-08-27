@@ -1495,6 +1495,20 @@ html.dark .monto-tasa.warn { color: #fbbf24; }
     padding-top: 8px;
     border-top: 1px solid #f1f5f9;
   }
+  html.dark .data-table tr {
+    background: #1a1f2e;
+    border-color: #1e293b;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+  }
+  html.dark .data-table td::before {
+    color: #64748b;
+  }
+  html.dark .data-table td:last-child {
+    border-top-color: #1e293b;
+  }
+  html.dark .data-table td {
+    color: #e2e8f0;
+  }
   .actions-cell {
     flex-wrap: wrap;
     gap: 8px;
