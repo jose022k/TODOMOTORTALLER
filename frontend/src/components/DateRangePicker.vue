@@ -546,4 +546,58 @@ html.dark .drp-quick-btn:hover { background: #334155; }
 html.dark .drp-btn-clear { background: #1e293b; border-color: #475569; color: #94a3b8; }
 html.dark .drp-nav { color: #94a3b8; }
 html.dark .drp-nav:hover { background: #334155; }
+
+@media (max-width: 768px) {
+  .drp { width: 100%; }
+  .drp-trigger {
+    width: 100%;
+    justify-content: center;
+    padding: 12px 14px;
+    font-size: 14px;
+    border-radius: 10px;
+  }
+  .drp-dropdown {
+    position: fixed;
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    border-radius: 16px 16px 0 0;
+    padding: 16px;
+    max-height: 80vh;
+    overflow-y: auto;
+    z-index: 999;
+  }
+  .drp-calendars {
+    flex-direction: column;
+    gap: 12px;
+  }
+  .drp-month-title {
+    font-size: 14px;
+  }
+  .drp-day {
+    font-size: 13px;
+  }
+  .drp-quick {
+    gap: 6px;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+  }
+  .drp-quick-btn {
+    padding: 7px 14px;
+    font-size: 13px;
+    border-radius: 20px;
+  }
+  .drp-actions {
+    margin-top: 10px;
+    padding-top: 10px;
+  }
+  .drp-btn-clear,
+  .drp-btn-apply {
+    padding: 10px 20px;
+    font-size: 14px;
+    border-radius: 10px;
+  }
+}
 </style>

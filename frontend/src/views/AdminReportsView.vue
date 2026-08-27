@@ -726,25 +726,44 @@ html.dark .card-subtitle { background: #1e293b; color: #94a3b8; }
     margin-left: 0;
     width: 100%;
     flex-direction: column;
-    gap: 8px;
+    gap: 10px;
   }
   .tasa-chip {
-    width: 100%;
-    justify-content: center;
-    padding: 10px 14px;
-    border-radius: 10px;
-  }
-  .btn-pdf {
     width: 100%;
     justify-content: center;
     padding: 12px 16px;
     border-radius: 10px;
     font-size: 14px;
   }
+  .btn-pdf {
+    width: 100%;
+    justify-content: center;
+    padding: 14px 16px;
+    border-radius: 10px;
+    font-size: 15px;
+  }
   .pdf-dropdown-content {
-    width: calc(100vw - 40px);
-    right: -10px;
-    border-radius: 14px;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    border-radius: 16px 16px 0 0;
+    padding: 20px;
+    max-height: 70vh;
+    overflow-y: auto;
+    z-index: 999;
+  }
+  .pdf-check {
+    padding: 6px 0;
+    font-size: 14px;
+  }
+  .btn-pdf-generate {
+    width: 100%;
+    padding: 14px;
+    border-radius: 10px;
+    font-size: 15px;
+    text-align: center;
   }
   .highlight-card {
     padding: 24px 16px;
