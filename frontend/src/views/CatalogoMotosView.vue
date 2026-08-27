@@ -1014,25 +1014,25 @@ export default {
     font-size: 15px;
   }
   .catalog-grid {
-    grid-template-columns: 1fr;
-    gap: 12px;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
   }
   .catalog-card {
-    padding: 18px;
-    border-radius: 14px;
+    padding: 14px;
+    border-radius: 12px;
   }
   .card-icon {
-    width: 50px;
-    height: 50px;
-    border-radius: 12px;
-    font-size: 1.8rem;
-    margin-bottom: 14px;
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    font-size: 1.5rem;
+    margin-bottom: 10px;
   }
   .card-title {
-    font-size: 1.15rem;
+    font-size: 1rem;
   }
   .card-subtitle {
-    font-size: 0.82rem;
+    font-size: 0.75rem;
   }
   .modal-card {
     width: 95%;
