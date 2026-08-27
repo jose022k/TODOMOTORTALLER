@@ -216,6 +216,12 @@ export default {
         if (val) {
           orderSocket.enable();
           setTimeout(() => setupPush(), 1000);
+          this.fetchUnreadCount();
+          clearInterval(this.unreadPollInterval);
+          this.unreadPollInterval = setInterval(() => this.fetchUnreadCount(), 30000);
+        } else {
+          clearInterval(this.unreadPollInterval);
+          this.unreadCount = 0;
         }
       },
     },
@@ -223,12 +229,6 @@ export default {
   async created() {
     if (this.authStore.isAuthenticated && !this.authStore.user) {
       this.authStore.fetchUser();
-    }
-  },
-  mounted() {
-    if (this.authStore.isAuthenticated) {
-      this.fetchUnreadCount();
-      this.unreadPollInterval = setInterval(() => this.fetchUnreadCount(), 30000);
     }
   },
   beforeUnmount() {
