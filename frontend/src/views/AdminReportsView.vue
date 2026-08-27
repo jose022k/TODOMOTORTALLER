@@ -44,6 +44,16 @@
             Generar PDF
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="margin-left:2px;"><polyline points="6 9 12 15 18 9"/></svg>
           </button>
+          <div v-if="showPdfMenu" class="pdf-dropdown-content pdf-desktop-only">
+            <div class="pdf-dropdown-header">Seleccionar secciones</div>
+            <label class="pdf-check" v-for="s in printSections" :key="s.key">
+              <input type="checkbox" v-model="s.checked" />
+              <span>{{ s.label }}</span>
+            </label>
+            <div class="pdf-dropdown-actions">
+              <button class="btn-pdf-generate" @click="printReport">Generar PDF</button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -802,6 +812,9 @@ html.dark .card-subtitle { background: #1e293b; color: #94a3b8; }
   display: none;
 }
 @media (max-width: 768px) {
+  .pdf-desktop-only {
+    display: none !important;
+  }
   .pdf-sheet-backdrop {
     display: block;
     position: fixed;
