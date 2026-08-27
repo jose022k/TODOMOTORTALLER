@@ -58,7 +58,7 @@
       </nav>
     </header>
 
-    <main class="app-main" :class="{ 'pwa-main': showMobileNav }">
+    <main class="app-main" :class="{ 'pwa-main': showMobileNav }" ref="mainContent" @touchstart="onTouchStart" @touchmove="onTouchMove" @touchend="onTouchEnd">
       <router-view v-slot="{ Component }">
         <transition name="page-fade" mode="out-in">
           <component :is="Component" />
@@ -267,6 +267,21 @@ export default {
         return false;
       }
     },
+    swipePages() {
+      if (this.authStore.isAdmin) {
+        return ["/admin", "/admin/service-orders", "/admin/reports", "/admin/catalog", "/admin/users"];
+      }
+      if (this.authStore.isMecanico) {
+        return ["/mecanico/orders"];
+      }
+      if (this.authStore.isCliente) {
+        return ["/cliente/orders"];
+      }
+      return [];
+    },
+    currentSwipeIndex() {
+      return this.swipePages.indexOf(this.$route.path);
+    },
   },
   data() {
     return {
@@ -277,6 +292,10 @@ export default {
       isDark: document.documentElement.classList.contains("dark"),
       sunIcon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>',
       moonIcon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>',
+      touchStartX: 0,
+      touchStartY: 0,
+      touchStartTime: 0,
+      isSwiping: false,
     };
   },
   methods: {
@@ -306,6 +325,36 @@ export default {
         const { data } = await api.get("/notifications/unread-count");
         this.unreadCount = data.count;
       } catch { /* silent */ }
+    },
+    onTouchStart(e) {
+      if (!this.showMobileNav || this.swipePages.length < 2) return;
+      this.touchStartX = e.touches[0].clientX;
+      this.touchStartY = e.touches[0].clientY;
+      this.touchStartTime = Date.now();
+      this.isSwiping = false;
+    },
+    onTouchMove(e) {
+      if (!this.showMobileNav || this.swipePages.length < 2) return;
+      const dx = e.touches[0].clientX - this.touchStartX;
+      const dy = e.touches[0].clientY - this.touchStartY;
+      if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 15) {
+        this.isSwiping = true;
+        e.preventDefault();
+      }
+    },
+    onTouchEnd(e) {
+      if (!this.showMobileNav || !this.isSwiping) return;
+      this.isSwiping = false;
+      const dx = e.changedTouches[0].clientX - this.touchStartX;
+      const dt = Date.now() - this.touchStartTime;
+      if (Math.abs(dx) < 60 || dt > 500) return;
+      const idx = this.currentSwipeIndex;
+      if (idx === -1) return;
+      if (dx < 0 && idx < this.swipePages.length - 1) {
+        this.$router.push(this.swipePages[idx + 1]);
+      } else if (dx > 0 && idx > 0) {
+        this.$router.push(this.swipePages[idx - 1]);
+      }
     },
   },
 };
