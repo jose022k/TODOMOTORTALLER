@@ -568,6 +568,34 @@ html.dark .tasa-chip:hover { background: #3b4a63; }
 html.dark .tasa-chip-label { color: #fbbf24; }
 html.dark .tasa-chip-value { color: var(--text-default); }
 html.dark .card-subtitle { background: #1e293b; color: #94a3b8; }
+html.dark .report-card {
+  background: #1a1f2e;
+  border-color: #1e293b;
+}
+html.dark .report-card-header h3 {
+  color: #e2e8f0;
+}
+html.dark .report-empty {
+  color: #64748b;
+}
+html.dark .data-table {
+  background: transparent;
+}
+html.dark .data-table th {
+  background: #1e293b;
+  color: #94a3b8;
+  border-bottom-color: #334155;
+}
+html.dark .data-table td {
+  color: #cbd5e1;
+  border-bottom-color: #1e293b;
+}
+html.dark .data-table td::before {
+  color: #64748b;
+}
+html.dark .data-table tr:hover td {
+  background: #1e293b;
+}
 .loading-state { text-align: center; padding: 60px; color: #64748b; font-size: 1rem; }
 
 /* PDF dropdown */
