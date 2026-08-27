@@ -316,7 +316,7 @@ export default {
       const path = this.$route.path;
       items.forEach(el => {
         const href = el.getAttribute("href");
-        const isActive = href && (href === path || path.startsWith(href + "/"));
+        const isActive = href === path;
         el.style.color = isActive ? "#ffaa00" : "";
       });
     },
