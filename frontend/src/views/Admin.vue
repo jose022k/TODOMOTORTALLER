@@ -247,6 +247,7 @@ export default {
   .page-subtitle {
     margin-left: 0;
     font-size: 0.9rem;
+    display: none;
   }
   .dashboard-grid {
     grid-template-columns: 1fr;
