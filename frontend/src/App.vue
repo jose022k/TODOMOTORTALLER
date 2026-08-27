@@ -520,6 +520,7 @@ html.dark .theme-toggle:hover { color: #ffaa00; }
   overflow-x: auto;
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
+  touch-action: pan-x;
   scrollbar-width: none;
 }
 .pwa-bottom-nav::-webkit-scrollbar {
