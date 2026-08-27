@@ -652,9 +652,13 @@ html.dark .theme-toggle:hover { color: #ffaa00; }
   flex-shrink: 0;
   min-width: 52px;
 }
-.pwa-nav-item.is-active,
-.pwa-nav-item:hover {
+.pwa-nav-item.is-active {
   color: #ffaa00;
+}
+@media (hover: hover) {
+  .pwa-nav-item:not(.pwa-nav-settings):not(.pwa-nav-logout):hover {
+    color: #ffaa00;
+  }
 }
 .pwa-nav-item svg {
   width: 20px;
