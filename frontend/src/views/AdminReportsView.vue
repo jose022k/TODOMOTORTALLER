@@ -743,6 +743,10 @@ html.dark .card-subtitle { background: #1e293b; color: #94a3b8; }
     border-radius: 10px;
     font-size: 15px;
   }
+  .pdf-dropdown {
+    position: relative;
+    z-index: 150;
+  }
   .pdf-dropdown-content {
     position: absolute;
     top: 100%;
