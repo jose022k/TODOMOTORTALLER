@@ -1496,7 +1496,6 @@ html.dark .monto-tasa.warn { color: #fbbf24; }
     border-top: 1px solid #f1f5f9;
   }
   .actions-cell {
-    order: -1;
     justify-content: flex-start;
     flex-wrap: wrap;
     gap: 8px;
