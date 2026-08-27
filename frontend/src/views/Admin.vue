@@ -252,45 +252,38 @@ export default {
     display: grid;
     grid-template-columns: 1fr 1fr;
     grid-template-rows: auto auto;
-    gap: 12px 8px;
+    gap: 16px 8px;
     flex: none;
     height: auto;
-    margin-top: 8px;
+    margin-top: 14px;
   }
   .dash-card {
-    padding: 16px 14px 12px;
+    padding: 14px 12px 10px;
     border-radius: 14px;
-    gap: 8px;
+    gap: 7px;
     justify-content: flex-start;
   }
   .dash-icon-wrap {
-    width: 40px;
-    height: 40px;
+    width: 38px;
+    height: 38px;
     border-radius: 10px;
   }
   .dash-icon-wrap svg {
-    width: 24px;
-    height: 24px;
-  }
-  .dash-info {
-    gap: 6px;
+    width: 22px;
+    height: 22px;
   }
   .dash-info h2 {
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     font-weight: 800;
   }
-  .dash-badge {
-    font-size: 0.6rem;
-    padding: 1px 6px;
-  }
   .dash-card p {
-    font-size: 0.88rem;
+    font-size: 0.82rem;
     line-height: 1.3;
     margin: 0;
   }
   .dash-footer {
-    font-size: 0.8rem;
-    padding-top: 6px;
+    font-size: 0.75rem;
+    padding-top: 5px;
     margin-top: 0;
     border-top: none;
   }
