@@ -236,56 +236,71 @@ export default {
 /* ===== MOBILE / PWA native feel ===== */
 @media (max-width: 768px) {
   .admin-panel {
-    padding: 10px 12px 90px;
+    padding: 8px 10px 90px;
     height: auto;
     min-height: calc(100vh - 92px);
   }
   .welcome-section h1 {
-    font-size: 1.2rem;
-    margin-bottom: 4px;
+    font-size: 1.1rem;
+    margin-bottom: 6px;
   }
   .page-subtitle {
-    margin-left: 0;
-    font-size: 0.9rem;
     display: none;
   }
   .dashboard-grid {
     grid-template-columns: 1fr 1fr;
-    grid-template-rows: 1fr 1fr;
-    gap: 10px;
+    gap: 8px;
   }
   .dash-card {
-    padding: 14px 14px 12px;
+    padding: 12px;
     border-radius: 12px;
+    gap: 4px;
+  }
+  .dash-card > .dash-icon-wrap {
+    display: none;
+  }
+  .dash-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: #ffaa00;
+  }
+  .dash-info {
     gap: 6px;
   }
-  .dash-icon-wrap {
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
-  }
-  .dash-icon-wrap svg {
-    width: 20px;
-    height: 20px;
-  }
   .dash-info h2 {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
+    font-weight: 800;
   }
   .dash-badge {
-    font-size: 0.6rem;
-    padding: 1px 6px;
+    font-size: 0.55rem;
+    padding: 1px 5px;
+    display: none;
   }
   .dash-card p {
-    font-size: 0.72rem;
-    line-height: 1.3;
+    font-size: 0.68rem;
+    line-height: 1.25;
+    color: #94a3b8;
+    margin: 0;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
   .dash-footer {
-    font-size: 0.72rem;
-    padding-top: 6px;
+    font-size: 0.68rem;
+    padding-top: 4px;
+    margin-top: 2px;
+    gap: 4px;
+    color: #ffaa00;
+    border-top: 1px solid #f1f5f9;
+  }
+  .dash-footer svg {
+    width: 12px;
+    height: 12px;
   }
 }
 html.dark .admin-panel .dash-card {
