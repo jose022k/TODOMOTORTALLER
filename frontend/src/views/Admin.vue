@@ -255,12 +255,12 @@ export default {
     gap: 16px 8px;
     flex: none;
     height: auto;
-    margin-top: 14px;
+    margin-top: 20px;
   }
   .dash-card {
-    padding: 14px 12px 10px;
+    padding: 16px 14px 12px;
     border-radius: 14px;
-    gap: 7px;
+    gap: 8px;
     justify-content: flex-start;
   }
   .dash-icon-wrap {
@@ -273,17 +273,17 @@ export default {
     height: 22px;
   }
   .dash-info h2 {
-    font-size: 1.1rem;
+    font-size: 1.15rem;
     font-weight: 800;
   }
   .dash-card p {
-    font-size: 0.82rem;
-    line-height: 1.3;
+    font-size: 0.85rem;
+    line-height: 1.35;
     margin: 0;
   }
   .dash-footer {
-    font-size: 0.75rem;
-    padding-top: 5px;
+    font-size: 0.78rem;
+    padding-top: 6px;
     margin-top: 0;
     border-top: none;
   }
