@@ -269,10 +269,9 @@ export default {
 /* ===== MOBILE / PWA native feel ===== */
 @media (max-width: 768px) {
   .admin-panel {
-    padding: 10px 12px 80px;
-    height: calc(100vh - 92px);
-    min-height: auto;
-    overflow-y: auto;
+    padding: 10px 12px 0;
+    min-height: calc(100vh - 170px);
+    height: auto;
   }
   .welcome-section h1 {
     font-size: 1.3rem;
