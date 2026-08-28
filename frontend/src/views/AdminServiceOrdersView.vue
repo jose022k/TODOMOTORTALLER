@@ -70,6 +70,22 @@
       </tbody>
     </table>
 
+    <!-- Mobile cards: ALWAYS in DOM, shown only on mobile via global CSS -->
+    <div class="admin-mobile-cards">
+      <div v-for="o in orders" :key="'m-' + o.id" class="admin-mobile-card">
+        <div class="admin-mobile-row"><span class="admin-mobile-lbl">ID:</span> <span class="admin-mobile-val">{{ o.id }}</span></div>
+        <div class="admin-mobile-row"><span class="admin-mobile-lbl">Cliente:</span> <span class="admin-mobile-val">{{ capitalize(o.cliente_nombre) }}</span></div>
+        <div class="admin-mobile-row"><span class="admin-mobile-lbl">Moto:</span> <span class="admin-mobile-val">{{ o.moto_marca }} {{ o.moto_modelo }} ({{ o.moto_placa }})</span></div>
+        <div class="admin-mobile-row"><span class="admin-mobile-lbl">Mecánico:</span> <span class="admin-mobile-val">{{ capitalize(o.mecanico_nombre) }}</span></div>
+        <div class="admin-mobile-row"><span class="admin-mobile-lbl">Estado:</span> <span class="admin-mobile-val"><span :class="['badge', 'badge-' + o.estado]">{{ statusLabel(o.estado) }}</span></span></div>
+        <div class="admin-mobile-row"><span class="admin-mobile-lbl">Fecha:</span> <span class="admin-mobile-val">{{ formatDate(o.fecha_creacion) }}</span></div>
+        <div class="admin-mobile-row admin-mobile-actions">
+          <button class="btn-sm btn-view" @click="openDetailModal(o)">Ver detalles</button>
+          <button v-if="o.estado === 'en_proceso'" class="btn-sm btn-chat" @click="openChat(o)">Chat</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Paginación -->
     <div v-if="!loading && totalPages > 1" class="pagination">
       <button class="page-btn" :disabled="page <= 1" @click="goToPage(page - 1)" title="Página anterior">&#9664;</button>
@@ -1454,49 +1470,6 @@ html.dark .monto-tasa.warn { color: #fbbf24; }
     font-size: 15px;
     text-align: center;
     justify-content: center;
-  }
-  .data-table {
-    display: block;
-    overflow-x: hidden;
-    background: transparent;
-    box-shadow: none;
-    border-radius: 0;
-  }
-  .data-table thead { display: none; }
-  .data-table tbody { display: flex; flex-direction: column; gap: 10px; }
-  .data-table tr {
-    display: flex;
-    flex-direction: column;
-    background: #fff;
-    border-radius: 14px;
-    padding: 14px 16px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-    border: 1px solid #f1f5f9;
-    gap: 6px;
-  }
-  .data-table td {
-    padding: 2px 0;
-    border-bottom: none;
-    font-size: 13px;
-  }
-  .data-table td::before {
-    content: attr(data-label) ": ";
-    font-weight: 700;
-    color: #94a3b8;
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
-    display: inline;
-  }
-  .data-table td:last-child {
-    padding-top: 8px;
-    border-top: 1px solid #f1f5f9;
-  }
-  .btn-sm {
-    padding: 8px 14px;
-    border-radius: 8px;
-    font-size: 13px;
-    font-weight: 700;
   }
   .modal {
     width: 95%;
