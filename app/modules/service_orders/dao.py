@@ -1,5 +1,6 @@
 from typing import Optional, List
 from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import or_
 from app.core.base_dao import BaseDAO
 from app.modules.service_orders.models import OrdenServicio, Evidencia
 from app.modules.service_orders.schemas import OrdenServicioCreate, OrdenServicioUpdate
@@ -35,10 +36,11 @@ class OrdenServicioDAO(BaseDAO[OrdenServicio, OrdenServicioCreate, OrdenServicio
         cliente_id: Optional[int] = None,
         mecanico_id: Optional[int] = None,
         moto_cliente_id: Optional[int] = None,
+        q: Optional[str] = None,
     ) -> List[OrdenServicio]:
         query = self._build_filtered_query(
             db, estado=estado, cliente_id=cliente_id,
-            mecanico_id=mecanico_id, moto_cliente_id=moto_cliente_id,
+            mecanico_id=mecanico_id, moto_cliente_id=moto_cliente_id, q=q,
         )
         return query.offset(skip).limit(limit).all()
 
@@ -49,14 +51,15 @@ class OrdenServicioDAO(BaseDAO[OrdenServicio, OrdenServicioCreate, OrdenServicio
         cliente_id: Optional[int] = None,
         mecanico_id: Optional[int] = None,
         moto_cliente_id: Optional[int] = None,
+        q: Optional[str] = None,
     ) -> int:
         query = self._build_filtered_query(
             db, estado=estado, cliente_id=cliente_id,
-            mecanico_id=mecanico_id, moto_cliente_id=moto_cliente_id,
+            mecanico_id=mecanico_id, moto_cliente_id=moto_cliente_id, q=q,
         )
         return query.count()
 
-    def _build_filtered_query(self, db, estado=None, cliente_id=None, mecanico_id=None, moto_cliente_id=None):
+    def _build_filtered_query(self, db, estado=None, cliente_id=None, mecanico_id=None, moto_cliente_id=None, q=None):
         query = (
             db.query(self.model)
             .options(
@@ -74,6 +77,15 @@ class OrdenServicioDAO(BaseDAO[OrdenServicio, OrdenServicioCreate, OrdenServicio
             query = query.filter(self.model.mecanico_id == mecanico_id)
         if moto_cliente_id is not None:
             query = query.filter(self.model.moto_cliente_id == moto_cliente_id)
+        if q:
+            q = q.strip()
+            search_conditions = [self.model.cliente.nombre.ilike(f"%{q}%")]
+            try:
+                q_id = int(q)
+                search_conditions.append(self.model.id == q_id)
+            except (ValueError, TypeError):
+                pass
+            query = query.filter(or_(*search_conditions))
         return query
 
 

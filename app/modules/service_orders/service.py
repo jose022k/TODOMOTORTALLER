@@ -142,6 +142,7 @@ def get_orders(
     estado: Optional[str] = None,
     cliente_id: Optional[int] = None,
     mecanico_id: Optional[int] = None,
+    q: Optional[str] = None,
 ) -> List[OrdenServicioListResponse]:
     """Lista órdenes según el rol del usuario autenticado."""
     if current_user.rol == "mecanico":
@@ -154,7 +155,7 @@ def get_orders(
 
     orders = orden_dao.get_all_with_relations(
         db, skip=skip, limit=limit, estado=estado,
-        cliente_id=cliente_id, mecanico_id=mecanico_id,
+        cliente_id=cliente_id, mecanico_id=mecanico_id, q=q,
     )
     return [_build_list_response(o) for o in orders]
 
@@ -165,6 +166,7 @@ def count_orders(
     estado: Optional[str] = None,
     cliente_id: Optional[int] = None,
     mecanico_id: Optional[int] = None,
+    q: Optional[str] = None,
 ) -> int:
     if current_user.rol == "mecanico":
         mecanico_id = current_user.id
@@ -174,7 +176,7 @@ def count_orders(
         mecanico_id = None
 
     return orden_dao.count_all_with_relations(
-        db, estado=estado, cliente_id=cliente_id, mecanico_id=mecanico_id,
+        db, estado=estado, cliente_id=cliente_id, mecanico_id=mecanico_id, q=q,
     )
 
 

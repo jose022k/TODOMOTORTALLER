@@ -18,21 +18,42 @@
 
     <!-- Barra de herramientas -->
     <div class="toolbar">
-      <select v-model="filterEstado" class="filter-select" @change="onFilterChange">
-        <option value="">Todos los estados</option>
-        <option value="pendiente">Pendiente</option>
-        <option value="en_proceso">En Proceso</option>
-        <option value="completada">Completada</option>
-        <option value="cancelada">Cancelada</option>
-      </select>
-      <select v-model="filterClienteId" class="filter-select" @change="onFilterChange">
-        <option value="">Todos los clientes</option>
-        <option v-for="c in clients" :key="c.id" :value="c.id">{{ capitalize(c.nombre) }}</option>
-      </select>
-      <select v-model="filterMecanicoId" class="filter-select" @change="onFilterChange">
-        <option value="">Todos los mecánicos</option>
-        <option v-for="m in mechanics" :key="m.id" :value="m.id">{{ capitalize(m.nombre) }}</option>
-      </select>
+      <div class="toolbar-search">
+        <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input
+          v-model="searchQuery"
+          type="text"
+          class="search-input"
+          placeholder="Buscar por cliente o ID..."
+          @input="onSearch"
+        />
+        <button v-if="searchQuery" class="search-clear" @click="clearSearch" title="Limpiar búsqueda">×</button>
+      </div>
+      <button class="clear-filters-btn" @click="clearFilters" title="Limpiar filtros">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+        <span>Limpiar</span>
+      </button>
+      <button class="filters-toggle" @click="showFilters = !showFilters" :aria-expanded="showFilters">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+        <span>Filtros</span>
+      </button>
+      <div class="filters-group" :class="{ 'filters-open': showFilters }">
+        <select v-model="filterEstado" class="filter-select" @change="onFilterChange">
+          <option value="">Todos los estados</option>
+          <option value="pendiente">Pendiente</option>
+          <option value="en_proceso">En Proceso</option>
+          <option value="completada">Completada</option>
+          <option value="cancelada">Cancelada</option>
+        </select>
+        <select v-model="filterClienteId" class="filter-select" @change="onFilterChange">
+          <option value="">Todos los clientes</option>
+          <option v-for="c in clients" :key="c.id" :value="c.id">{{ capitalize(c.nombre) }}</option>
+        </select>
+        <select v-model="filterMecanicoId" class="filter-select" @change="onFilterChange">
+          <option value="">Todos los mecánicos</option>
+          <option v-for="m in mechanics" :key="m.id" :value="m.id">{{ capitalize(m.nombre) }}</option>
+        </select>
+      </div>
       <button class="btn-primary" @click="openCreateModal">+ Nueva Orden</button>
     </div>
 
@@ -406,6 +427,8 @@ export default {
       filterEstado: "",
       filterClienteId: "",
       filterMecanicoId: "",
+      searchQuery: "",
+      showFilters: false,
       showCreateModal: false,
       showDetailModal: false,
       clients: [],
@@ -529,6 +552,7 @@ export default {
         if (this.filterEstado) params.estado = this.filterEstado;
         if (this.filterClienteId) params.cliente_id = this.filterClienteId;
         if (this.filterMecanicoId) params.mecanico_id = this.filterMecanicoId;
+        if (this.searchQuery && this.searchQuery.trim()) params.q = this.searchQuery.trim();
         const { data } = await api.get("/service-orders/", { params });
         this.orders = data;
       } catch (err) {
@@ -543,6 +567,7 @@ export default {
         if (this.filterEstado) params.estado = this.filterEstado;
         if (this.filterClienteId) params.cliente_id = this.filterClienteId;
         if (this.filterMecanicoId) params.mecanico_id = this.filterMecanicoId;
+        if (this.searchQuery && this.searchQuery.trim()) params.q = this.searchQuery.trim();
         const { data } = await api.get("/service-orders/count", { params });
         this.totalItems = data.total;
         this.totalPages = Math.ceil(this.totalItems / this.pageSize) || 1;
@@ -558,6 +583,29 @@ export default {
       this.form.placa = this.form.placa.replace(/[^a-zA-Z0-9]/g, "").toUpperCase().slice(0, 7);
     },
     onFilterChange() {
+      this.page = 1;
+      this.fetchOrders();
+      this.fetchCount();
+    },
+    onSearch() {
+      this.page = 1;
+      if (this._searchTimer) clearTimeout(this._searchTimer);
+      this._searchTimer = setTimeout(() => {
+        this.fetchOrders();
+        this.fetchCount();
+      }, 300);
+    },
+    clearSearch() {
+      this.searchQuery = "";
+      this.page = 1;
+      this.fetchOrders();
+      this.fetchCount();
+    },
+    clearFilters() {
+      this.filterEstado = "";
+      this.filterClienteId = "";
+      this.filterMecanicoId = "";
+      this.searchQuery = "";
       this.page = 1;
       this.fetchOrders();
       this.fetchCount();
@@ -799,9 +847,93 @@ export default {
 }
 .toolbar {
   display: flex;
+  flex-wrap: wrap;
   gap: 12px;
   margin-bottom: 20px;
   align-items: center;
+}
+.toolbar-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1 1 240px;
+  min-width: 200px;
+}
+.toolbar-search .search-icon {
+  position: absolute;
+  left: 12px;
+  color: #94a3b8;
+  pointer-events: none;
+}
+.search-input {
+  width: 100%;
+  padding: 9px 34px 9px 36px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  background: #fff;
+  box-sizing: border-box;
+}
+.search-input:focus {
+  outline: none;
+  border-color: #ffaa00;
+  box-shadow: 0 0 0 3px rgba(255,170,0,0.1);
+}
+.search-clear {
+  position: absolute;
+  right: 8px;
+  width: 22px;
+  height: 22px;
+  border: none;
+  border-radius: 50%;
+  background: #e2e8f0;
+  color: #475569;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.search-clear:hover { background: #ffaa00; color: #1a1a1a; }
+.clear-filters-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: #fff;
+  color: #475569;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.clear-filters-btn:hover {
+  border-color: #ffaa00;
+  color: #1a1a1a;
+  background: #fff8e6;
+}
+.filters-toggle {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: #fff;
+  color: #475569;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.filters-toggle:hover { border-color: #ffaa00; color: #1a1a1a; }
+.filters-group {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
 }
 .filter-select {
   padding: 8px 12px;
@@ -1456,6 +1588,42 @@ html.dark .monto-tasa.warn { color: #fbbf24; }
     flex-direction: column;
     gap: 8px;
   }
+  .toolbar-search {
+    flex: 1 1 100%;
+    min-width: 100%;
+  }
+  .search-input {
+    padding: 12px 38px 12px 40px;
+    border-radius: 10px;
+    font-size: 15px;
+  }
+  .toolbar-search .search-icon {
+    left: 14px;
+  }
+  .clear-filters-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 12px;
+    border-radius: 10px;
+    font-size: 15px;
+  }
+  .filters-toggle {
+    display: flex;
+    width: 100%;
+    justify-content: center;
+    padding: 12px;
+    border-radius: 10px;
+    font-size: 15px;
+  }
+  .filters-group {
+    display: none;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+  }
+  .filters-group.filters-open {
+    display: flex;
+  }
   .filter-select {
     min-width: 100%;
     width: 100%;
@@ -1517,4 +1685,25 @@ html.dark .data-table tr {
 html.dark .data-table td {
   color: #e2e8f0;
 }
+html.dark .search-input {
+  background: var(--bg-input, #1a1f2e);
+  border-color: var(--border-input, #334155);
+  color: var(--text-default, #e2e8f0);
+}
+html.dark .search-input:focus { border-color: var(--color-primary, #ffaa00); }
+html.dark .toolbar-search .search-icon { color: var(--text-muted, #94a3b8); }
+html.dark .search-clear { background: var(--bg-muted, #334155); color: var(--text-secondary, #cbd5e1); }
+html.dark .search-clear:hover { background: var(--color-primary, #ffaa00); color: #1a1a1a; }
+html.dark .clear-filters-btn {
+  background: var(--bg-input, #1a1f2e);
+  border-color: var(--border-input, #334155);
+  color: var(--text-secondary, #cbd5e1);
+}
+html.dark .clear-filters-btn:hover { color: var(--text-default, #e2e8f0); background: var(--bg-hover, #232b3d); }
+html.dark .filters-toggle {
+  background: var(--bg-input, #1a1f2e);
+  border-color: var(--border-input, #334155);
+  color: var(--text-secondary, #cbd5e1);
+}
+html.dark .filters-toggle:hover { color: var(--text-default, #e2e8f0); }
 </style>

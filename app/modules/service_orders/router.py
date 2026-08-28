@@ -56,11 +56,12 @@ def list_orders(
     estado: Optional[str] = None,
     cliente_id: Optional[int] = Query(None),
     mecanico_id: Optional[int] = Query(None),
+    q: Optional[str] = Query(None),
     db: Session = Depends(get_db),
     current_user: AnyUser = Depends(get_current_user),
 ):
     """Lista órdenes de servicio. Filtra según el rol del usuario."""
-    return service.get_orders(db, current_user, skip=skip, limit=limit, estado=estado, cliente_id=cliente_id, mecanico_id=mecanico_id)
+    return service.get_orders(db, current_user, skip=skip, limit=limit, estado=estado, cliente_id=cliente_id, mecanico_id=mecanico_id, q=q)
 
 
 @router.get("/count")
@@ -68,11 +69,12 @@ def count_orders(
     estado: Optional[str] = None,
     cliente_id: Optional[int] = Query(None),
     mecanico_id: Optional[int] = Query(None),
+    q: Optional[str] = Query(None),
     db: Session = Depends(get_db),
     current_user: AnyUser = Depends(get_current_user),
 ):
     """Cuenta órdenes de servicio con los mismos filtros."""
-    return {"total": service.count_orders(db, current_user, estado=estado, cliente_id=cliente_id, mecanico_id=mecanico_id)}
+    return {"total": service.count_orders(db, current_user, estado=estado, cliente_id=cliente_id, mecanico_id=mecanico_id, q=q)}
 
 
 @router.get("/{order_id}", response_model=OrdenServicioDetailResponse)
