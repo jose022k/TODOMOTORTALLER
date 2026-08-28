@@ -56,12 +56,12 @@
       </thead>
       <tbody>
         <tr v-for="o in orders" :key="o.id">
-          <td data-label="ID">{{ o.id }}</td>
-          <td data-label="Cliente">{{ capitalize(o.cliente_nombre) }}</td>
-          <td data-label="Moto">{{ o.moto_marca }} {{ o.moto_modelo }} ({{ o.moto_placa }})</td>
-          <td data-label="Mecánico">{{ capitalize(o.mecanico_nombre) }}</td>
-          <td data-label="Estado"><span :class="['badge', 'badge-' + o.estado]">{{ statusLabel(o.estado) }}</span></td>
-          <td data-label="Fecha">{{ formatDate(o.fecha_creacion) }}</td>
+          <td data-label="ID"><span class="td-value">{{ o.id }}</span></td>
+          <td data-label="Cliente"><span class="td-value">{{ capitalize(o.cliente_nombre) }}</span></td>
+          <td data-label="Moto"><span class="td-value">{{ o.moto_marca }} {{ o.moto_modelo }} ({{ o.moto_placa }})</span></td>
+          <td data-label="Mecánico"><span class="td-value">{{ capitalize(o.mecanico_nombre) }}</span></td>
+          <td data-label="Estado"><span class="td-value"><span :class="['badge', 'badge-' + o.estado]">{{ statusLabel(o.estado) }}</span></span></td>
+          <td data-label="Fecha"><span class="td-value">{{ formatDate(o.fecha_creacion) }}</span></td>
           <td class="actions-cell">
             <button class="btn-sm btn-view" @click="openDetailModal(o)">Ver detalles</button>
             <button v-if="o.estado === 'en_proceso'" class="btn-sm btn-chat" @click="openChat(o)">Chat</button>
@@ -1490,9 +1490,12 @@ html.dark .monto-tasa.warn { color: #fbbf24; }
     text-transform: uppercase;
     letter-spacing: 0.3px;
     min-width: 70px;
-    display: inline-block;
-    white-space: nowrap;
     flex-shrink: 0;
+  }
+  .data-table td .td-value {
+    flex: 1;
+    min-width: 0;
+    word-break: break-word;
   }
   .data-table td:last-child {
     padding-top: 8px;
