@@ -68,22 +68,23 @@
           </td>
         </tr>
       </tbody>
-      <!-- Mobile cards: rendered as divs outside the table -->
-      <div class="mobile-cards">
-        <div v-for="o in orders" :key="'m-' + o.id" class="mobile-card">
-          <div class="mobile-row"><span class="mobile-label">ID</span><span class="mobile-val">{{ o.id }}</span></div>
-          <div class="mobile-row"><span class="mobile-label">Cliente</span><span class="mobile-val">{{ capitalize(o.cliente_nombre) }}</span></div>
-          <div class="mobile-row"><span class="mobile-label">Moto</span><span class="mobile-val">{{ o.moto_marca }} {{ o.moto_modelo }} ({{ o.moto_placa }})</span></div>
-          <div class="mobile-row"><span class="mobile-label">Mecánico</span><span class="mobile-val">{{ capitalize(o.mecanico_nombre) }}</span></div>
-          <div class="mobile-row"><span class="mobile-label">Estado</span><span class="mobile-val"><span :class="['badge', 'badge-' + o.estado]">{{ statusLabel(o.estado) }}</span></span></div>
-          <div class="mobile-row"><span class="mobile-label">Fecha</span><span class="mobile-val">{{ formatDate(o.fecha_creacion) }}</span></div>
-          <div class="mobile-card-actions">
-            <button class="btn-sm btn-view" @click="openDetailModal(o)">Ver detalles</button>
-            <button v-if="o.estado === 'en_proceso'" class="btn-sm btn-chat" @click="openChat(o)">Chat</button>
-          </div>
+    </table>
+
+    <!-- Mobile cards (outside table, hidden on desktop) -->
+    <div class="mobile-cards">
+      <div v-for="o in orders" :key="'m-' + o.id" class="mobile-card">
+        <div class="moto-detail"><span class="moto-label">ID:</span> {{ o.id }}</div>
+        <div class="moto-detail"><span class="moto-label">Cliente:</span> {{ capitalize(o.cliente_nombre) }}</div>
+        <div class="moto-detail"><span class="moto-label">Moto:</span> {{ o.moto_marca }} {{ o.moto_modelo }} ({{ o.moto_placa }})</div>
+        <div class="moto-detail"><span class="moto-label">Mecánico:</span> {{ capitalize(o.mecanico_nombre) }}</div>
+        <div class="moto-detail"><span class="moto-label">Estado:</span> <span :class="['badge', 'badge-' + o.estado]">{{ statusLabel(o.estado) }}</span></div>
+        <div class="moto-detail"><span class="moto-label">Fecha:</span> {{ formatDate(o.fecha_creacion) }}</div>
+        <div class="moto-card-actions">
+          <button class="btn-sm btn-view" @click="openDetailModal(o)">Ver detalles</button>
+          <button v-if="o.estado === 'en_proceso'" class="btn-sm btn-chat" @click="openChat(o)">Chat</button>
         </div>
       </div>
-    </table>
+    </div>
 
     <!-- Paginación -->
     <div v-if="!loading && totalPages > 1" class="pagination">
@@ -1437,6 +1438,22 @@ html.dark .monto-tasa.warn { color: #fbbf24; }
 }
 /* ===== MOBILE / PWA native feel ===== */
 .mobile-cards { display: none; }
+.moto-detail {
+  font-size: 0.85rem;
+  color: #334155;
+  margin-bottom: 4px;
+}
+.moto-label {
+  color: #94a3b8;
+  font-weight: 600;
+}
+.mobile-card-actions {
+  padding: 10px 0 0;
+  border-top: 1px solid #f1f5f9;
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+}
 @media (max-width: 768px) {
   .admin-orders {
     padding: 12px 12px 80px;
@@ -1471,45 +1488,20 @@ html.dark .monto-tasa.warn { color: #fbbf24; }
     text-align: center;
     justify-content: center;
   }
-  .data-table thead { display: none; }
-  .data-table tbody { display: none; }
-  .mobile-cards { display: flex; flex-direction: column; gap: 10px; }
+  .data-table { display: none; }
+  .mobile-cards { display: block; }
   .mobile-card {
     background: #fff;
-    border-radius: 14px;
+    border-radius: 12px;
     padding: 14px 16px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-    border: 1px solid #f1f5f9;
+    margin-bottom: 10px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
   }
-  .mobile-row {
-    display: flex;
-    align-items: flex-start;
-    gap: 8px;
-    padding: 4px 0;
-  }
-  .mobile-label {
-    font-weight: 700;
-    color: #94a3b8;
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
-    min-width: 70px;
-    flex-shrink: 0;
-    padding-top: 2px;
-  }
-  .mobile-val {
+  .btn-sm {
+    padding: 8px 14px;
+    border-radius: 8px;
     font-size: 13px;
-    color: #1a1a1a;
-    flex: 1;
-    min-width: 0;
-    word-break: break-word;
-  }
-  .mobile-card-actions {
-    display: flex;
-    gap: 8px;
-    padding-top: 10px;
-    margin-top: 6px;
-    border-top: 1px solid #f1f5f9;
+    font-weight: 700;
   }
   .modal {
     width: 95%;
@@ -1554,7 +1546,7 @@ html.dark .mobile-card {
   background: var(--bg-card);
   border-color: var(--border-default);
 }
-html.dark .mobile-val {
+html.dark .moto-detail {
   color: var(--text-default);
 }
 html.dark .mobile-card-actions {
