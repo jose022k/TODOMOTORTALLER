@@ -1,7 +1,7 @@
 {
   "name": "Todomotortaller",
   "short_name": "Todomotortaller",
-  "description": "Sistema de gestión del taller mecánico",
+  "description": "Sistema de gesti��n del taller mec��nico",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
@@ -13,25 +13,19 @@
   "theme_color": "#ffaa00",
   "icons": [
     {
-      "src": "img/logo-splash.png",
+      "src": "img/splash-blank.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "img/logo-splash.png",
+      "src": "img/logo-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "img/logo-splash.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "img/logo-splash.png",
+      "src": "img/logo-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
