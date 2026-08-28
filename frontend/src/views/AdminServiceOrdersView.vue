@@ -1478,6 +1478,9 @@ html.dark .monto-tasa.warn { color: #fbbf24; }
     padding: 2px 0;
     border-bottom: none;
     font-size: 13px;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
   }
   .data-table td::before {
     content: attr(data-label);
@@ -1486,8 +1489,7 @@ html.dark .monto-tasa.warn { color: #fbbf24; }
     font-size: 10px;
     text-transform: uppercase;
     letter-spacing: 0.3px;
-    display: block;
-    margin-bottom: 2px;
+    min-width: 70px;
   }
   .data-table td:last-child {
     padding-top: 8px;
