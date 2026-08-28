@@ -47,8 +47,8 @@ export default {
         const url = this.buildUrl(notif);
         await reg.showNotification("Todomotortaller", {
           body: notif.mensaje || "",
-          icon: "/img/icons/logo-192.png",
-          badge: "/img/icons/logo-192.png",
+          icon: "/img/app-icon-512.png",
+          badge: "/img/app-icon-512.png",
           data: { url },
           vibrate: [200, 100, 200],
         });
