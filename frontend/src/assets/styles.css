@@ -833,3 +833,10 @@ html.dark .mecanico-mobile-val {
 html.dark .mecanico-mobile-actions {
   border-top-color: var(--border-light) !important;
 }
+
+/* Contenedores: evita que el fondo uno las tarjetas (coinciden con [class*="card"]) */
+html.dark .admin-mobile-cards,
+html.dark .cliente-mobile-cards,
+html.dark .mecanico-mobile-cards {
+  background: transparent !important;
+}
