@@ -9,7 +9,7 @@
   "orientation": "portrait",
   "id": "/",
   "categories": ["business", "utilities"],
-  "background_color": "#1a1a1a",
+  "background_color": "#000000",
   "theme_color": "#ffaa00",
   "icons": [
     {

@@ -6,6 +6,8 @@ body {
 body {
   -webkit-tap-highlight-color: transparent;
   -webkit-text-size-adjust: 100%;
+  background-color: var(--bg-page, #ffffff);
+  color: var(--text-default, #1a1a1a);
 }
 /* Evita el zoom automático de iOS al enfocar inputs pequeños (sensación nativa) */
 input,

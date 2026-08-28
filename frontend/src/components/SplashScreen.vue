@@ -4,16 +4,16 @@
       <div class="pwa-splash-inner">
         <img
           class="pwa-splash-logo"
-          src="https://res.cloudinary.com/dorj3mvvr/image/upload/v1783609693/logos/logotaller01.png"
+          src="/img/logo-splash.png"
           alt="Todomotortaller"
         />
-        <p class="pwa-splash-name">Todomotortaller</p>
         <div class="pwa-splash-progress" aria-hidden="true">
           <svg class="progress-ring" width="56" height="56" viewBox="0 0 56 56">
             <circle class="ring-bg" cx="28" cy="28" r="24" />
             <circle class="ring-fg" cx="28" cy="28" r="24" />
           </svg>
         </div>
+        <p class="pwa-splash-name">Todomotortaller</p>
       </div>
     </div>
   </transition>
@@ -35,10 +35,10 @@ export default {
       // nunca en la vista web del navegador (ni móvil ni escritorio).
       if (isPwa.value) {
         visible.value = true;
-        // Logo aparece gradualmente (2.5s) + barra circular (~2.8s) y luego entra a la PWA.
+        // Logo aparece gradualmente (2.5s), luego barra circular y nombre, y entra a la PWA.
         timer = setTimeout(() => {
           visible.value = false;
-        }, 3400);
+        }, 3500);
       }
     });
 
@@ -59,7 +59,7 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #1a1a1a;
+  background-color: #000000;
   padding: env(safe-area-inset-top) env(safe-area-inset-right)
     env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
@@ -73,7 +73,7 @@ export default {
 }
 
 .pwa-splash-logo {
-  width: 130px;
+  width: 140px;
   height: auto;
   display: block;
   opacity: 0;
@@ -81,23 +81,10 @@ export default {
   animation: logo-appear 2.5s ease forwards;
 }
 
-.pwa-splash-name {
-  margin: 0;
-  font-size: 20px;
-  font-weight: 800;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-  color: #ffaa00;
-  opacity: 0;
-  animation: name-appear 1.2s ease forwards;
-  animation-delay: 1.4s;
-}
-
 /* Barra circular de carga (determinante) */
 .pwa-splash-progress {
-  margin-top: 6px;
   opacity: 0;
-  animation: name-appear 0.6s ease forwards;
+  animation: appear 0.5s ease forwards;
   animation-delay: 2.5s;
 }
 .progress-ring {
@@ -119,6 +106,18 @@ export default {
   animation-delay: 2.5s;
 }
 
+.pwa-splash-name {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: #ffaa00;
+  opacity: 0;
+  animation: appear 1s ease forwards;
+  animation-delay: 2.6s;
+}
+
 @keyframes logo-appear {
   from {
     opacity: 0;
@@ -129,7 +128,7 @@ export default {
     transform: scale(1);
   }
 }
-@keyframes name-appear {
+@keyframes appear {
   from {
     opacity: 0;
   }
