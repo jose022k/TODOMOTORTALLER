@@ -288,7 +288,7 @@ export default {
       if (this.authStore.isCliente) {
         return ["/cliente/orders", "/notifications"];
       }
-      return [];
+      return ["/workshop", "/location", "/login", "/register/cliente"];
     },
     currentSwipeIndex() {
       return this.swipePages.indexOf(this.$route.path);
@@ -315,9 +315,13 @@ export default {
       const items = document.querySelectorAll(".pwa-bottom-nav .pwa-nav-item");
       const path = this.$route.path;
       items.forEach(el => {
+        el.style.color = "";
+      });
+      items.forEach(el => {
         const href = el.getAttribute("href");
-        const isActive = href === path;
-        el.style.color = isActive ? "#ffaa00" : "";
+        if (href === path) {
+          el.style.color = "#ffaa00";
+        }
       });
     },
     onThemeChange(dark) {
