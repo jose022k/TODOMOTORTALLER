@@ -293,11 +293,10 @@ export default {
     order: 2;
   }
   .dash-card {
-    padding: 16px 14px 12px;
+    padding: 14px;
     border-radius: 14px;
     gap: 8px;
-    justify-content: flex-start;
-    min-height: 112px;
+    justify-content: center;
   }
   .dash-icon-wrap {
     width: 38px;
@@ -313,14 +312,12 @@ export default {
     font-weight: 800;
   }
   .dash-card p {
-    font-size: 0.85rem;
-    line-height: 1.35;
-    margin: 0;
+    display: none;
   }
   .dash-footer {
     font-size: 0.78rem;
     padding-top: 6px;
-    margin-top: auto;
+    margin-top: 8px;
     border-top: none;
   }
 }
