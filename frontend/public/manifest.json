@@ -11,11 +11,22 @@
   "categories": ["business", "utilities"],
   "background_color": "#1a1a1a",
   "theme_color": "#ffaa00",
+  "splash_screen": {
+    "image": "img/logo-splash.png",
+    "background_color": "#1a1a1a"
+  },
   "icons": [
     {
       "src": "img/logo-splash.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "img/logo-splash.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     },
     {
       "src": "img/icons/logo-192.png",
