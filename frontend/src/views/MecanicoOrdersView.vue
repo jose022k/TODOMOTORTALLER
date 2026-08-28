@@ -2,7 +2,10 @@
   <div class="mecanico-orders">
     <div class="header">
       <div class="header-content">
-        <h1>Mis Órdenes de Servicio</h1>
+        <h1>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px; vertical-align: middle;"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 14l2 2 4-4"/></svg>
+          Mis Órdenes de Servicio
+        </h1>
         <p class="page-subtitle">Gestiona las órdenes asignadas</p>
       </div>
     </div>
