@@ -284,17 +284,18 @@ export default {
   .dashboard-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    grid-template-rows: auto auto;
-    gap: 16px 8px;
+    gap: 12px;
     flex: none;
     height: auto;
-    margin-top: 28px;
+    margin-top: 14px;
+    order: 2;
   }
   .dash-card {
     padding: 16px 14px 12px;
     border-radius: 14px;
     gap: 8px;
     justify-content: flex-start;
+    min-height: 112px;
   }
   .dash-icon-wrap {
     width: 38px;
@@ -365,15 +366,16 @@ html.dark .admin-panel .dash-footer {
 
 @media (max-width: 768px) {
   .daily-stats-banner {
-    margin-top: 12px;
-    border-radius: 8px;
+    order: 1;
+    margin-top: 14px;
+    border-radius: 10px;
   }
   .daily-stats-track {
-    gap: 32px;
-    padding: 8px 0;
+    gap: 36px;
+    padding: 12px 0;
   }
   .daily-stat {
-    font-size: 0.82rem;
+    font-size: 0.95rem;
   }
 }
 </style>
