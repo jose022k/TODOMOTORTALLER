@@ -663,6 +663,18 @@ html.dark .report-check-label:hover { background: var(--bg-hover); }
     font-weight: 700 !important;
   }
   .admin-orders { padding: 12px 12px 80px !important; }
+  html.dark .admin-mobile-card {
+    background: var(--bg-card) !important;
+    border-color: var(--border-default) !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3) !important;
+  }
+  html.dark .admin-mobile-val { color: var(--text-default) !important; }
+  html.dark .admin-mobile-actions { border-top-color: var(--border-light) !important; }
+  html.dark .admin-orders .data-table tr {
+    background: var(--bg-card) !important;
+    border-color: var(--border-default) !important;
+  }
+  html.dark .admin-orders .data-table td { color: var(--text-default) !important; }
 }
 html.dark .admin-mobile-card {
   background: var(--bg-card) !important;
@@ -727,6 +739,13 @@ html.dark .admin-orders .data-table td {
     font-weight: 700 !important;
   }
   .cliente-orders { padding: 12px 12px 80px !important; }
+  html.dark .cliente-mobile-card {
+    background: var(--bg-card) !important;
+    border-color: var(--border-default) !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3) !important;
+  }
+  html.dark .cliente-mobile-val { color: var(--text-default) !important; }
+  html.dark .cliente-mobile-actions { border-top-color: var(--border-light) !important; }
 }
 html.dark .cliente-mobile-card {
   background: var(--bg-card) !important;
@@ -784,6 +803,13 @@ html.dark .cliente-mobile-actions {
     font-weight: 700 !important;
   }
   .mecanico-orders { padding: 12px 12px 80px !important; }
+  html.dark .mecanico-mobile-card {
+    background: var(--bg-card) !important;
+    border-color: var(--border-default) !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3) !important;
+  }
+  html.dark .mecanico-mobile-val { color: var(--text-default) !important; }
+  html.dark .mecanico-mobile-actions { border-top-color: var(--border-light) !important; }
 }
 html.dark .mecanico-mobile-card {
   background: var(--bg-card) !important;
