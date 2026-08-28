@@ -1442,8 +1442,10 @@ html.dark .monto-tasa.warn { color: #fbbf24; }
   font-size: 0.85rem;
   color: #334155;
   margin-bottom: 4px;
+  line-height: 1.5;
 }
-.moto-label {
+.moto-detail .moto-label {
+  display: inline;
   color: #94a3b8;
   font-weight: 600;
 }
