@@ -1490,6 +1490,9 @@ html.dark .monto-tasa.warn { color: #fbbf24; }
     text-transform: uppercase;
     letter-spacing: 0.3px;
     min-width: 70px;
+    display: inline-block;
+    white-space: nowrap;
+    flex-shrink: 0;
   }
   .data-table td:last-child {
     padding-top: 8px;
