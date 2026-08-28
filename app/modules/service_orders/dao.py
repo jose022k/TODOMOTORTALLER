@@ -2,6 +2,7 @@ from typing import Optional, List
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import or_
 from app.core.base_dao import BaseDAO
+from app.modules.auth.models import Cliente
 from app.modules.service_orders.models import OrdenServicio, Evidencia
 from app.modules.service_orders.schemas import OrdenServicioCreate, OrdenServicioUpdate
 from app.modules.motorcycles.models import MotoCliente
@@ -79,7 +80,7 @@ class OrdenServicioDAO(BaseDAO[OrdenServicio, OrdenServicioCreate, OrdenServicio
             query = query.filter(self.model.moto_cliente_id == moto_cliente_id)
         if q:
             q = q.strip()
-            search_conditions = [self.model.cliente.nombre.ilike(f"%{q}%")]
+            search_conditions = [self.model.cliente.has(Cliente.nombre.ilike(f"%{q}%"))]
             try:
                 q_id = int(q)
                 search_conditions.append(self.model.id == q_id)
