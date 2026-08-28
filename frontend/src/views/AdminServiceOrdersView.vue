@@ -70,22 +70,6 @@
       </tbody>
     </table>
 
-    <!-- Mobile cards (outside table, hidden on desktop) -->
-    <div class="mobile-cards">
-      <div v-for="o in orders" :key="'m-' + o.id" class="mobile-card">
-        <div class="moto-detail"><span class="moto-label">ID:</span> {{ o.id }}</div>
-        <div class="moto-detail"><span class="moto-label">Cliente:</span> {{ capitalize(o.cliente_nombre) }}</div>
-        <div class="moto-detail"><span class="moto-label">Moto:</span> {{ o.moto_marca }} {{ o.moto_modelo }} ({{ o.moto_placa }})</div>
-        <div class="moto-detail"><span class="moto-label">Mecánico:</span> {{ capitalize(o.mecanico_nombre) }}</div>
-        <div class="moto-detail"><span class="moto-label">Estado:</span> <span :class="['badge', 'badge-' + o.estado]">{{ statusLabel(o.estado) }}</span></div>
-        <div class="moto-detail"><span class="moto-label">Fecha:</span> {{ formatDate(o.fecha_creacion) }}</div>
-        <div class="moto-card-actions">
-          <button class="btn-sm btn-view" @click="openDetailModal(o)">Ver detalles</button>
-          <button v-if="o.estado === 'en_proceso'" class="btn-sm btn-chat" @click="openChat(o)">Chat</button>
-        </div>
-      </div>
-    </div>
-
     <!-- Paginación -->
     <div v-if="!loading && totalPages > 1" class="pagination">
       <button class="page-btn" :disabled="page <= 1" @click="goToPage(page - 1)" title="Página anterior">&#9664;</button>
@@ -1437,25 +1421,6 @@ html.dark .monto-tasa.warn { color: #fbbf24; }
   text-align: center;
 }
 /* ===== MOBILE / PWA native feel ===== */
-.mobile-cards { display: none; }
-.moto-detail {
-  font-size: 0.85rem;
-  color: #334155;
-  margin-bottom: 4px;
-  line-height: 1.5;
-}
-.moto-detail .moto-label {
-  display: inline;
-  color: #94a3b8;
-  font-weight: 600;
-}
-.mobile-card-actions {
-  padding: 10px 0 0;
-  border-top: 1px solid #f1f5f9;
-  display: flex;
-  gap: 8px;
-  margin-top: 6px;
-}
 @media (max-width: 768px) {
   .admin-orders {
     padding: 12px 12px 80px;
@@ -1490,14 +1455,42 @@ html.dark .monto-tasa.warn { color: #fbbf24; }
     text-align: center;
     justify-content: center;
   }
-  .data-table { display: none; }
-  .mobile-cards { display: block; }
-  .mobile-card {
+  .data-table {
+    display: block;
+    overflow-x: hidden;
+    background: transparent;
+    box-shadow: none;
+    border-radius: 0;
+  }
+  .data-table thead { display: none; }
+  .data-table tbody { display: flex; flex-direction: column; gap: 10px; }
+  .data-table tr {
+    display: flex;
+    flex-direction: column;
     background: #fff;
-    border-radius: 12px;
+    border-radius: 14px;
     padding: 14px 16px;
-    margin-bottom: 10px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    border: 1px solid #f1f5f9;
+    gap: 6px;
+  }
+  .data-table td {
+    padding: 2px 0;
+    border-bottom: none;
+    font-size: 13px;
+  }
+  .data-table td::before {
+    content: attr(data-label) ": ";
+    font-weight: 700;
+    color: #94a3b8;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    display: inline;
+  }
+  .data-table td:last-child {
+    padding-top: 8px;
+    border-top: 1px solid #f1f5f9;
   }
   .btn-sm {
     padding: 8px 14px;
@@ -1543,16 +1536,6 @@ html.dark .monto-tasa.warn { color: #fbbf24; }
   .pagination {
     padding: 8px 0 20px;
   }
-}
-html.dark .mobile-card {
-  background: var(--bg-card);
-  border-color: var(--border-default);
-}
-html.dark .moto-detail {
-  color: var(--text-default);
-}
-html.dark .mobile-card-actions {
-  border-top-color: var(--border-light);
 }
 html.dark .data-table tr {
   background: #1a1f2e;
