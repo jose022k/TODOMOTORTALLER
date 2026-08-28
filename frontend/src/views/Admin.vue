@@ -270,8 +270,9 @@ export default {
 @media (max-width: 768px) {
   .admin-panel {
     padding: 10px 12px 80px;
-    height: auto;
+    height: calc(100vh - 92px);
     min-height: auto;
+    overflow-y: auto;
   }
   .welcome-section h1 {
     font-size: 1.3rem;
@@ -283,10 +284,11 @@ export default {
   }
   .dashboard-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
+    grid-auto-rows: 1fr;
     gap: 12px;
-    flex: none;
-    height: auto;
+    flex: 1;
+    min-height: 0;
     margin-top: 14px;
     order: 2;
   }
@@ -318,7 +320,7 @@ export default {
   .dash-footer {
     font-size: 0.78rem;
     padding-top: 6px;
-    margin-top: 0;
+    margin-top: auto;
     border-top: none;
   }
 }
