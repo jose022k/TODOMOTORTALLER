@@ -742,4 +742,31 @@ html.dark .moto-card {
   background: #1a1f2e;
   border-color: #1e293b;
 }
+html.dark .header h1 { color: #f1f5f9 !important; }
+html.dark .nav-tabs { background: var(--bg-muted) !important; }
+html.dark .nav-tab { color: var(--text-muted) !important; }
+html.dark .nav-tab.active { background: var(--bg-card) !important; color: var(--color-primary) !important; }
+html.dark .data-table { background: transparent !important; }
+html.dark .data-table th { background: var(--bg-muted) !important; color: var(--text-secondary) !important; border-bottom-color: var(--border-default) !important; }
+html.dark .data-table td { color: var(--text-default) !important; border-bottom-color: var(--border-light) !important; }
+html.dark .btn-view { background: #1e3a5f !important; color: #93c5fd !important; }
+html.dark .btn-chat { background: #064e3b !important; color: #6ee7b7 !important; }
+html.dark .btn-download { background: #78350f !important; color: #fde68a !important; }
+html.dark .btn-history { background: #2e1065 !important; color: #c4b5fd !important; }
+html.dark .btn-qr { background: #78350f !important; color: #fde68a !important; }
+html.dark .cliente-mobile-card { background: var(--bg-card) !important; border-color: var(--border-default) !important; box-shadow: 0 1px 3px rgba(0,0,0,0.3) !important; }
+html.dark .cliente-mobile-val { color: var(--text-default) !important; }
+html.dark .cliente-mobile-actions { border-top-color: var(--border-light) !important; }
+html.dark .moto-card { background: var(--bg-card) !important; border-color: var(--border-default) !important; }
+html.dark .moto-card-header { background: var(--bg-muted) !important; }
+html.dark .moto-marca { color: var(--text-default) !important; }
+html.dark .moto-modelo { color: var(--text-muted) !important; }
+html.dark .moto-detail { color: var(--text-secondary) !important; }
+html.dark .moto-label { color: var(--text-muted) !important; }
+html.dark .moto-card-actions { border-top-color: var(--border-light) !important; }
+html.dark .detail-item { background: var(--bg-muted) !important; }
+html.dark .detail-icon { background: var(--bg-card) !important; color: var(--color-primary) !important; }
+html.dark .detail-card { background: var(--bg-muted) !important; }
+html.dark .page-btn { background: var(--bg-card) !important; border-color: var(--border-default) !important; color: var(--text-secondary) !important; }
+html.dark .btn-cancel { background: #334155 !important; color: #cbd5e1 !important; }
 </style>

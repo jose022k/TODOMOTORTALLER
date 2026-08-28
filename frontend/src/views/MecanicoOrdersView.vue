@@ -570,4 +570,19 @@ html.dark .data-table tr {
   background: #1a1f2e;
   border-color: #1e293b;
 }
+html.dark .header h1 { color: #f1f5f9 !important; }
+html.dark .page-subtitle { color: var(--text-muted) !important; }
+html.dark .data-table { background: transparent !important; }
+html.dark .data-table th { background: var(--bg-muted) !important; color: var(--text-secondary) !important; border-bottom-color: var(--border-default) !important; }
+html.dark .data-table td { color: var(--text-default) !important; border-bottom-color: var(--border-light) !important; }
+html.dark .btn-view { background: #1e3a5f !important; color: #93c5fd !important; }
+html.dark .btn-chat { background: #064e3b !important; color: #6ee7b7 !important; }
+html.dark .mecanico-mobile-card { background: var(--bg-card) !important; border-color: var(--border-default) !important; box-shadow: 0 1px 3px rgba(0,0,0,0.3) !important; }
+html.dark .mecanico-mobile-val { color: var(--text-default) !important; }
+html.dark .mecanico-mobile-actions { border-top-color: var(--border-light) !important; }
+html.dark .detail-item { background: var(--bg-muted) !important; }
+html.dark .detail-icon { background: var(--bg-card) !important; color: var(--color-primary) !important; }
+html.dark .detail-card { background: var(--bg-muted) !important; }
+html.dark .form-control { background: var(--bg-input) !important; border-color: var(--border-strong) !important; color: var(--text-default) !important; }
+html.dark .page-btn { background: var(--bg-card) !important; border-color: var(--border-default) !important; color: var(--text-secondary) !important; }
 </style>
