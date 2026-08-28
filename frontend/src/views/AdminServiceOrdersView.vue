@@ -1495,7 +1495,7 @@ html.dark .monto-tasa.warn { color: #fbbf24; }
     padding-top: 8px;
     border-top: 1px solid #f1f5f9;
   }
-  .actions-cell {
+  .data-table td.actions-cell {
     display: block;
   }
   .btn-sm {
