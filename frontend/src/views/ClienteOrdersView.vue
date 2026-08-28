@@ -108,40 +108,64 @@
 
     <!-- Modal Detalle -->
     <div v-if="showDetail" class="modal-overlay" @click.self="showDetail = false">
-      <div class="modal modal-lg">
-        <div class="modal-header">
-          <h2>Orden #{{ detail.id }}</h2>
-          <button class="modal-close" @click="showDetail = false">×</button>
+      <div class="modal modal-lg" :class="'modal--' + detail?.estado">
+        <div class="modal-topbar">
+          <div class="topbar-left">
+            <span :class="['badge', 'badge-' + detail?.estado]">{{ statusLabel(detail?.estado) }}</span>
+            <span class="topbar-id">#{{ detail?.id }}</span>
+          </div>
+          <button class="modal-close" @click="showDetail = false">&times;</button>
         </div>
         <div class="modal-body" v-if="detail">
           <div class="detail-grid">
-            <div class="detail-field">
-              <span class="detail-label">Estado</span>
-              <span :class="['badge', 'badge-' + detail.estado]">{{ statusLabel(detail.estado) }}</span>
+            <div class="detail-item">
+              <div class="detail-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="14" r="4"/><circle cx="18" cy="14" r="4"/><path d="M6 14h12"/><path d="M16 4h-4l-3 5h7l2 3"/><path d="M3 10h3l1-2"/></svg>
+              </div>
+              <div>
+                <span class="detail-label">Moto</span>
+                <span class="detail-value moto-value"><span>{{ detail.moto_marca }} {{ detail.moto_modelo }}</span><span><span class="detail-sub">Placa:</span> {{ detail.moto_placa }}</span><span><span class="detail-sub">Año:</span> {{ detail.moto_anio }}</span></span>
+              </div>
             </div>
-            <div class="detail-field">
-              <span class="detail-label">Moto</span>
-              <span class="moto-info">{{ detail.moto_marca }} {{ detail.moto_modelo }}<br>Placa: {{ detail.moto_placa }}<br>Año: {{ detail.moto_anio }}</span>
+            <div class="detail-item" v-if="detail.moto_color_especifico || detail.moto_color">
+              <div class="detail-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+              </div>
+              <div>
+                <span class="detail-label">Color</span>
+                <span class="detail-value" v-if="detail.moto_color_especifico">
+                  <span class="color-dot" :style="{ backgroundColor: colorHex(detail.moto_color_especifico) }"></span>
+                  {{ detail.moto_color_especifico }}
+                </span>
+                <span class="detail-value" v-else>{{ detail.moto_color }}</span>
+              </div>
             </div>
-            <div class="detail-field" v-if="detail.moto_color_especifico">
-              <span class="detail-label">Color</span>
-              <span><span class="color-dot" :style="{ backgroundColor: colorHex(detail.moto_color_especifico) }"></span> {{ detail.moto_color_especifico }}</span>
+            <div class="detail-item">
+              <div class="detail-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              </div>
+              <div>
+                <span class="detail-label">Mecánico</span>
+                <span class="detail-value">{{ detail.mecanico_nombre }}</span>
+              </div>
             </div>
-            <div class="detail-field" v-else-if="detail.moto_color">
-              <span class="detail-label">Color</span>
-              <span>{{ detail.moto_color }}</span>
+            <div class="detail-item">
+              <div class="detail-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              </div>
+              <div>
+                <span class="detail-label">Creada</span>
+                <span class="detail-value">{{ formatDate(detail.fecha_creacion) }}</span>
+              </div>
             </div>
-            <div class="detail-field">
-              <span class="detail-label">Mecánico</span>
-              <span>{{ detail.mecanico_nombre }}</span>
-            </div>
-            <div class="detail-field">
-              <span class="detail-label">Fecha de Creación</span>
-              <span>{{ formatDate(detail.fecha_creacion) }}</span>
-            </div>
-            <div class="detail-field" v-if="detail.fecha_cierre">
-              <span class="detail-label">Fecha de Cierre</span>
-              <span>{{ formatDate(detail.fecha_cierre) }}</span>
+            <div class="detail-item" v-if="detail.fecha_cierre">
+              <div class="detail-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+              </div>
+              <div>
+                <span class="detail-label">Cerrada</span>
+                <span class="detail-value">{{ formatDate(detail.fecha_cierre) }}</span>
+              </div>
             </div>
           </div>
 
@@ -167,12 +191,17 @@
             </div>
           </div>
 
-          <div class="detail-section">
-            <h3>Descripción</h3>
-            <p>{{ detail.descripcion }}</p>
+          <div class="detail-card">
+            <div class="detail-card-header">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+              <span>Descripción</span>
+            </div>
+            <p class="detail-card-body">{{ detail.descripcion }}</p>
           </div>
         </div>
-        <div class="modal-footer"></div>
+        <div class="modal-footer">
+          <button class="btn-cancel" @click="showDetail = false">Cerrar</button>
+        </div>
       </div>
     </div>
 
@@ -499,19 +528,44 @@ export default {
 }
 .modal {
   background: #fff; border-radius: 20px; width: 90%; max-width: 640px;
-  padding: 28px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+  overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
   max-height: 90vh; overflow-y: auto;
 }
-.modal-header {
-  display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;
+.modal--pendiente { border-top: 4px solid #f59e0b; }
+.modal--en_proceso { border-top: 4px solid #3b82f6; }
+.modal-topbar {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 20px 28px; border-bottom: 1px solid #f1f5f9;
 }
-.modal-header h2 { font-size: 1.3rem; }
-.modal-close { background: none; border: none; width: 36px; height: 36px; border-radius: 8px; font-size: 1.5rem; cursor: pointer; color: #94a3b8; display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s; }
+.topbar-left { display: flex; align-items: center; gap: 10px; }
+.topbar-left .badge { font-size: 13px; padding: 6px 16px; border-radius: 20px; }
+.topbar-id { font-size: 14px; font-weight: 700; color: #94a3b8; letter-spacing: 0.3px; }
+.modal-close { background: none; border: none; width: 36px; height: 36px; border-radius: 8px; cursor: pointer; color: #64748b; font-size: 24px; font-weight: 400; line-height: 1; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
 .modal-close:hover { background: #fee2e2; color: #dc2626; }
-.detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
-.detail-field { font-size: 0.9rem; }
-.detail-label { display: block; font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 2px; }
-.moto-info { line-height: 1.6; }
+.modal-body { padding: 24px 28px 28px; }
+.detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+.detail-item {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 12px; background: #f8fafc; border-radius: 10px;
+}
+.detail-icon {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: #fff; color: #ffaa00;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.detail-label { display: block; font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 1px; }
+.detail-value { font-size: 13px; font-weight: 600; color: #1a1a1a; display: flex; align-items: center; gap: 6px; }
+.detail-value.moto-value { flex-direction: column; align-items: flex-start; gap: 4px; }
+.detail-sub { font-weight: 700; color: #94a3b8; }
+.detail-card {
+  margin-bottom: 24px; padding: 16px; background: #f8fafc; border-radius: 12px;
+}
+.detail-card-header {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+.detail-card-body { margin: 0; font-size: 14px; color: #475569; line-height: 1.6; }
 .detail-section { margin-top: 20px; }
 .detail-section h3 { font-size: 1rem; margin-bottom: 8px; color: #1a1a1a; }
 .progress-tracker {
@@ -538,7 +592,7 @@ export default {
 }
 .progress-line.completed { background: #16a34a; }
 .progress-line.cancelled { background: #ef4444; }
-.modal-footer { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; }
+.modal-footer { display: flex; justify-content: flex-end; gap: 12px; padding: 16px 28px; border-top: 1px solid #f1f5f9; }
 .btn-cancel { padding: 10px 20px; background: #f1f5f9; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
 .alert {
   padding: 12px 16px;
@@ -654,9 +708,9 @@ export default {
   .modal {
     width: 95%;
     border-radius: 16px;
-    padding: 20px;
     max-height: 80vh;
   }
+  .modal-body { padding: 16px; }
   .detail-grid {
     grid-template-columns: 1fr;
     gap: 10px;
