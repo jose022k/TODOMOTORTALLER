@@ -62,7 +62,7 @@ export default {
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  padding-top: 20px;
+  padding-top: 68px;
   min-height: calc(100vh - 80px);
   background: #ffffff;
 }
