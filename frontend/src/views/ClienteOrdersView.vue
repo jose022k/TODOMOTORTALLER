@@ -56,6 +56,22 @@
         </tbody>
       </table>
 
+      <!-- Mobile cards -->
+      <div class="cliente-mobile-cards">
+        <div v-for="o in orders" :key="'m-' + o.id" class="cliente-mobile-card">
+          <div class="cliente-mobile-row"><span class="cliente-mobile-lbl">ID:</span> <span class="cliente-mobile-val">{{ o.id }}</span></div>
+          <div class="cliente-mobile-row"><span class="cliente-mobile-lbl">Moto:</span> <span class="cliente-mobile-val">{{ o.moto_marca }} {{ o.moto_modelo }} ({{ o.moto_placa }})</span></div>
+          <div class="cliente-mobile-row"><span class="cliente-mobile-lbl">Mecánico:</span> <span class="cliente-mobile-val">{{ o.mecanico_nombre }}</span></div>
+          <div class="cliente-mobile-row"><span class="cliente-mobile-lbl">Descripción:</span> <span class="cliente-mobile-val">{{ o.descripcion }}</span></div>
+          <div class="cliente-mobile-row"><span class="cliente-mobile-lbl">Estado:</span> <span class="cliente-mobile-val"><span :class="['badge', 'badge-' + o.estado]">{{ statusLabel(o.estado) }}</span></span></div>
+          <div class="cliente-mobile-row"><span class="cliente-mobile-lbl">Fecha:</span> <span class="cliente-mobile-val">{{ formatDate(o.fecha_creacion) }}</span></div>
+          <div class="cliente-mobile-row cliente-mobile-actions">
+            <button class="btn-sm btn-view" @click="openDetail(o)">Ver</button>
+            <button v-if="o.estado === 'en_proceso'" class="btn-sm btn-chat" @click="openChat(o)">Chat</button>
+          </div>
+        </div>
+      </div>
+
       <!-- Paginación -->
       <div v-if="!loading && totalPages > 1" class="pagination">
         <button class="page-btn" :disabled="page <= 1" @click="goToPage(page - 1)" title="Página anterior">&#9664;</button>
@@ -628,47 +644,6 @@ export default {
     padding: 10px 12px;
     font-size: 13px;
     border-radius: 8px;
-  }
-  .data-table {
-    display: block;
-    overflow-x: hidden;
-    background: transparent;
-    box-shadow: none;
-  }
-  .data-table thead { display: none; }
-  .data-table tbody { display: flex; flex-direction: column; gap: 10px; }
-  .data-table tr {
-    display: flex;
-    flex-direction: column;
-    background: #fff;
-    border-radius: 14px;
-    padding: 14px 16px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-    border: 1px solid #f1f5f9;
-    gap: 6px;
-  }
-  .data-table td {
-    padding: 2px 0;
-    border-bottom: none;
-    font-size: 13px;
-  }
-  .data-table td::before {
-    content: attr(data-label);
-    font-weight: 700;
-    color: #94a3b8;
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
-    display: block;
-    margin-bottom: 2px;
-  }
-  .data-table td:last-child {
-    padding-top: 8px;
-    border-top: 1px solid #f1f5f9;
-  }
-  .desc-cell {
-    max-width: none;
-    white-space: normal;
   }
   .btn-sm {
     padding: 8px 14px;
