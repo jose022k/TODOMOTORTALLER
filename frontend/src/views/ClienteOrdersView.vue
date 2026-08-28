@@ -218,24 +218,30 @@
     <!-- Modal QR -->
     <div v-if="showQRModal" class="modal-overlay" @click.self="showQRModal = false">
       <div class="modal modal-sm">
-        <div class="modal-header">
-          <h2>QR de {{ qrMoto.marca }} {{ qrMoto.modelo }}</h2>
-          <button class="modal-close" @click="showQRModal = false">×</button>
+        <div class="modal-topbar">
+          <div class="topbar-left">
+            <span class="topbar-id">QR de {{ qrMoto.marca }} {{ qrMoto.modelo }}</span>
+          </div>
+          <button class="modal-close" @click="showQRModal = false">&times;</button>
         </div>
         <div class="modal-body qr-body">
           <img :src="qrMoto.codigo_qr" alt="QR" class="qr-image" />
           <p class="qr-placa">Placa: {{ qrMoto.placa }}</p>
         </div>
-        <div class="modal-footer"></div>
+        <div class="modal-footer">
+          <button class="btn-cancel" @click="showQRModal = false">Cerrar</button>
+        </div>
       </div>
     </div>
 
     <!-- Modal Historial -->
     <div v-if="showHistoryModal" class="modal-overlay" @click.self="showHistoryModal = false">
       <div class="modal modal-lg">
-        <div class="modal-header">
-          <h2>Historial — {{ historyMoto.marca }} {{ historyMoto.modelo }} ({{ historyMoto.placa }})</h2>
-          <button class="modal-close" @click="showHistoryModal = false">×</button>
+        <div class="modal-topbar">
+          <div class="topbar-left">
+            <span class="topbar-id">Historial — {{ historyMoto.marca }} {{ historyMoto.modelo }} ({{ historyMoto.placa }})</span>
+          </div>
+          <button class="modal-close" @click="showHistoryModal = false">&times;</button>
         </div>
         <div class="modal-body">
           <div v-if="historyLoading" class="loading-state">
