@@ -666,6 +666,8 @@ html.dark .report-check-label:hover { background: var(--bg-hover); }
   html.dark .admin-mobile-card {
     background: var(--bg-card) !important;
     border-color: var(--border-default) !important;
+    border-width: 1.5px !important;
+    border-radius: 16px !important;
     box-shadow: 0 1px 3px rgba(0,0,0,0.3) !important;
   }
   html.dark .admin-mobile-val { color: var(--text-default) !important; }
@@ -679,6 +681,8 @@ html.dark .report-check-label:hover { background: var(--bg-hover); }
 html.dark .admin-mobile-card {
   background: var(--bg-card) !important;
   border-color: var(--border-default) !important;
+  border-width: 1.5px !important;
+  border-radius: 16px !important;
 }
 html.dark .admin-mobile-val {
   color: var(--text-default) !important;
@@ -742,6 +746,8 @@ html.dark .admin-orders .data-table td {
   html.dark .cliente-mobile-card {
     background: var(--bg-card) !important;
     border-color: var(--border-default) !important;
+    border-width: 1.5px !important;
+    border-radius: 16px !important;
     box-shadow: 0 1px 3px rgba(0,0,0,0.3) !important;
   }
   html.dark .cliente-mobile-val { color: var(--text-default) !important; }
@@ -750,6 +756,8 @@ html.dark .admin-orders .data-table td {
 html.dark .cliente-mobile-card {
   background: var(--bg-card) !important;
   border-color: var(--border-default) !important;
+  border-width: 1.5px !important;
+  border-radius: 16px !important;
 }
 html.dark .cliente-mobile-val {
   color: var(--text-default) !important;
@@ -806,6 +814,8 @@ html.dark .cliente-mobile-actions {
   html.dark .mecanico-mobile-card {
     background: var(--bg-card) !important;
     border-color: var(--border-default) !important;
+    border-width: 1.5px !important;
+    border-radius: 16px !important;
     box-shadow: 0 1px 3px rgba(0,0,0,0.3) !important;
   }
   html.dark .mecanico-mobile-val { color: var(--text-default) !important; }
@@ -814,6 +824,8 @@ html.dark .cliente-mobile-actions {
 html.dark .mecanico-mobile-card {
   background: var(--bg-card) !important;
   border-color: var(--border-default) !important;
+  border-width: 1.5px !important;
+  border-radius: 16px !important;
 }
 html.dark .mecanico-mobile-val {
   color: var(--text-default) !important;

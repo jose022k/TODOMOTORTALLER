@@ -764,9 +764,6 @@ html.dark .moto-modelo { color: var(--text-muted) !important; }
 html.dark .moto-detail { color: var(--text-secondary) !important; }
 html.dark .moto-label { color: var(--text-muted) !important; }
 html.dark .moto-card-actions { border-top-color: var(--border-light) !important; }
-html.dark .detail-item { background: var(--bg-muted) !important; }
-html.dark .detail-icon { background: var(--bg-card) !important; color: var(--color-primary) !important; }
-html.dark .detail-card { background: var(--bg-muted) !important; }
 html.dark .page-btn { background: var(--bg-card) !important; border-color: var(--border-default) !important; color: var(--text-secondary) !important; }
 html.dark .btn-cancel { background: #334155 !important; color: #cbd5e1 !important; }
 </style>
