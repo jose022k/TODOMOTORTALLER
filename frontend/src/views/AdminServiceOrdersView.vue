@@ -1496,12 +1496,8 @@ html.dark .monto-tasa.warn { color: #fbbf24; }
     border-top: 1px solid #f1f5f9;
   }
   .actions-cell {
-    justify-content: flex-start !important;
-    align-items: flex-start !important;
     flex-wrap: wrap;
     gap: 8px;
-    width: 100%;
-    text-align: left;
   }
   .btn-sm {
     padding: 8px 14px;
