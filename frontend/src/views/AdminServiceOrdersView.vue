@@ -56,18 +56,33 @@
       </thead>
       <tbody>
         <tr v-for="o in orders" :key="o.id">
-          <td data-label="ID"><span class="td-value">{{ o.id }}</span></td>
-          <td data-label="Cliente"><span class="td-value">{{ capitalize(o.cliente_nombre) }}</span></td>
-          <td data-label="Moto"><span class="td-value">{{ o.moto_marca }} {{ o.moto_modelo }} ({{ o.moto_placa }})</span></td>
-          <td data-label="Mecánico"><span class="td-value">{{ capitalize(o.mecanico_nombre) }}</span></td>
-          <td data-label="Estado"><span class="td-value"><span :class="['badge', 'badge-' + o.estado]">{{ statusLabel(o.estado) }}</span></span></td>
-          <td data-label="Fecha"><span class="td-value">{{ formatDate(o.fecha_creacion) }}</span></td>
+          <td data-label="ID">{{ o.id }}</td>
+          <td data-label="Cliente">{{ capitalize(o.cliente_nombre) }}</td>
+          <td data-label="Moto">{{ o.moto_marca }} {{ o.moto_modelo }} ({{ o.moto_placa }})</td>
+          <td data-label="Mecánico">{{ capitalize(o.mecanico_nombre) }}</td>
+          <td data-label="Estado"><span :class="['badge', 'badge-' + o.estado]">{{ statusLabel(o.estado) }}</span></td>
+          <td data-label="Fecha">{{ formatDate(o.fecha_creacion) }}</td>
           <td class="actions-cell">
             <button class="btn-sm btn-view" @click="openDetailModal(o)">Ver detalles</button>
             <button v-if="o.estado === 'en_proceso'" class="btn-sm btn-chat" @click="openChat(o)">Chat</button>
           </td>
         </tr>
       </tbody>
+      <!-- Mobile cards: rendered as divs outside the table -->
+      <div class="mobile-cards">
+        <div v-for="o in orders" :key="'m-' + o.id" class="mobile-card">
+          <div class="mobile-row"><span class="mobile-label">ID</span><span class="mobile-val">{{ o.id }}</span></div>
+          <div class="mobile-row"><span class="mobile-label">Cliente</span><span class="mobile-val">{{ capitalize(o.cliente_nombre) }}</span></div>
+          <div class="mobile-row"><span class="mobile-label">Moto</span><span class="mobile-val">{{ o.moto_marca }} {{ o.moto_modelo }} ({{ o.moto_placa }})</span></div>
+          <div class="mobile-row"><span class="mobile-label">Mecánico</span><span class="mobile-val">{{ capitalize(o.mecanico_nombre) }}</span></div>
+          <div class="mobile-row"><span class="mobile-label">Estado</span><span class="mobile-val"><span :class="['badge', 'badge-' + o.estado]">{{ statusLabel(o.estado) }}</span></span></div>
+          <div class="mobile-row"><span class="mobile-label">Fecha</span><span class="mobile-val">{{ formatDate(o.fecha_creacion) }}</span></div>
+          <div class="mobile-card-actions">
+            <button class="btn-sm btn-view" @click="openDetailModal(o)">Ver detalles</button>
+            <button v-if="o.estado === 'en_proceso'" class="btn-sm btn-chat" @click="openChat(o)">Chat</button>
+          </div>
+        </div>
+      </div>
     </table>
 
     <!-- Paginación -->
@@ -1421,6 +1436,7 @@ html.dark .monto-tasa.warn { color: #fbbf24; }
   text-align: center;
 }
 /* ===== MOBILE / PWA native feel ===== */
+.mobile-cards { display: none; }
 @media (max-width: 768px) {
   .admin-orders {
     padding: 12px 12px 80px;
@@ -1455,35 +1471,23 @@ html.dark .monto-tasa.warn { color: #fbbf24; }
     text-align: center;
     justify-content: center;
   }
-  .data-table {
-    display: block;
-    overflow-x: hidden;
-    background: transparent;
-    box-shadow: none;
-    border-radius: 0;
-  }
   .data-table thead { display: none; }
-  .data-table tbody { display: flex; flex-direction: column; gap: 10px; }
-  .data-table tr {
-    display: flex;
-    flex-direction: column;
+  .data-table tbody { display: none; }
+  .mobile-cards { display: flex; flex-direction: column; gap: 10px; }
+  .mobile-card {
     background: #fff;
     border-radius: 14px;
     padding: 14px 16px;
     box-shadow: 0 1px 4px rgba(0,0,0,0.06);
     border: 1px solid #f1f5f9;
-    gap: 6px;
   }
-  .data-table td {
-    padding: 2px 0;
-    border-bottom: none;
-    font-size: 13px;
+  .mobile-row {
     display: flex;
     align-items: flex-start;
     gap: 8px;
+    padding: 4px 0;
   }
-  .data-table td::before {
-    content: attr(data-label);
+  .mobile-label {
     font-weight: 700;
     color: #94a3b8;
     font-size: 10px;
@@ -1491,25 +1495,21 @@ html.dark .monto-tasa.warn { color: #fbbf24; }
     letter-spacing: 0.3px;
     min-width: 70px;
     flex-shrink: 0;
+    padding-top: 2px;
   }
-  .data-table td .td-value {
+  .mobile-val {
+    font-size: 13px;
+    color: #1a1a1a;
     flex: 1;
     min-width: 0;
     word-break: break-word;
   }
-  .data-table td:last-child {
-    padding-top: 8px;
+  .mobile-card-actions {
+    display: flex;
+    gap: 8px;
+    padding-top: 10px;
+    margin-top: 6px;
     border-top: 1px solid #f1f5f9;
-  }
-  .data-table td.actions-cell {
-    padding-top: 8px;
-    border-top: 1px solid #f1f5f9;
-  }
-  .btn-sm {
-    padding: 8px 14px;
-    border-radius: 8px;
-    font-size: 13px;
-    font-weight: 700;
   }
   .modal {
     width: 95%;
@@ -1549,6 +1549,16 @@ html.dark .monto-tasa.warn { color: #fbbf24; }
   .pagination {
     padding: 8px 0 20px;
   }
+}
+html.dark .mobile-card {
+  background: var(--bg-card);
+  border-color: var(--border-default);
+}
+html.dark .mobile-val {
+  color: var(--text-default);
+}
+html.dark .mobile-card-actions {
+  border-top-color: var(--border-light);
 }
 html.dark .data-table tr {
   background: #1a1f2e;
