@@ -61,7 +61,8 @@ export default {
 .home {
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
+  padding-top: 20px;
   min-height: calc(100vh - 80px);
   background: #ffffff;
 }
