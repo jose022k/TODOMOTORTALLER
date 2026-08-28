@@ -1478,9 +1478,6 @@ html.dark .monto-tasa.warn { color: #fbbf24; }
     padding: 2px 0;
     border-bottom: none;
     font-size: 13px;
-    display: flex;
-    align-items: flex-start;
-    gap: 8px;
   }
   .data-table td::before {
     content: attr(data-label);
@@ -1489,14 +1486,16 @@ html.dark .monto-tasa.warn { color: #fbbf24; }
     font-size: 10px;
     text-transform: uppercase;
     letter-spacing: 0.3px;
-    min-width: 70px;
+    display: block;
+    margin-bottom: 2px;
   }
   .data-table td:last-child {
     padding-top: 8px;
     border-top: 1px solid #f1f5f9;
   }
   .data-table td.actions-cell {
-    display: block;
+    padding-top: 8px;
+    border-top: 1px solid #f1f5f9;
   }
   .btn-sm {
     padding: 8px 14px;
