@@ -855,6 +855,7 @@ html.dark .spinner { border-color: #334155; border-top-color: #ffaa00; }
   .notif-bell,
   .notif-badge,
   .notif-dropdown,
+  .pwa-bottom-nav,
   .admin-panel .welcome-section,
   .admin-panel .dashboard-grid,
   .chat-overlay {
