@@ -381,16 +381,19 @@
                 Cancelar
               </button>
             </div>
-            <div class="reassign-inline" v-if="detail.estado !== 'completada' && detail.estado !== 'cancelada'">
-              <select v-model="reassignMecanicoId" class="form-control">
-                <option value="">Reasignar mecánico...</option>
-                <option v-for="m in mechanics" :key="m.id" :value="m.id">{{ m.nombre }}</option>
-              </select>
-              <button class="action-btn action-btn--assign" @click="handleReassign" :disabled="!reassignMecanicoId">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg>
-                Reasignar
-              </button>
-            </div>
+              <div class="reassign-inline" v-if="detail.estado !== 'completada' && detail.estado !== 'cancelada'">
+                <span class="reassign-label">Reasignar mecánico</span>
+                <div class="reassign-controls">
+                  <select v-model="reassignMecanicoId" class="form-control">
+                    <option value="">Seleccionar mecánico...</option>
+                    <option v-for="m in mechanics" :key="m.id" :value="m.id">{{ m.nombre }}</option>
+                  </select>
+                  <button class="action-btn action-btn--assign" @click="handleReassign" :disabled="!reassignMecanicoId">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg>
+                    Reasignar
+                  </button>
+                </div>
+              </div>
           </div>
         </div>
       </div>
@@ -1175,11 +1178,27 @@ html.dark .monto-original { color: #4ade80; }
 }
 .reassign-inline {
   display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 14px;
+  padding: 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #f8fafc;
+}
+.reassign-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.reassign-controls {
+  display: flex;
   gap: 10px;
   align-items: center;
-  margin-left: auto;
 }
-.reassign-inline .form-control { width: auto; min-width: 180px; }
+.reassign-controls .form-control { flex: 1; min-width: 0; }
 .action-btn {
   display: inline-flex;
   align-items: center;
@@ -1665,12 +1684,15 @@ html.dark .monto-tasa.warn { color: #fbbf24; }
     font-size: 14px;
   }
   .reassign-inline {
-    flex-direction: column;
-    margin-left: 0;
+    margin-top: 12px;
+    padding: 12px;
   }
-  .reassign-inline .form-control {
+  .reassign-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .reassign-controls .form-control {
     width: 100%;
-    min-width: 100%;
   }
   .pagination {
     padding: 8px 0 20px;
@@ -1704,4 +1726,9 @@ html.dark .filters-toggle {
   color: var(--text-secondary, #cbd5e1);
 }
 html.dark .filters-toggle:hover { color: var(--text-default, #e2e8f0); }
+html.dark .reassign-inline {
+  background: var(--bg-input, #1a1f2e);
+  border-color: var(--border-input, #334155);
+}
+html.dark .reassign-label { color: var(--text-muted, #94a3b8); }
 </style>
