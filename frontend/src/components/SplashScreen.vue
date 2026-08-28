@@ -4,7 +4,7 @@
       <div class="pwa-splash-inner">
         <img
           class="pwa-splash-logo"
-          src="/img/logo2.png"
+          src="/img/logo-splash.png"
           alt="Todomotortaller"
         />
         <div class="pwa-splash-progress" aria-hidden="true">
