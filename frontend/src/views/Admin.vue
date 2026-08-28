@@ -270,8 +270,8 @@ export default {
 @media (max-width: 768px) {
   .admin-panel {
     padding: 10px 12px 0;
-    min-height: calc(100vh - 170px);
     height: auto;
+    min-height: 0;
   }
   .welcome-section h1 {
     font-size: 1.3rem;
@@ -284,27 +284,26 @@ export default {
   .dashboard-grid {
     display: grid;
     grid-template-columns: 1fr;
-    grid-auto-rows: 1fr;
     gap: 12px;
-    flex: 1;
-    min-height: 0;
+    flex: none;
+    height: auto;
     margin-top: 14px;
     order: 2;
   }
   .dash-card {
-    padding: 14px;
+    padding: 12px 14px;
     border-radius: 14px;
-    gap: 8px;
+    gap: 6px;
     justify-content: center;
   }
   .dash-icon-wrap {
-    width: 38px;
-    height: 38px;
+    width: 34px;
+    height: 34px;
     border-radius: 10px;
   }
   .dash-icon-wrap svg {
-    width: 22px;
-    height: 22px;
+    width: 20px;
+    height: 20px;
   }
   .dash-info h2 {
     font-size: 1.15rem;
@@ -370,10 +369,10 @@ html.dark .admin-panel .dash-footer {
   }
   .daily-stats-track {
     gap: 36px;
-    padding: 12px 0;
+    padding: 10px 0;
   }
   .daily-stat {
-    font-size: 0.95rem;
+    font-size: 0.9rem;
   }
 }
 </style>
