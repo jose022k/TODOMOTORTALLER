@@ -41,6 +41,7 @@ export default {
     async showNativeNotification(notif) {
       if (!("Notification" in window)) return;
       if (Notification.permission !== "granted") return;
+      if (this.isMobileView()) return;
       const url = this.buildUrl(notif);
       const options = {
         body: notif.mensaje || "",
@@ -67,6 +68,16 @@ export default {
         };
       } catch {
         // silent
+      }
+    },
+    isMobileView() {
+      try {
+        const standalone =
+          window.matchMedia &&
+          window.matchMedia("(display-mode: standalone)").matches;
+        return window.innerWidth <= 768 || standalone;
+      } catch (e) {
+        return false;
       }
     },
     buildUrl(n) {

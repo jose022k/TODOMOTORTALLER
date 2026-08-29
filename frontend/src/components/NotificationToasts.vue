@@ -1,5 +1,5 @@
 <template>
-  <div :class="['notif-toasts', isMobile ? 'notif-toasts--mobile' : 'notif-toasts--desktop']">
+  <div v-if="isMobile" :class="['notif-toasts', isMobile ? 'notif-toasts--mobile' : 'notif-toasts--desktop']">
     <transition-group name="toast">
       <div
         v-for="t in state.toasts"
