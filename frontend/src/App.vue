@@ -115,18 +115,18 @@
       <a href="/notifications" class="pwa-nav-item" @click.prevent="$router.push('/notifications')">
         <span class="notif-badge-wrap">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-          <span v-if="unreadCount > 0" class="notif-badge">{{ unreadCount > 99 ? '99+' : unreadCount }}</span>
-        </span>
-        <span>Alertas</span>
-      </a>
-      <div class="pwa-nav-item pwa-nav-settings">
-        <SettingsDropdown :above="true" @theme-change="onThemeChange" />
-        <span>Ajustes</span>
-      </div>
-      <button class="pwa-nav-item pwa-nav-logout" @click="handleLogout">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-        <span>Salir</span>
-      </button>
+          <span v-if="notif.state.unreadCount > 0" class="notif-badge">{{ notif.state.unreadCount > 99 ? '99+' : notif.state.unreadCount }}</span>
+         </span>
+         <span>Alertas</span>
+       </a>
+       <div class="pwa-nav-item pwa-nav-settings">
+         <SettingsDropdown :above="true" @theme-change="onThemeChange" />
+         <span>Ajustes</span>
+       </div>
+       <button class="pwa-nav-item pwa-nav-logout" @click="handleLogout">
+         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+         <span>Salir</span>
+       </button>
     </nav>
 
     <!-- BOTTOM NAV MOBILE: MECANICO -->
@@ -138,18 +138,18 @@
       <a href="/notifications" class="pwa-nav-item" @click.prevent="$router.push('/notifications')">
         <span class="notif-badge-wrap">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-          <span v-if="unreadCount > 0" class="notif-badge">{{ unreadCount > 99 ? '99+' : unreadCount }}</span>
-        </span>
-        <span>Alertas</span>
-      </a>
-      <div class="pwa-nav-item pwa-nav-settings">
-        <SettingsDropdown :above="true" @theme-change="onThemeChange" />
-        <span>Ajustes</span>
-      </div>
-      <button class="pwa-nav-item pwa-nav-logout" @click="handleLogout">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-        <span>Salir</span>
-      </button>
+          <span v-if="notif.state.unreadCount > 0" class="notif-badge">{{ notif.state.unreadCount > 99 ? '99+' : notif.state.unreadCount }}</span>
+         </span>
+         <span>Alertas</span>
+       </a>
+       <div class="pwa-nav-item pwa-nav-settings">
+         <SettingsDropdown :above="true" @theme-change="onThemeChange" />
+         <span>Ajustes</span>
+       </div>
+       <button class="pwa-nav-item pwa-nav-logout" @click="handleLogout">
+         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 14l2 2 4-4"/></svg>
+         <span>Salir</span>
+       </button>
     </nav>
 
     <!-- BOTTOM NAV MOBILE: CLIENTE -->
@@ -161,14 +161,14 @@
       <a href="/notifications" class="pwa-nav-item" @click.prevent="$router.push('/notifications')">
         <span class="notif-badge-wrap">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-          <span v-if="unreadCount > 0" class="notif-badge">{{ unreadCount > 99 ? '99+' : unreadCount }}</span>
-        </span>
-        <span>Alertas</span>
-      </a>
-      <div class="pwa-nav-item pwa-nav-settings">
-        <SettingsDropdown :above="true" @theme-change="onThemeChange" />
-        <span>Ajustes</span>
-      </div>
+          <span v-if="notif.state.unreadCount > 0" class="notif-badge">{{ notif.state.unreadCount > 99 ? '99+' : notif.state.unreadCount }}</span>
+         </span>
+         <span>Alertas</span>
+       </a>
+       <div class="pwa-nav-item pwa-nav-settings">
+         <SettingsDropdown :above="true" @theme-change="onThemeChange" />
+         <span>Ajustes</span>
+       </div>
       <button class="pwa-nav-item pwa-nav-logout" @click="handleLogout">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
         <span>Salir</span>
@@ -186,28 +186,31 @@
     />
     <LoadingOverlay :visible="loggingOut" text="Cerrando sesión..." />
     <NotificationNative />
+    <NotificationToasts />
     <SplashScreen />
   </div>
 </template>
 
 <script>
 import { useAuthStore } from "@/stores/auth";
+import { useNotifications } from "@/composables/useNotifications";
 import NotificationsDropdown from "@/components/NotificationsDropdown.vue";
 import SettingsDropdown from "@/components/SettingsDropdown.vue";
 import ConfirmModal from "@/components/ConfirmModal.vue";
 import LoadingOverlay from "@/components/LoadingOverlay.vue";
 import NotificationNative from "@/components/NotificationNative.vue";
+import NotificationToasts from "@/components/NotificationToasts.vue";
 import SplashScreen from "@/components/SplashScreen.vue";
 import { setupPush } from "@/services/push";
 import orderSocket from "@/services/orderSocket";
-import api from "@/services/api";
 
 export default {
   name: "App",
-  components: { NotificationsDropdown, SettingsDropdown, ConfirmModal, LoadingOverlay, NotificationNative, SplashScreen },
+  components: { NotificationsDropdown, SettingsDropdown, ConfirmModal, LoadingOverlay, NotificationNative, NotificationToasts, SplashScreen },
   setup() {
     const authStore = useAuthStore();
-    return { authStore };
+    const notif = useNotifications();
+    return { authStore, notif };
   },
   watch: {
     "$route"() {
@@ -221,12 +224,9 @@ export default {
         if (val) {
           orderSocket.enable();
           setTimeout(() => setupPush(), 1000);
-          this.fetchUnreadCount();
-          clearInterval(this.unreadPollInterval);
-          this.unreadPollInterval = setInterval(() => this.fetchUnreadCount(), 30000);
+          this.notif.init();
         } else {
-          clearInterval(this.unreadPollInterval);
-          this.unreadCount = 0;
+          this.notif.state.unreadCount = 0;
         }
       },
     },
@@ -243,7 +243,6 @@ export default {
     this.syncNavActive();
   },
   beforeUnmount() {
-    clearInterval(this.unreadPollInterval);
   },
   computed: {
     homeRoute() {
@@ -298,8 +297,6 @@ export default {
     return {
       showLogoutModal: false,
       loggingOut: false,
-      unreadCount: 0,
-      unreadPollInterval: null,
       isDark: document.documentElement.classList.contains("dark"),
       sunIcon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>',
       moonIcon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>',
@@ -341,15 +338,9 @@ export default {
       setTimeout(() => {
         this.authStore.logout();
         this.loggingOut = false;
-        this.unreadCount = 0;
+        this.notif.state.unreadCount = 0;
         this.$router.push("/login");
       }, 3000);
-    },
-    async fetchUnreadCount() {
-      try {
-        const { data } = await api.get("/notifications/unread-count");
-        this.unreadCount = data.count;
-      } catch { /* silent */ }
     },
     onTouchStart(e) {
       if (!this.showMobileNav || this.swipePages.length < 2) return;

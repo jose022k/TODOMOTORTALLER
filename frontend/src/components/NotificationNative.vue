@@ -41,17 +41,30 @@ export default {
     async showNativeNotification(notif) {
       if (!("Notification" in window)) return;
       if (Notification.permission !== "granted") return;
-      const reg = this.swRegistration;
-      if (!reg) return;
+      const url = this.buildUrl(notif);
+      const options = {
+        body: notif.mensaje || "",
+        icon: "/img/app-icon-512.png",
+        badge: "/img/app-icon-512.png",
+        data: { url },
+        vibrate: [200, 100, 200],
+      };
       try {
-        const url = this.buildUrl(notif);
-        await reg.showNotification("Todomotortaller", {
-          body: notif.mensaje || "",
-          icon: "/img/app-icon-512.png",
-          badge: "/img/app-icon-512.png",
-          data: { url },
-          vibrate: [200, 100, 200],
-        });
+        const reg = this.swRegistration;
+        if (reg && reg.showNotification) {
+          await reg.showNotification("Todomotortaller", options);
+          return;
+        }
+      } catch {
+        // fallback a Notification del navegador
+      }
+      try {
+        const n = new Notification("Todomotortaller", options);
+        n.onclick = () => {
+          window.focus();
+          if (url) window.location.href = url;
+          n.close();
+        };
       } catch {
         // silent
       }
