@@ -78,8 +78,19 @@ function onNew(notif) {
   });
   if (state.toasts.length > 4) state.toasts.shift();
   setTimeout(() => removeToast(key), 7000);
-  playSound();
+  if (isMobileView()) playSound();
   refreshCount();
+}
+
+function isMobileView() {
+  try {
+    const standalone =
+      window.matchMedia &&
+      window.matchMedia("(display-mode: standalone)").matches;
+    return window.innerWidth <= 768 || standalone;
+  } catch (e) {
+    return false;
+  }
 }
 
 export function useNotifications() {
