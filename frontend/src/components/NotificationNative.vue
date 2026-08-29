@@ -49,6 +49,7 @@ export default {
         badge: "/img/app-icon-512.png",
         data: { url },
         vibrate: [200, 100, 200],
+        silent: true,
       };
       try {
         const reg = this.swRegistration;
