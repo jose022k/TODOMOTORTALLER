@@ -1,5 +1,5 @@
 <template>
-  <div v-if="isMobile" :class="['notif-toasts', isMobile ? 'notif-toasts--mobile' : 'notif-toasts--desktop']">
+  <div v-if="isMobile || !nativeGranted" :class="['notif-toasts', isMobile ? 'notif-toasts--mobile' : 'notif-toasts--desktop']">
     <transition-group name="toast">
       <div
         v-for="t in state.toasts"
@@ -38,7 +38,7 @@ export default {
     return { state, removeToast, buildUrl };
   },
   data() {
-    return { isMobile: this.computeMobile() };
+    return { isMobile: this.computeMobile(), nativeGranted: this.computeNativeGranted() };
   },
   mounted() {
     window.addEventListener("resize", this.onResize);
@@ -53,8 +53,16 @@ export default {
         window.matchMedia("(display-mode: standalone)").matches;
       return window.innerWidth <= 768 || standalone;
     },
+    computeNativeGranted() {
+      try {
+        return "Notification" in window && Notification.permission === "granted";
+      } catch (e) {
+        return false;
+      }
+    },
     onResize() {
       this.isMobile = this.computeMobile();
+      this.nativeGranted = this.computeNativeGranted();
     },
     iconClass(tipo) {
       if (tipo === "orden_creada") return "ic-blue";
