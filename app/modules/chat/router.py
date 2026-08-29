@@ -1,8 +1,8 @@
-from fastapi import APIRouter, Depends, File, UploadFile
+from fastapi import APIRouter, Depends, File, Form, UploadFile
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.modules.auth.dependencies import get_current_user, AnyUser
-from app.modules.chat.schemas import MensajeCreate, MensajeEdit, MensajeResponse
+from app.modules.chat.schemas import MensajeCreate, MensajeEdit, MensajeResponse, EvidenciaResponse
 from app.modules.chat import service
 
 router = APIRouter(prefix="/chat", tags=["chat"])
@@ -27,7 +27,7 @@ def send_message(
     return service.send_message(db, orden_id, data.contenido, current_user)
 
 
-@router.get("/{orden_id}/evidencias")
+@router.get("/{orden_id}/evidencias", response_model=list[EvidenciaResponse])
 def list_evidencias(
     orden_id: int,
     db: Session = Depends(get_db),
@@ -36,11 +36,11 @@ def list_evidencias(
     return service.get_evidencias(db, orden_id, current_user)
 
 
-@router.post("/{orden_id}/evidencias", status_code=201)
+@router.post("/{orden_id}/evidencias", response_model=EvidenciaResponse, status_code=201)
 async def create_evidencia(
     orden_id: int,
     file: UploadFile = File(...),
-    mensaje_id: int = None,
+    mensaje_id: int = Form(None),
     db: Session = Depends(get_db),
     current_user: AnyUser = Depends(get_current_user),
 ):
@@ -58,7 +58,7 @@ def edit_message(
     return service.edit_message(db, orden_id, mensaje_id, data.contenido, current_user)
 
 
-@router.patch("/{orden_id}/evidencias/{evidencia_id}/link")
+@router.patch("/{orden_id}/evidencias/{evidencia_id}/link", response_model=EvidenciaResponse)
 def link_evidencia(
     orden_id: int,
     evidencia_id: int,

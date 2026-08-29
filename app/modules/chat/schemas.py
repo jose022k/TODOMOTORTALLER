@@ -24,3 +24,13 @@ class MensajeResponse(BaseModel):
     remitente_rol: str
 
     model_config = {"from_attributes": True}
+
+
+class EvidenciaResponse(BaseModel):
+    id: int
+    url: str
+    fecha: datetime
+    orden_servicio_id: int
+    mensaje_id: Optional[int] = None
+
+    model_config = {"from_attributes": True}
