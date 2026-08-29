@@ -48,6 +48,7 @@ export default {
         icon: "/img/app-icon-512.png",
         badge: "/img/app-icon-512.png",
         data: { url },
+        silent: true,
         vibrate: [200, 100, 200],
       };
       try {
