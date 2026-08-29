@@ -108,14 +108,12 @@ def send_message(db: Session, orden_id: int, contenido: str, current_user):
         if order.cliente_id:
             create_notification(db, "mensaje_recibido", f"Nuevo mensaje en la orden #{orden_id}", orden_servicio_id=orden_id, cliente_id=order.cliente_id, open_chat=True)
         for aid in [a.id for a in db.query(Admin.id).all()]:
-            if aid != user_id:
-                create_notification(db, "mensaje_recibido", f"Nuevo mensaje en la orden #{orden_id}", orden_servicio_id=orden_id, admin_id=aid, open_chat=True)
+            create_notification(db, "mensaje_recibido", f"Nuevo mensaje en la orden #{orden_id}", orden_servicio_id=orden_id, admin_id=aid, open_chat=True)
     elif sender_role == "cliente":
         if order.mecanico_id:
             create_notification(db, "mensaje_recibido", f"Nuevo mensaje en la orden #{orden_id}", orden_servicio_id=orden_id, mecanico_id=order.mecanico_id, open_chat=True)
         for aid in [a.id for a in db.query(Admin.id).all()]:
-            if aid != user_id:
-                create_notification(db, "mensaje_recibido", f"Nuevo mensaje en la orden #{orden_id}", orden_servicio_id=orden_id, admin_id=aid, open_chat=True)
+            create_notification(db, "mensaje_recibido", f"Nuevo mensaje en la orden #{orden_id}", orden_servicio_id=orden_id, admin_id=aid, open_chat=True)
 
     return _build_mensaje_response(msg)
 
@@ -248,8 +246,7 @@ async def create_evidencia(db: Session, orden_id: int, file: UploadFile, mensaje
     if order.mecanico_id and order.mecanico_id != current_user.id:
         create_notification(db, "evidencia_enviada", f"Nueva evidencia en la orden #{orden_id}", orden_servicio_id=orden_id, mecanico_id=order.mecanico_id, open_chat=True)
     for aid in [a.id for a in db.query(Admin.id).all()]:
-        if aid != current_user.id:
-            create_notification(db, "evidencia_enviada", f"Nueva evidencia en la orden #{orden_id}", orden_servicio_id=orden_id, admin_id=aid, open_chat=True)
+        create_notification(db, "evidencia_enviada", f"Nueva evidencia en la orden #{orden_id}", orden_servicio_id=orden_id, admin_id=aid, open_chat=True)
 
     return evidencia
 
