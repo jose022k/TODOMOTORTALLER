@@ -201,19 +201,15 @@ export default {
       }
       try {
         if (textContent && file) {
+          const msgRes = await api.post(`/chat/${this.ordenId}`, { contenido: textContent, orden_servicio_id: this.ordenId });
+          Object.assign(tempMsg, msgRes.data);
           const fd = new FormData();
           fd.append("file", file);
-          const [msgRes, evRes] = await Promise.all([
-            api.post(`/chat/${this.ordenId}`, { contenido: textContent, orden_servicio_id: this.ordenId }),
-            api.post(`/chat/${this.ordenId}/evidencias`, fd),
-          ]);
-          Object.assign(tempMsg, msgRes.data);
+          fd.append("mensaje_id", msgRes.data.id);
+          const evRes = await api.post(`/chat/${this.ordenId}/evidencias`, fd);
           const evIdx = this.evidencias.indexOf(tempEv);
-          const realEv = { _key: tempEv._key, ...evRes.data, mensaje_id: msgRes.data.id || null };
+          const realEv = { _key: tempEv._key, ...evRes.data };
           if (evIdx !== -1) this.evidencias.splice(evIdx, 1, realEv);
-          if (msgRes.data.id) {
-            api.patch(`/chat/${this.ordenId}/evidencias/${evRes.data.id}/link?mensaje_id=${msgRes.data.id}`).catch(() => {});
-          }
         } else if (file) {
           const fd = new FormData();
           fd.append("file", file);
