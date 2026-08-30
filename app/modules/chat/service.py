@@ -104,19 +104,15 @@ def send_message(db: Session, orden_id: int, contenido: str, current_user):
     sender_id = current_user.id
     try:
         if order.cliente_id and order.cliente_id != sender_id:
-            logger.info(f"[CHAT] Notifying cliente {order.cliente_id} for orden {orden_id}")
             create_notification(db, "mensaje_recibido", f"Nuevo mensaje en la orden #{orden_id}", orden_servicio_id=orden_id, cliente_id=order.cliente_id, open_chat=True)
         if order.mecanico_id and order.mecanico_id != sender_id:
-            logger.info(f"[CHAT] Notifying mecanico {order.mecanico_id} for orden {orden_id}")
             create_notification(db, "mensaje_recibido", f"Nuevo mensaje en la orden #{orden_id}", orden_servicio_id=orden_id, mecanico_id=order.mecanico_id, open_chat=True)
         admin_ids = [a.id for a in db.query(Admin.id).all()]
         for aid in admin_ids:
             if aid != sender_id:
-                logger.info(f"[CHAT] Notifying admin {aid} for orden {orden_id}")
                 create_notification(db, "mensaje_recibido", f"Nuevo mensaje en la orden #{orden_id}", orden_servicio_id=orden_id, admin_id=aid, open_chat=True)
-        logger.info(f"[CHAT] All notifications sent for orden {orden_id}")
     except Exception as e:
-        logger.error(f"[CHAT] NOTIFICATION FAILED for orden {orden_id}: {e}", exc_info=True)
+        logger.error(f"Notification failed for orden {orden_id}: {e}")
 
     return _build_mensaje_response(msg)
 
@@ -246,19 +242,15 @@ async def create_evidencia(db: Session, orden_id: int, file: UploadFile, mensaje
     # Notificar a los participantes de la orden (excluyendo al remitente)
     try:
         if order.cliente_id and order.cliente_id != current_user.id:
-            logger.info(f"[CHAT] Notifying cliente {order.cliente_id} evidencia for orden {orden_id}")
             create_notification(db, "evidencia_enviada", f"Nueva evidencia en la orden #{orden_id}", orden_servicio_id=orden_id, cliente_id=order.cliente_id, open_chat=True)
         if order.mecanico_id and order.mecanico_id != current_user.id:
-            logger.info(f"[CHAT] Notifying mecanico {order.mecanico_id} evidencia for orden {orden_id}")
             create_notification(db, "evidencia_enviada", f"Nueva evidencia en la orden #{orden_id}", orden_servicio_id=orden_id, mecanico_id=order.mecanico_id, open_chat=True)
         admin_ids = [a.id for a in db.query(Admin.id).all()]
         for aid in admin_ids:
             if aid != current_user.id:
-                logger.info(f"[CHAT] Notifying admin {aid} evidencia for orden {orden_id}")
                 create_notification(db, "evidencia_enviada", f"Nueva evidencia en la orden #{orden_id}", orden_servicio_id=orden_id, admin_id=aid, open_chat=True)
-        logger.info(f"[CHAT] All evidencia notifications sent for orden {orden_id}")
     except Exception as e:
-        logger.error(f"[CHAT] EVIDENCIA NOTIFICATION FAILED for orden {orden_id}: {e}", exc_info=True)
+        logger.error(f"Evidencia notification failed for orden {orden_id}: {e}")
 
     return evidencia
 

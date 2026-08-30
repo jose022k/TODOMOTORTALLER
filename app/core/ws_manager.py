@@ -37,7 +37,7 @@ class ConnectionManager:
         if key not in self.active_connections:
             self.active_connections[key] = []
         self.active_connections[key].append(websocket)
-        logger.info(f"WS CONNECTED: {key} (total: {sum(len(v) for v in self.active_connections.values())})")
+        logger.debug(f"WS connected: {key}")
 
     def disconnect(self, websocket: WebSocket, user_id: int, role: str):
         key = self._user_key(user_id, role)
@@ -52,7 +52,6 @@ class ConnectionManager:
         for user_id, role in user_ids:
             key = self._user_key(user_id, role)
             if key not in self.active_connections:
-                logger.debug(f"WS SKIP: {key} not in active_connections (keys={list(self.active_connections.keys())})")
                 continue
             for ws in self.active_connections[key][:]:
                 try:
@@ -60,7 +59,7 @@ class ConnectionManager:
                     sent += 1
                 except Exception:
                     self.disconnect(ws, user_id, role)
-        logger.info(f"WS broadcast tipo={message.get('tipo')} sent={sent} targets={len(user_ids)} active_keys={list(self.active_connections.keys())}")
+        logger.debug(f"WS broadcast tipo={message.get('tipo')} sent={sent} targets={len(user_ids)}")
 
     async def broadcast_order_event(self, event_type: str, order_id: int, estado: str, cliente_id: int, mecanico_id: int, admin_ids: List[int]):
         payload = {

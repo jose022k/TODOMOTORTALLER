@@ -27,7 +27,6 @@ export default {
     async onNewNotification(event) {
       const notif = event.detail;
       if (!notif) return;
-      console.log('[NOTIF-NATIVE] onNewNotification:', notif.tipo, 'id=' + notif.id);
       await this.ensureRegistration();
       await this.showNativeNotification(notif);
     },
@@ -40,8 +39,8 @@ export default {
       }
     },
     async showNativeNotification(notif) {
-      if (!("Notification" in window)) { console.log('[NOTIF-NATIVE] No Notification API'); return; }
-      if (Notification.permission !== "granted") { console.log('[NOTIF-NATIVE] Permission not granted:', Notification.permission); return; }
+      if (!("Notification" in window)) return;
+      if (Notification.permission !== "granted") return;
       const url = this.buildUrl(notif);
       const options = {
         body: notif.mensaje || "",

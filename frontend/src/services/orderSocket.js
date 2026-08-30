@@ -37,7 +37,6 @@ function onMessage(event) {
     if (data.tipo === 'orden_creada' || data.tipo === 'orden_actualizada') {
       window.dispatchEvent(new CustomEvent('order-updated', { detail: data }))
     } else if (data.tipo === 'notificacion_creada' && data.notificacion) {
-      console.log('[WS] notification-new received:', data.notificacion.tipo, 'id=' + data.notificacion.id)
       window.dispatchEvent(new CustomEvent('notification-new', { detail: data.notificacion }))
     }
   } catch (e) {
