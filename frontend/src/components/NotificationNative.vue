@@ -61,13 +61,6 @@ export default {
           reg = null;
         }
       }
-      if (!reg) {
-        try {
-          reg = await navigator.serviceWorker.ready;
-        } catch {
-          reg = null;
-        }
-      }
       if (reg && reg.showNotification) {
         try {
           await reg.showNotification("Todomotortaller", options);
