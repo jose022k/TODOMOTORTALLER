@@ -81,6 +81,7 @@ function pushToast(notif) {
 
 function onNew(notif) {
   if (!notif) return;
+  console.log('[NOTIF] onNew:', notif.tipo, notif.mensaje, notif);
   const visible =
     typeof document !== "undefined" && document.visibilityState === "visible";
   if (visible) {

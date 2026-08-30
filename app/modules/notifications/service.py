@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime
 from typing import List, Optional
 from sqlalchemy.orm import Session
@@ -6,6 +7,7 @@ from app.modules.notifications.schemas import NotificacionResponse
 from app.modules.notifications.push_service import notify_user
 from app.modules.preferences.service import should_notify, allowed_tipos
 
+logger = logging.getLogger(__name__)
 notificacion_dao = NotificacionDAO()
 
 
@@ -72,15 +74,21 @@ def create_notification(
     }
     extra = "&open_chat=1" if open_chat else ""
 
+    logger.info(f"[NOTIF] create_notification tipo={tipo} admin={admin_id} cliente={cliente_id} mecanico={mecanico_id} orden={orden_servicio_id}")
+
     # Verificar preferencias antes de notificar
     if admin_id and not should_notify(db, "admin", admin_id, tipo):
+        logger.info(f"[NOTIF] BLOCKED by should_notify for admin {admin_id}")
         return None
     if cliente_id and not should_notify(db, "cliente", cliente_id, tipo):
+        logger.info(f"[NOTIF] BLOCKED by should_notify for cliente {cliente_id}")
         return None
     if mecanico_id and not should_notify(db, "mecanico", mecanico_id, tipo):
+        logger.info(f"[NOTIF] BLOCKED by should_notify for mecanico {mecanico_id}")
         return None
 
     result = notificacion_dao.create(db, data)
+    logger.info(f"[NOTIF] CREATED in DB id={result.id}")
 
     # WebSocket: notificación instantánea
     try:
@@ -93,9 +101,11 @@ def create_notification(
             targets.append((mecanico_id, "mecanico"))
         if targets:
             from app.core.ws_manager import manager
-            manager.schedule_broadcast_notification(_build_response(result).model_dump(mode="json"), targets)
-    except Exception:
-        pass
+            notif_dict = _build_response(result).model_dump(mode="json")
+            logger.info(f"[NOTIF] WS BROADCAST targets={targets}")
+            manager.schedule_broadcast_notification(notif_dict, targets)
+    except Exception as e:
+        logger.error(f"[NOTIF] WS BROADCAST FAILED: {e}")
 
     # También enviar Web Push si hay un destinatario
     try:
@@ -113,7 +123,7 @@ def create_notification(
         if mecanico_id:
             url = f"/mecanico/orders?order_id={orden_servicio_id}{extra}" if orden_servicio_id else "/"
             notify_user(db, mecanico_id, "mecanico", "Todomotortaller", mensaje, url)
-    except Exception:
-        pass
+    except Exception as e:
+        logger.error(f"[NOTIF] PUSH FAILED: {e}")
 
     return result

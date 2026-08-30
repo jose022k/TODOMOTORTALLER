@@ -15,6 +15,7 @@ function getWebSocketUrl() {
 }
 
 function onOpen() {
+  console.log('[WS] Connected')
   clearInterval(pingTimer)
   pingTimer = setInterval(() => {
     if (ws && ws.readyState === WebSocket.OPEN) {
@@ -24,6 +25,7 @@ function onOpen() {
 }
 
 function onClose() {
+  console.log('[WS] Disconnected')
   clearInterval(pingTimer)
   if (enabled) {
     reconnectTimer = setTimeout(doConnect, RECONNECT_DELAY)
@@ -34,9 +36,11 @@ function onMessage(event) {
   if (event.data === 'pong') return
   try {
     const data = JSON.parse(event.data)
+    console.log('[WS] Received:', data.tipo, data)
     if (data.tipo === 'orden_creada' || data.tipo === 'orden_actualizada') {
       window.dispatchEvent(new CustomEvent('order-updated', { detail: data }))
     } else if (data.tipo === 'notificacion_creada' && data.notificacion) {
+      console.log('[WS] Dispatching notification-new:', data.notificacion)
       window.dispatchEvent(new CustomEvent('notification-new', { detail: data.notificacion }))
     }
   } catch (e) {
