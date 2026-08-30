@@ -47,8 +47,8 @@ async function refreshCount() {
             );
           }
         }
-      } catch (_) {
-        /* silent */
+      } catch (e) {
+        console.error("[Notifications] Failed to fetch notification list:", e.message);
       }
     }
 
@@ -56,7 +56,7 @@ async function refreshCount() {
     state.unreadCount = newCount;
     setBadge(newCount);
   } catch (e) {
-    /* silent */
+    console.error("[Notifications] Failed to refresh unread count:", e.message);
   }
 }
 

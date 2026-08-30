@@ -80,8 +80,8 @@ export default {
       try {
         const { data } = await api.get("/notifications/", { params: { limit: 20 } });
         this.notifications = data;
-      } catch {
-        // silent
+      } catch (e) {
+        console.error("[NotificationsDropdown] Failed to fetch notifications:", e.message);
       } finally {
         this.loading = false;
       }
@@ -90,8 +90,8 @@ export default {
       try {
         const { data } = await api.get("/notifications/unread-count");
         this.unread = data.count;
-      } catch {
-        // silent
+      } catch (e) {
+        console.error("[NotificationsDropdown] Failed to fetch unread count:", e.message);
       }
     },
     async markRead(n) {

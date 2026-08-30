@@ -78,13 +78,17 @@ def create_notification(
 
     # Verificar preferencias antes de notificar
     if admin_id and not should_notify(db, "admin", admin_id, tipo):
+        logger.info(f"[NOTIF] Skipped admin {admin_id} - preferences disabled for {tipo}")
         return None
     if cliente_id and not should_notify(db, "cliente", cliente_id, tipo):
+        logger.info(f"[NOTIF] Skipped cliente {cliente_id} - preferences disabled for {tipo}")
         return None
     if mecanico_id and not should_notify(db, "mecanico", mecanico_id, tipo):
+        logger.info(f"[NOTIF] Skipped mecanico {mecanico_id} - preferences disabled for {tipo}")
         return None
 
     result = notificacion_dao.create(db, data)
+    logger.info(f"[NOTIF] Created DB record id={result.id} tipo={tipo} admin={admin_id} cliente={cliente_id} mecanico={mecanico_id}")
 
     # WebSocket: notificación instantánea
     try:

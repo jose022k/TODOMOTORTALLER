@@ -103,17 +103,21 @@ def send_message(db: Session, orden_id: int, contenido: str, current_user):
     }
 
     msg = mensaje_dao.create(db, msg_data)
+    logger.info(f"[CHAT] Message {msg.id} created for orden {orden_id} by {current_user.rol} {current_user.id}")
 
     # Notificar a los participantes de la orden EXCLUYENDO al remitente
     sender_id = current_user.id
+    notif_created = 0
     try:
         if cliente_id and cliente_id != sender_id:
             create_notification(db, "mensaje_recibido", f"Nuevo mensaje en la orden #{orden_id}", orden_servicio_id=orden_id, cliente_id=cliente_id, open_chat=True)
+            notif_created += 1
     except Exception as e:
         logger.error(f"Notif cliente failed for orden {orden_id}: {e}", exc_info=True)
     try:
         if mecanico_id and mecanico_id != sender_id:
             create_notification(db, "mensaje_recibido", f"Nuevo mensaje en la orden #{orden_id}", orden_servicio_id=orden_id, mecanico_id=mecanico_id, open_chat=True)
+            notif_created += 1
     except Exception as e:
         logger.error(f"Notif mecanico failed for orden {orden_id}: {e}", exc_info=True)
     try:
@@ -121,8 +125,11 @@ def send_message(db: Session, orden_id: int, contenido: str, current_user):
         for aid in admin_ids:
             if aid != sender_id:
                 create_notification(db, "mensaje_recibido", f"Nuevo mensaje en la orden #{orden_id}", orden_servicio_id=orden_id, admin_id=aid, open_chat=True)
+                notif_created += 1
     except Exception as e:
         logger.error(f"Notif admins failed for orden {orden_id}: {e}", exc_info=True)
+
+    logger.info(f"[CHAT] Total notifications created for orden {orden_id}: {notif_created}")
 
     return _build_mensaje_response(msg)
 
