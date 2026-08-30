@@ -58,7 +58,7 @@ def should_notify(db: Session, user_role: str, user_id: int, tipo: str) -> bool:
         return True
 
     if tipo in ("mensaje_recibido", "evidencia_enviada"):
-        return pref.notify_messages
+        return True
     if tipo in ("orden_creada", "orden_en_proceso", "orden_completada", "orden_cancelada", "datos_actualizados"):
         return pref.notify_orders
 
@@ -75,9 +75,7 @@ def allowed_tipos(db: Session, user_role: str, user_id: int) -> set:
     if not pref:
         return None
 
-    allowed = set()
-    if pref.notify_messages:
-        allowed.update(MESSAGE_TIPOS)
+    allowed = set(MESSAGE_TIPOS)
     if pref.notify_orders:
         allowed.update(ORDER_TIPOS)
     return allowed
