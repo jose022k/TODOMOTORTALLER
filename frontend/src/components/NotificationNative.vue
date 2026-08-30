@@ -53,14 +53,28 @@ export default {
         silent: !this.isMobileView(),
         vibrate: [200, 100, 200],
       };
-      try {
-        const reg = this.swRegistration;
-        if (reg && reg.showNotification) {
+      let reg = this.swRegistration;
+      if (!reg) {
+        try {
+          reg = await navigator.serviceWorker.getRegistration();
+        } catch {
+          reg = null;
+        }
+      }
+      if (!reg) {
+        try {
+          reg = await navigator.serviceWorker.ready;
+        } catch {
+          reg = null;
+        }
+      }
+      if (reg && reg.showNotification) {
+        try {
           await reg.showNotification("Todomotortaller", options);
           return;
+        } catch {
+          // fallback a Notification del navegador
         }
-      } catch {
-        // fallback a Notification del navegador
       }
       try {
         const n = new Notification("Todomotortaller", options);
