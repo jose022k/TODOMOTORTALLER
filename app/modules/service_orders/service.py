@@ -115,8 +115,12 @@ def create_order(db: Session, data: OrdenServicioCreate, admin_user):
 
     order = orden_dao.create(db, order_data)
 
-    # Broadcast WebSocket (actualización en vivo de la lista; sin notificaciones de orden)
+    # Notificar creación de la orden (estado: pendiente)
+    create_notification(db, "orden_creada", f"Se ha creado una nueva orden de servicio", orden_servicio_id=order.id, cliente_id=data.cliente_id)
+    create_notification(db, "orden_creada", f"Tienes una nueva orden asignada", orden_servicio_id=order.id, mecanico_id=data.mecanico_id)
     admin_ids = [a.id for a in db.query(Admin.id).all()]
+    for aid in admin_ids:
+        create_notification(db, "orden_creada", f"Se ha creado la orden #{order.id}", orden_servicio_id=order.id, admin_id=aid)
 
     # Broadcast WebSocket
     manager.schedule_broadcast_order_event(
@@ -261,8 +265,20 @@ def update_order_status(db: Session, order_id: int, new_status: str, current_use
 
     updated = orden_dao.update(db, order, update_data)
 
-    # Actualización en vivo de la lista (sin notificaciones de cambio de estado)
+    # Notificar según la transición
     admin_ids = [a.id for a in db.query(Admin.id).all()]
+    if new_status == "en_proceso":
+        create_notification(db, "orden_en_proceso", f"La orden #{order_id} está en proceso", orden_servicio_id=order_id, cliente_id=order.cliente_id)
+        for aid in admin_ids:
+            create_notification(db, "orden_en_proceso", f"La orden #{order_id} está en proceso", orden_servicio_id=order_id, admin_id=aid)
+    elif new_status == "completada":
+        create_notification(db, "orden_completada", f"La orden #{order_id} ha sido completada", orden_servicio_id=order_id, cliente_id=order.cliente_id)
+        for aid in admin_ids:
+            create_notification(db, "orden_completada", f"La orden #{order_id} ha sido completada", orden_servicio_id=order_id, admin_id=aid)
+    elif new_status == "cancelada":
+        create_notification(db, "orden_cancelada", f"La orden #{order_id} ha sido cancelada", orden_servicio_id=order_id, cliente_id=order.cliente_id)
+        for aid in admin_ids:
+            create_notification(db, "orden_cancelada", f"La orden #{order_id} ha sido cancelada", orden_servicio_id=order_id, admin_id=aid)
 
     # Si se completa la orden, crear historial y generar QR
     if new_status == "completada":
