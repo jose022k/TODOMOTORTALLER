@@ -11,6 +11,8 @@ const state = reactive({
 
 let audioCtx = null;
 let toastSeq = 0;
+let lastUnreadCount = 0;
+const shownNotifIds = new Set();
 
 function playSound() {
   if (!state.soundEnabled) return;
@@ -53,8 +55,31 @@ function setBadge(n) {
 async function refreshCount() {
   try {
     const { data } = await api.get("/notifications/unread-count");
-    state.unreadCount = data.count || 0;
-    setBadge(state.unreadCount);
+    const newCount = data.count || 0;
+
+    if (newCount > lastUnreadCount) {
+      try {
+        const { data: notifs } = await api.get("/notifications/?limit=5");
+        const visible =
+          typeof document !== "undefined" &&
+          document.visibilityState === "visible";
+        for (const notif of notifs) {
+          if (!notif.leido && !shownNotifIds.has(notif.id)) {
+            shownNotifIds.add(notif.id);
+            if (visible) {
+              pushToast(notif);
+              playSound();
+            }
+          }
+        }
+      } catch (_) {
+        /* silent */
+      }
+    }
+
+    lastUnreadCount = newCount;
+    state.unreadCount = newCount;
+    setBadge(newCount);
   } catch (e) {
     /* silent */
   }
@@ -81,7 +106,8 @@ function pushToast(notif) {
 
 function onNew(notif) {
   if (!notif) return;
-  console.log('[NOTIF] onNew:', notif.tipo, notif.mensaje, notif);
+  if (shownNotifIds.has(notif.id)) return;
+  shownNotifIds.add(notif.id);
   const visible =
     typeof document !== "undefined" && document.visibilityState === "visible";
   if (visible) {
@@ -117,14 +143,9 @@ export function useNotifications() {
       document.addEventListener("click", reqPerm);
     }
     window.addEventListener("notification-new", (e) => onNew(e.detail));
-    api
-      .get("/preferences/")
-      .then((res) => {
-        state.soundEnabled = true;
-      })
-      .catch(() => {});
+    state.soundEnabled = true;
     refreshCount();
-    setInterval(refreshCount, 20000);
+    setInterval(refreshCount, 10000);
   }
 
   function requestPermission() {
