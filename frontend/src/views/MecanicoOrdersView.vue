@@ -290,12 +290,19 @@ export default {
       if (this.$route.query.open_chat === "1") {
         this.chatOrdenId = Number(orderId);
         this.showChatModal = true;
+        this.clearOrderRouteQuery();
         return;
       }
       this.showDetail = true;
       api.get(`/service-orders/${orderId}`).then(({ data }) => {
         this.detail = data;
       }).catch(() => {});
+      this.clearOrderRouteQuery();
+    },
+    clearOrderRouteQuery() {
+      if (this.$route.query.order_id || this.$route.query.open_chat) {
+        this.$router.replace({ path: this.$route.path, query: {} });
+      }
     },
     onOrderUpdated() {
       this.fetchOrders();
