@@ -7,6 +7,31 @@ import { useAuthStore } from "@/stores/auth";
 
 const OPEN_CHAT_TYPES = new Set(["mensaje_recibido", "evidencia_enviada"]);
 
+function playNotifSound() {
+  try {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return;
+    const ctx = new Ctx();
+    if (ctx.state === "suspended") ctx.resume();
+    const now = ctx.currentTime;
+    [880, 1320].forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.value = freq;
+      const t = now + i * 0.12;
+      gain.gain.setValueAtTime(0.0001, t);
+      gain.gain.exponentialRampToValueAtTime(0.25, t + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(t);
+      osc.stop(t + 0.2);
+    });
+  } catch (e) {
+    /* silent */
+  }
+}
+
 export default {
   name: "NotificationNative",
   setup() {
@@ -27,6 +52,11 @@ export default {
     async onNewNotification(event) {
       const notif = event.detail;
       if (!notif) return;
+      if (!("Notification" in window)) return;
+      if (Notification.permission !== "granted") return;
+      const visible = document.visibilityState === "visible";
+      if (!visible) return;
+      playNotifSound();
       await this.ensureRegistration();
       await this.showNativeNotification(notif);
     },
@@ -39,8 +69,6 @@ export default {
       }
     },
     async showNativeNotification(notif) {
-      if (!("Notification" in window)) return;
-      if (Notification.permission !== "granted") return;
       const url = this.buildUrl(notif);
       const options = {
         body: notif.mensaje || "",
@@ -50,8 +78,6 @@ export default {
         vibrate: [200, 100, 200],
       };
       if (this.isMobileView()) {
-        if (document.visibilityState === "visible") return;
-        options.silent = false;
         let reg = this.swRegistration;
         if (!reg) {
           try { reg = await navigator.serviceWorker.getRegistration(); } catch { reg = null; }

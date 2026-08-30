@@ -52,43 +52,12 @@ function setBadge(n) {
   }
 }
 
-async function refreshCount() {
+function nativeAvailable() {
   try {
-    const { data } = await api.get("/notifications/unread-count");
-    const newCount = data.count || 0;
-
-    if (newCount > lastUnreadCount) {
-      try {
-        const { data: notifs } = await api.get("/notifications/?limit=5");
-        const visible =
-          typeof document !== "undefined" &&
-          document.visibilityState === "visible";
-        for (const notif of notifs) {
-          if (!notif.leido && !shownNotifIds.has(notif.id)) {
-            shownNotifIds.add(notif.id);
-            const isChatNotif = notif.tipo === "mensaje_recibido" || notif.tipo === "evidencia_enviada";
-            if (!isChatNotif && visible) {
-              pushToast(notif);
-              playSound();
-            }
-          }
-        }
-      } catch (_) {
-        /* silent */
-      }
-    }
-
-    lastUnreadCount = newCount;
-    state.unreadCount = newCount;
-    setBadge(newCount);
+    return typeof Notification !== "undefined" && Notification.permission === "granted";
   } catch (e) {
-    /* silent */
+    return false;
   }
-}
-
-function removeToast(key) {
-  const idx = state.toasts.findIndex((t) => t.key === key);
-  if (idx !== -1) state.toasts.splice(idx, 1);
 }
 
 function pushToast(notif) {
@@ -105,18 +74,58 @@ function pushToast(notif) {
   setTimeout(() => removeToast(key), 7000);
 }
 
+function removeToast(key) {
+  const idx = state.toasts.findIndex((t) => t.key === key);
+  if (idx !== -1) state.toasts.splice(idx, 1);
+}
+
+async function refreshCount() {
+  try {
+    const { data } = await api.get("/notifications/unread-count");
+    const newCount = data.count || 0;
+
+    if (newCount > lastUnreadCount) {
+      try {
+        const { data: notifs } = await api.get("/notifications/?limit=5");
+        const visible =
+          typeof document !== "undefined" &&
+          document.visibilityState === "visible";
+        for (const notif of notifs) {
+          if (!notif.leido && !shownNotifIds.has(notif.id)) {
+            shownNotifIds.add(notif.id);
+            if (visible) {
+              window.dispatchEvent(
+                new CustomEvent("notification-new", { detail: notif })
+              );
+              if (!nativeAvailable()) {
+                pushToast(notif);
+                playSound();
+              }
+            }
+          }
+        }
+      } catch (_) {
+        /* silent */
+      }
+    }
+
+    lastUnreadCount = newCount;
+    state.unreadCount = newCount;
+    setBadge(newCount);
+  } catch (e) {
+    /* silent */
+  }
+}
+
 function onNew(notif) {
   if (!notif) return;
   if (shownNotifIds.has(notif.id)) return;
   shownNotifIds.add(notif.id);
-  const isChatNotif = notif.tipo === "mensaje_recibido" || notif.tipo === "evidencia_enviada";
-  if (!isChatNotif) {
-    const visible =
-      typeof document !== "undefined" && document.visibilityState === "visible";
-    if (visible) {
-      pushToast(notif);
-      playSound();
-    }
+  const visible =
+    typeof document !== "undefined" && document.visibilityState === "visible";
+  if (visible && !nativeAvailable()) {
+    pushToast(notif);
+    playSound();
   }
   refreshCount();
 }
