@@ -81,28 +81,11 @@ function pushToast(notif) {
 
 function onNew(notif) {
   if (!notif) return;
-  const mobile = isMobileView();
   const visible =
     typeof document !== "undefined" && document.visibilityState === "visible";
-  if (mobile && visible) {
-    // Móvil/PWA en primer plano: recuadro in-app + beep (la nativa la omite)
+  if (visible) {
     pushToast(notif);
     playSound();
-  } else if (
-    !mobile &&
-    typeof Notification !== "undefined" &&
-    Notification.permission !== "granted"
-  ) {
-    // Escritorio sin permiso de notificaciones: respaldo in-app para no perderla
-    pushToast(notif);
-    playSound();
-    if (!onNew._warned) {
-      onNew._warned = true;
-      console.info(
-        "[notificaciones] El navegador bloquea las notificaciones nativas del escritorio. " +
-          "Habilita el permiso de notificaciones en la configuración del sitio para verlas abajo a la derecha."
-      );
-    }
   }
   refreshCount();
 }
@@ -136,7 +119,7 @@ export function useNotifications() {
     api
       .get("/preferences/")
       .then((res) => {
-        state.soundEnabled = !!res.data.notify_messages;
+        state.soundEnabled = true;
       })
       .catch(() => {});
     refreshCount();

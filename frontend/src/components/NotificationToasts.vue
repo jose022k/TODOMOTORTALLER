@@ -1,5 +1,5 @@
 <template>
-  <div v-if="(isMobile && isVisible) || (!isMobile && isVisible && nativeBlocked())" :class="['notif-toasts', isMobile ? 'notif-toasts--mobile' : 'notif-toasts--desktop']">
+  <div v-if="isVisible" :class="['notif-toasts', isMobile ? 'notif-toasts--mobile' : 'notif-toasts--desktop']">
     <transition-group name="toast">
       <div
         v-for="t in state.toasts"

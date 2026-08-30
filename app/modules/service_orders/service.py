@@ -269,6 +269,8 @@ def update_order_status(db: Session, order_id: int, new_status: str, current_use
     admin_ids = [a.id for a in db.query(Admin.id).all()]
     if new_status == "en_proceso":
         create_notification(db, "orden_en_proceso", f"La orden #{order_id} está en proceso", orden_servicio_id=order_id, cliente_id=order.cliente_id)
+        if order.mecanico_id:
+            create_notification(db, "orden_en_proceso", f"La orden #{order_id} está en proceso", orden_servicio_id=order_id, mecanico_id=order.mecanico_id)
         for aid in admin_ids:
             create_notification(db, "orden_en_proceso", f"La orden #{order_id} está en proceso", orden_servicio_id=order_id, admin_id=aid)
     elif new_status == "completada":
