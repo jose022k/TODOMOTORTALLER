@@ -57,6 +57,8 @@ async function refreshCount() {
     const { data } = await api.get("/notifications/unread-count");
     const newCount = data.count || 0;
 
+    console.log('[NOTIF] refreshCount:', newCount, 'prev=' + lastUnreadCount);
+
     if (newCount > lastUnreadCount) {
       try {
         const { data: notifs } = await api.get("/notifications/?limit=5");
@@ -66,6 +68,7 @@ async function refreshCount() {
         for (const notif of notifs) {
           if (!notif.leido && !shownNotifIds.has(notif.id)) {
             shownNotifIds.add(notif.id);
+            console.log('[NOTIF] polling found new:', notif.tipo, 'id=' + notif.id);
             if (visible) {
               pushToast(notif);
               playSound();
@@ -110,22 +113,12 @@ function onNew(notif) {
   shownNotifIds.add(notif.id);
   const visible =
     typeof document !== "undefined" && document.visibilityState === "visible";
+  console.log('[NOTIF] onNew:', notif.tipo, 'id=' + notif.id, 'visible=' + visible);
   if (visible) {
     pushToast(notif);
     playSound();
   }
   refreshCount();
-}
-
-function isMobileView() {
-  try {
-    const standalone =
-      window.matchMedia &&
-      window.matchMedia("(display-mode: standalone)").matches;
-    return window.innerWidth <= 768 || standalone;
-  } catch (e) {
-    return false;
-  }
 }
 
 export function useNotifications() {
@@ -135,6 +128,7 @@ export function useNotifications() {
       return;
     }
     state.initialized = true;
+    console.log('[NOTIF] init() called, setting up listeners');
     if (typeof Notification !== "undefined" && Notification.permission === "default") {
       const reqPerm = () => {
         Notification.requestPermission().catch(() => {});
