@@ -1,5 +1,5 @@
 <template>
-  <div v-if="isMobile || !nativeGranted" :class="['notif-toasts', isMobile ? 'notif-toasts--mobile' : 'notif-toasts--desktop']">
+  <div v-if="isMobile && isVisible" :class="['notif-toasts', isMobile ? 'notif-toasts--mobile' : 'notif-toasts--desktop']">
     <transition-group name="toast">
       <div
         v-for="t in state.toasts"
@@ -38,13 +38,15 @@ export default {
     return { state, removeToast, buildUrl };
   },
   data() {
-    return { isMobile: this.computeMobile(), nativeGranted: this.computeNativeGranted() };
+    return { isMobile: this.computeMobile(), isVisible: this.computeVisible() };
   },
   mounted() {
     window.addEventListener("resize", this.onResize);
+    document.addEventListener("visibilitychange", this.onVisibility);
   },
   beforeUnmount() {
     window.removeEventListener("resize", this.onResize);
+    document.removeEventListener("visibilitychange", this.onVisibility);
   },
   methods: {
     computeMobile() {
@@ -53,16 +55,18 @@ export default {
         window.matchMedia("(display-mode: standalone)").matches;
       return window.innerWidth <= 768 || standalone;
     },
-    computeNativeGranted() {
+    computeVisible() {
       try {
-        return "Notification" in window && Notification.permission === "granted";
+        return typeof document === "undefined" || document.visibilityState === "visible";
       } catch (e) {
-        return false;
+        return true;
       }
     },
     onResize() {
       this.isMobile = this.computeMobile();
-      this.nativeGranted = this.computeNativeGranted();
+    },
+    onVisibility() {
+      this.isVisible = this.computeVisible();
     },
     iconClass(tipo) {
       if (tipo === "orden_creada") return "ic-blue";

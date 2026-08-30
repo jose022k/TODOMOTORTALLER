@@ -41,14 +41,16 @@ export default {
     async showNativeNotification(notif) {
       if (!("Notification" in window)) return;
       if (Notification.permission !== "granted") return;
-      if (this.isMobileView()) return;
+      // En móvil/PWA, si la app está en primer plano la toast in-app ya lo maneja.
+      if (this.isMobileView() && document.visibilityState === "visible") return;
       const url = this.buildUrl(notif);
       const options = {
         body: notif.mensaje || "",
         icon: "/img/app-icon-512.png",
         badge: "/img/app-icon-512.png",
         data: { url },
-        silent: true,
+        // PC: silenciado. Móvil en segundo plano: con sonido del SO (suena aunque no se vea).
+        silent: !this.isMobileView(),
         vibrate: [200, 100, 200],
       };
       try {

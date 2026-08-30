@@ -67,18 +67,24 @@ function removeToast(key) {
 
 function onNew(notif) {
   if (!notif) return;
-  const key = `t${notif.id || 0}-${toastSeq++}`;
-  state.toasts.push({
-    key,
-    id: notif.id,
-    tipo: notif.tipo,
-    mensaje: notif.mensaje || "",
-    orden_servicio_id: notif.orden_servicio_id,
-    ts: Date.now(),
-  });
-  if (state.toasts.length > 4) state.toasts.shift();
-  setTimeout(() => removeToast(key), 7000);
-  if (isMobileView()) playSound();
+  const foregroundMobile =
+    isMobileView() &&
+    typeof document !== "undefined" &&
+    document.visibilityState === "visible";
+  if (foregroundMobile) {
+    const key = `t${notif.id || 0}-${toastSeq++}`;
+    state.toasts.push({
+      key,
+      id: notif.id,
+      tipo: notif.tipo,
+      mensaje: notif.mensaje || "",
+      orden_servicio_id: notif.orden_servicio_id,
+      ts: Date.now(),
+    });
+    if (state.toasts.length > 4) state.toasts.shift();
+    setTimeout(() => removeToast(key), 7000);
+    playSound();
+  }
   refreshCount();
 }
 
@@ -100,6 +106,9 @@ export function useNotifications() {
       return;
     }
     state.initialized = true;
+    if (typeof Notification !== "undefined" && Notification.permission === "default") {
+      Notification.requestPermission().catch(() => {});
+    }
     window.addEventListener("notification-new", (e) => onNew(e.detail));
     api
       .get("/preferences/")
