@@ -1,5 +1,5 @@
 <template>
-  <div v-if="isMobile && isVisible" :class="['notif-toasts', isMobile ? 'notif-toasts--mobile' : 'notif-toasts--desktop']">
+  <div v-if="(isMobile && isVisible) || (!isMobile && isVisible && nativeBlocked())" :class="['notif-toasts', isMobile ? 'notif-toasts--mobile' : 'notif-toasts--desktop']">
     <transition-group name="toast">
       <div
         v-for="t in state.toasts"
@@ -58,6 +58,13 @@ export default {
     computeVisible() {
       try {
         return typeof document === "undefined" || document.visibilityState === "visible";
+      } catch (e) {
+        return true;
+      }
+    },
+    nativeBlocked() {
+      try {
+        return typeof Notification === "undefined" || Notification.permission !== "granted";
       } catch (e) {
         return true;
       }

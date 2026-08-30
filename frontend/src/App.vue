@@ -112,7 +112,7 @@
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         <span>Usuarios</span>
       </a>
-      <a href="/notifications" class="pwa-nav-item" @click.prevent="$router.push('/notifications')">
+      <a href="/notifications" class="pwa-nav-item" @click.prevent="notif.requestPermission(); $router.push('/notifications')">
         <span class="notif-badge-wrap">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
           <span v-if="notif.state.unreadCount > 0" class="notif-badge">{{ notif.state.unreadCount > 99 ? '99+' : notif.state.unreadCount }}</span>
@@ -135,7 +135,7 @@
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 14l2 2 4-4"/></svg>
         <span>Mis Órdenes</span>
       </a>
-      <a href="/notifications" class="pwa-nav-item" @click.prevent="$router.push('/notifications')">
+      <a href="/notifications" class="pwa-nav-item" @click.prevent="notif.requestPermission(); $router.push('/notifications')">
         <span class="notif-badge-wrap">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
           <span v-if="notif.state.unreadCount > 0" class="notif-badge">{{ notif.state.unreadCount > 99 ? '99+' : notif.state.unreadCount }}</span>
@@ -158,7 +158,7 @@
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
         <span>Mi Panel</span>
       </a>
-      <a href="/notifications" class="pwa-nav-item" @click.prevent="$router.push('/notifications')">
+      <a href="/notifications" class="pwa-nav-item" @click.prevent="notif.requestPermission(); $router.push('/notifications')">
         <span class="notif-badge-wrap">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
           <span v-if="notif.state.unreadCount > 0" class="notif-badge">{{ notif.state.unreadCount > 99 ? '99+' : notif.state.unreadCount }}</span>

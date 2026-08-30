@@ -139,6 +139,13 @@ export function useNotifications() {
     setInterval(refreshCount, 20000);
   }
 
+  function requestPermission() {
+    if (typeof Notification === "undefined") return;
+    if (Notification.permission === "default") {
+      Notification.requestPermission().catch(() => {});
+    }
+  }
+
   function buildUrl(notif) {
     const orderId = notif.orden_servicio_id;
     if (!orderId) return "/notifications";
@@ -156,5 +163,5 @@ export function useNotifications() {
     return `/mecanico/orders?order_id=${orderId}${openChat ? "&open_chat=1" : ""}`;
   }
 
-  return { state, init, refreshCount, removeToast, buildUrl };
+  return { state, init, refreshCount, removeToast, buildUrl, requestPermission };
 }
