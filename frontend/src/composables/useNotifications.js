@@ -11,8 +11,9 @@ const state = reactive({
 
 let audioCtx = null;
 let toastSeq = 0;
-let lastUnreadCount = 0;
+let lastUnreadCount = -1;
 const shownNotifIds = new Set();
+let baselineLoaded = false;
 
 function playSound() {
   if (!state.soundEnabled) return;
@@ -84,24 +85,23 @@ async function refreshCount() {
     const { data } = await api.get("/notifications/unread-count");
     const newCount = data.count || 0;
 
+    if (!baselineLoaded) {
+      baselineLoaded = true;
+      lastUnreadCount = newCount;
+      state.unreadCount = newCount;
+      setBadge(newCount);
+      return;
+    }
+
     if (newCount > lastUnreadCount) {
       try {
         const { data: notifs } = await api.get("/notifications/?limit=5");
-        const visible =
-          typeof document !== "undefined" &&
-          document.visibilityState === "visible";
         for (const notif of notifs) {
           if (!notif.leido && !shownNotifIds.has(notif.id)) {
             shownNotifIds.add(notif.id);
-            if (visible) {
-              window.dispatchEvent(
-                new CustomEvent("notification-new", { detail: notif })
-              );
-              if (!nativeAvailable()) {
-                pushToast(notif);
-                playSound();
-              }
-            }
+            window.dispatchEvent(
+              new CustomEvent("notification-new", { detail: notif })
+            );
           }
         }
       } catch (_) {
@@ -121,12 +121,6 @@ function onNew(notif) {
   if (!notif) return;
   if (shownNotifIds.has(notif.id)) return;
   shownNotifIds.add(notif.id);
-  const visible =
-    typeof document !== "undefined" && document.visibilityState === "visible";
-  if (visible && !nativeAvailable()) {
-    pushToast(notif);
-    playSound();
-  }
   refreshCount();
 }
 

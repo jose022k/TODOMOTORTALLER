@@ -54,8 +54,6 @@ export default {
       if (!notif) return;
       if (!("Notification" in window)) return;
       if (Notification.permission !== "granted") return;
-      const visible = document.visibilityState === "visible";
-      if (!visible) return;
       playNotifSound();
       await this.ensureRegistration();
       await this.showNativeNotification(notif);
