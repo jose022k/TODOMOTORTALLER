@@ -65,25 +65,44 @@ function removeToast(key) {
   if (idx !== -1) state.toasts.splice(idx, 1);
 }
 
+function pushToast(notif) {
+  const key = `t${notif.id || 0}-${toastSeq++}`;
+  state.toasts.push({
+    key,
+    id: notif.id,
+    tipo: notif.tipo,
+    mensaje: notif.mensaje || "",
+    orden_servicio_id: notif.orden_servicio_id,
+    ts: Date.now(),
+  });
+  if (state.toasts.length > 4) state.toasts.shift();
+  setTimeout(() => removeToast(key), 7000);
+}
+
 function onNew(notif) {
   if (!notif) return;
-  const foregroundMobile =
-    isMobileView() &&
-    typeof document !== "undefined" &&
-    document.visibilityState === "visible";
-  if (foregroundMobile) {
-    const key = `t${notif.id || 0}-${toastSeq++}`;
-    state.toasts.push({
-      key,
-      id: notif.id,
-      tipo: notif.tipo,
-      mensaje: notif.mensaje || "",
-      orden_servicio_id: notif.orden_servicio_id,
-      ts: Date.now(),
-    });
-    if (state.toasts.length > 4) state.toasts.shift();
-    setTimeout(() => removeToast(key), 7000);
+  const mobile = isMobileView();
+  const visible =
+    typeof document !== "undefined" && document.visibilityState === "visible";
+  if (mobile && visible) {
+    // Móvil/PWA en primer plano: recuadro in-app + beep (la nativa la omite)
+    pushToast(notif);
     playSound();
+  } else if (
+    !mobile &&
+    typeof Notification !== "undefined" &&
+    Notification.permission !== "granted"
+  ) {
+    // Escritorio sin permiso de notificaciones: respaldo in-app para no perderla
+    pushToast(notif);
+    playSound();
+    if (!onNew._warned) {
+      onNew._warned = true;
+      console.info(
+        "[notificaciones] El navegador bloquea las notificaciones nativas del escritorio. " +
+          "Habilita el permiso de notificaciones en la configuración del sitio para verlas abajo a la derecha."
+      );
+    }
   }
   refreshCount();
 }
