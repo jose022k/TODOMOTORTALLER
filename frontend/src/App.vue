@@ -186,7 +186,6 @@
     />
     <LoadingOverlay :visible="loggingOut" text="Cerrando sesión..." />
     <NotificationNative />
-    <NotificationToasts />
     <SplashScreen />
   </div>
 </template>
@@ -199,14 +198,13 @@ import SettingsDropdown from "@/components/SettingsDropdown.vue";
 import ConfirmModal from "@/components/ConfirmModal.vue";
 import LoadingOverlay from "@/components/LoadingOverlay.vue";
 import NotificationNative from "@/components/NotificationNative.vue";
-import NotificationToasts from "@/components/NotificationToasts.vue";
 import SplashScreen from "@/components/SplashScreen.vue";
 import { setupPush } from "@/services/push";
 import orderSocket from "@/services/orderSocket";
 
 export default {
   name: "App",
-  components: { NotificationsDropdown, SettingsDropdown, ConfirmModal, LoadingOverlay, NotificationNative, NotificationToasts, SplashScreen },
+  components: { NotificationsDropdown, SettingsDropdown, ConfirmModal, LoadingOverlay, NotificationNative, SplashScreen },
   setup() {
     const authStore = useAuthStore();
     const notif = useNotifications();

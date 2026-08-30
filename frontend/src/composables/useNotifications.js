@@ -4,42 +4,12 @@ import { useAuthStore } from "@/stores/auth";
 
 const state = reactive({
   unreadCount: 0,
-  toasts: [],
-  soundEnabled: true,
   initialized: false,
 });
 
-let audioCtx = null;
-let toastSeq = 0;
 let lastUnreadCount = -1;
 const shownNotifIds = new Set();
 let baselineLoaded = false;
-
-function playSound() {
-  if (!state.soundEnabled) return;
-  try {
-    const Ctx = window.AudioContext || window.webkitAudioContext;
-    if (!Ctx) return;
-    if (!audioCtx) audioCtx = new Ctx();
-    if (audioCtx.state === "suspended") audioCtx.resume();
-    const now = audioCtx.currentTime;
-    [880, 1320].forEach((freq, i) => {
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.type = "sine";
-      osc.frequency.value = freq;
-      const t = now + i * 0.12;
-      gain.gain.setValueAtTime(0.0001, t);
-      gain.gain.exponentialRampToValueAtTime(0.25, t + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
-      osc.connect(gain).connect(audioCtx.destination);
-      osc.start(t);
-      osc.stop(t + 0.2);
-    });
-  } catch (e) {
-    /* silent */
-  }
-}
 
 function setBadge(n) {
   try {
@@ -51,33 +21,6 @@ function setBadge(n) {
   } catch (e) {
     /* silent */
   }
-}
-
-function nativeAvailable() {
-  try {
-    return typeof Notification !== "undefined" && Notification.permission === "granted";
-  } catch (e) {
-    return false;
-  }
-}
-
-function pushToast(notif) {
-  const key = `t${notif.id || 0}-${toastSeq++}`;
-  state.toasts.push({
-    key,
-    id: notif.id,
-    tipo: notif.tipo,
-    mensaje: notif.mensaje || "",
-    orden_servicio_id: notif.orden_servicio_id,
-    ts: Date.now(),
-  });
-  if (state.toasts.length > 4) state.toasts.shift();
-  setTimeout(() => removeToast(key), 7000);
-}
-
-function removeToast(key) {
-  const idx = state.toasts.findIndex((t) => t.key === key);
-  if (idx !== -1) state.toasts.splice(idx, 1);
 }
 
 async function refreshCount() {
@@ -139,7 +82,6 @@ export function useNotifications() {
       document.addEventListener("click", reqPerm);
     }
     window.addEventListener("notification-new", (e) => onNew(e.detail));
-    state.soundEnabled = true;
     refreshCount();
     setInterval(refreshCount, 10000);
   }
@@ -168,5 +110,5 @@ export function useNotifications() {
     return `/mecanico/orders?order_id=${orderId}${openChat ? "&open_chat=1" : ""}`;
   }
 
-  return { state, init, refreshCount, removeToast, buildUrl, requestPermission };
+  return { state, init, refreshCount, buildUrl, requestPermission };
 }
