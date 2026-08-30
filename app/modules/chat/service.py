@@ -91,6 +91,10 @@ def send_message(db: Session, orden_id: int, contenido: str, current_user):
         "cliente": "cliente_id",
     }.get(current_user.rol)
 
+    # Capturar IDs ANTES del commit (mensaje_dao.create hace commit y expira el order)
+    cliente_id = order.cliente_id
+    mecanico_id = order.mecanico_id
+
     msg_data = {
         "contenido": contenido,
         "fecha_hora": datetime.utcnow(),
@@ -103,16 +107,22 @@ def send_message(db: Session, orden_id: int, contenido: str, current_user):
     # Notificar a los participantes de la orden EXCLUYENDO al remitente
     sender_id = current_user.id
     try:
-        if order.cliente_id and order.cliente_id != sender_id:
-            create_notification(db, "mensaje_recibido", f"Nuevo mensaje en la orden #{orden_id}", orden_servicio_id=orden_id, cliente_id=order.cliente_id, open_chat=True)
-        if order.mecanico_id and order.mecanico_id != sender_id:
-            create_notification(db, "mensaje_recibido", f"Nuevo mensaje en la orden #{orden_id}", orden_servicio_id=orden_id, mecanico_id=order.mecanico_id, open_chat=True)
+        if cliente_id and cliente_id != sender_id:
+            create_notification(db, "mensaje_recibido", f"Nuevo mensaje en la orden #{orden_id}", orden_servicio_id=orden_id, cliente_id=cliente_id, open_chat=True)
+    except Exception as e:
+        logger.error(f"Notif cliente failed for orden {orden_id}: {e}", exc_info=True)
+    try:
+        if mecanico_id and mecanico_id != sender_id:
+            create_notification(db, "mensaje_recibido", f"Nuevo mensaje en la orden #{orden_id}", orden_servicio_id=orden_id, mecanico_id=mecanico_id, open_chat=True)
+    except Exception as e:
+        logger.error(f"Notif mecanico failed for orden {orden_id}: {e}", exc_info=True)
+    try:
         admin_ids = [a.id for a in db.query(Admin.id).all()]
         for aid in admin_ids:
             if aid != sender_id:
                 create_notification(db, "mensaje_recibido", f"Nuevo mensaje en la orden #{orden_id}", orden_servicio_id=orden_id, admin_id=aid, open_chat=True)
     except Exception as e:
-        logger.error(f"Notification failed for orden {orden_id}: {e}")
+        logger.error(f"Notif admins failed for orden {orden_id}: {e}", exc_info=True)
 
     return _build_mensaje_response(msg)
 
@@ -229,6 +239,10 @@ async def create_evidencia(db: Session, orden_id: int, file: UploadFile, mensaje
         public_id=f"evidencia_{orden_id}_{int(datetime.utcnow().timestamp())}",
     )
 
+    # Capturar IDs ANTES del commit (db.commit expira el order)
+    cliente_id = order.cliente_id
+    mecanico_id = order.mecanico_id
+
     evidencia = Evidencia(
         url=result["secure_url"],
         fecha=datetime.utcnow(),
@@ -241,16 +255,22 @@ async def create_evidencia(db: Session, orden_id: int, file: UploadFile, mensaje
 
     # Notificar a los participantes de la orden (excluyendo al remitente)
     try:
-        if order.cliente_id and order.cliente_id != current_user.id:
-            create_notification(db, "evidencia_enviada", f"Nueva evidencia en la orden #{orden_id}", orden_servicio_id=orden_id, cliente_id=order.cliente_id, open_chat=True)
-        if order.mecanico_id and order.mecanico_id != current_user.id:
-            create_notification(db, "evidencia_enviada", f"Nueva evidencia en la orden #{orden_id}", orden_servicio_id=orden_id, mecanico_id=order.mecanico_id, open_chat=True)
+        if cliente_id and cliente_id != current_user.id:
+            create_notification(db, "evidencia_enviada", f"Nueva evidencia en la orden #{orden_id}", orden_servicio_id=orden_id, cliente_id=cliente_id, open_chat=True)
+    except Exception as e:
+        logger.error(f"Evidencia notif cliente failed for orden {orden_id}: {e}", exc_info=True)
+    try:
+        if mecanico_id and mecanico_id != current_user.id:
+            create_notification(db, "evidencia_enviada", f"Nueva evidencia en la orden #{orden_id}", orden_servicio_id=orden_id, mecanico_id=mecanico_id, open_chat=True)
+    except Exception as e:
+        logger.error(f"Evidencia notif mecanico failed for orden {orden_id}: {e}", exc_info=True)
+    try:
         admin_ids = [a.id for a in db.query(Admin.id).all()]
         for aid in admin_ids:
             if aid != current_user.id:
                 create_notification(db, "evidencia_enviada", f"Nueva evidencia en la orden #{orden_id}", orden_servicio_id=orden_id, admin_id=aid, open_chat=True)
     except Exception as e:
-        logger.error(f"Evidencia notification failed for orden {orden_id}: {e}")
+        logger.error(f"Evidencia notif admins failed for orden {orden_id}: {e}", exc_info=True)
 
     return evidencia
 
