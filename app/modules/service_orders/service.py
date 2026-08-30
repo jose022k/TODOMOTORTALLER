@@ -277,6 +277,8 @@ def update_order_status(db: Session, order_id: int, new_status: str, current_use
             create_notification(db, "orden_completada", f"La orden #{order_id} ha sido completada", orden_servicio_id=order_id, admin_id=aid)
     elif new_status == "cancelada":
         create_notification(db, "orden_cancelada", f"La orden #{order_id} ha sido cancelada", orden_servicio_id=order_id, cliente_id=order.cliente_id)
+        if order.mecanico_id:
+            create_notification(db, "orden_cancelada", f"La orden #{order_id} ha sido cancelada", orden_servicio_id=order_id, mecanico_id=order.mecanico_id)
         for aid in admin_ids:
             create_notification(db, "orden_cancelada", f"La orden #{order_id} ha sido cancelada", orden_servicio_id=order_id, admin_id=aid)
 

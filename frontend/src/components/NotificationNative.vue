@@ -41,32 +41,23 @@ export default {
     async showNativeNotification(notif) {
       if (!("Notification" in window)) return;
       if (Notification.permission !== "granted") return;
-      // En móvil/PWA, si la app está en primer plano la toast in-app ya lo maneja.
-      if (this.isMobileView() && document.visibilityState === "visible") return;
       const url = this.buildUrl(notif);
       const options = {
         body: notif.mensaje || "",
         icon: "/img/app-icon-512.png",
         badge: "/img/app-icon-512.png",
         data: { url },
-        // PC: silenciado. Móvil en segundo plano: con sonido del SO (suena aunque no se vea).
-        silent: !this.isMobileView(),
         vibrate: [200, 100, 200],
       };
-      let reg = this.swRegistration;
-      if (!reg) {
-        try {
-          reg = await navigator.serviceWorker.getRegistration();
-        } catch {
-          reg = null;
+      if (this.isMobileView()) {
+        if (document.visibilityState === "visible") return;
+        options.silent = false;
+        let reg = this.swRegistration;
+        if (!reg) {
+          try { reg = await navigator.serviceWorker.getRegistration(); } catch { reg = null; }
         }
-      }
-      if (reg && reg.showNotification) {
-        try {
-          await reg.showNotification("Todomotortaller", options);
-          return;
-        } catch {
-          // fallback a Notification del navegador
+        if (reg && reg.showNotification) {
+          try { await reg.showNotification("Todomotortaller", options); return; } catch (e) { /* fallback */ }
         }
       }
       try {
@@ -76,9 +67,7 @@ export default {
           if (url) window.location.href = url;
           n.close();
         };
-      } catch {
-        // silent
-      }
+      } catch (e) { /* notification blocked */ }
     },
     isMobileView() {
       try {

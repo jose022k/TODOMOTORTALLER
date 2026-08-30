@@ -126,7 +126,11 @@ export function useNotifications() {
     }
     state.initialized = true;
     if (typeof Notification !== "undefined" && Notification.permission === "default") {
-      Notification.requestPermission().catch(() => {});
+      const reqPerm = () => {
+        Notification.requestPermission().catch(() => {});
+        document.removeEventListener("click", reqPerm);
+      };
+      document.addEventListener("click", reqPerm);
     }
     window.addEventListener("notification-new", (e) => onNew(e.detail));
     api
