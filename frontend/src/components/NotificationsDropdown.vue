@@ -70,6 +70,9 @@ export default {
   },
   methods: {
     async toggleDropdown() {
+      if ("Notification" in window && Notification.permission === "default") {
+        Notification.requestPermission().catch(() => {});
+      }
       this.open = !this.open;
       if (this.open) {
         await this.fetchNotifications();
