@@ -20,7 +20,7 @@ import api from "@/services/api";
 const OPEN_CHAT_TYPES = new Set(["mensaje_recibido", "evidencia_enviada"]);
 
 let audioCtx = null;
-let audioBuffer = null;
+let notifAudio = null;
 
 function ensureAudioCtx() {
   if (audioCtx) return audioCtx;
@@ -40,34 +40,34 @@ function unlockAudio() {
 
 function playNotifSound() {
   unlockAudio();
-  const ctx = ensureAudioCtx();
-  if (ctx && audioBuffer) {
+  if (notifAudio) {
     try {
-      if (ctx.state === "suspended") ctx.resume();
-      const src = ctx.createBufferSource();
-      src.buffer = audioBuffer;
-      src.connect(ctx.destination);
-      src.start(0);
+      notifAudio.currentTime = 0;
+      const p = notifAudio.play();
+      if (p && p.catch) p.catch(() => {});
       return;
     } catch (e) { void e; }
+  }
+  const ctx = ensureAudioCtx();
+  if (ctx && audioCtx.state === "suspended") {
+    try { ctx.resume(); } catch (e) { void e; }
   }
   const audioEl = document.querySelector('audio[src="/sounds/notification.wav"]');
   if (audioEl) {
     try {
       audioEl.currentTime = 0;
-      audioEl.play().catch(() => {});
+      const p = audioEl.play();
+      if (p && p.catch) p.catch(() => {});
     } catch (e) { void e; }
   }
 }
 
 function preloadSound() {
-  const ctx = ensureAudioCtx();
-  if (!ctx || audioBuffer) return;
-  fetch("/sounds/notification.wav")
-    .then((r) => r.arrayBuffer())
-    .then((data) => ctx.decodeAudioData(data))
-    .then((buf) => { audioBuffer = buf; })
-    .catch(() => {});
+  try {
+    notifAudio = new Audio("/sounds/notification.wav");
+    notifAudio.preload = "auto";
+    notifAudio.load();
+  } catch (e) { void e; }
 }
 
 export default {
