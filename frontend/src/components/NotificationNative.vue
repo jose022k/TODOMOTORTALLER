@@ -16,7 +16,44 @@ import { useAuthStore } from "@/stores/auth";
 import api from "@/services/api";
 
 const OPEN_CHAT_TYPES = new Set(["mensaje_recibido", "evidencia_enviada"]);
-const notifSound = new Audio("/sounds/notification.wav");
+
+let audioCtx = null;
+let audioBuffer = null;
+let audioUnlocked = false;
+
+function unlockAudio() {
+  if (audioUnlocked) return;
+  try {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const buf = audioCtx.createBuffer(1, 1, 22050);
+    const src = audioCtx.createBufferSource();
+    src.buffer = buf;
+    src.connect(audioCtx.destination);
+    src.start(0);
+    audioUnlocked = true;
+    loadSound();
+  } catch (e) { void e; }
+}
+
+function loadSound() {
+  if (!audioCtx || audioBuffer) return;
+  fetch("/sounds/notification.wav")
+    .then((r) => r.arrayBuffer())
+    .then((data) => audioCtx.decodeAudioData(data))
+    .then((buf) => { audioBuffer = buf; })
+    .catch(() => {});
+}
+
+function playNotifSound() {
+  if (!audioCtx || !audioBuffer) return;
+  try {
+    if (audioCtx.state === "suspended") audioCtx.resume();
+    const src = audioCtx.createBufferSource();
+    src.buffer = audioBuffer;
+    src.connect(audioCtx.destination);
+    src.start(0);
+  } catch (e) { void e; }
+}
 
 export default {
   name: "NotificationNative",
@@ -39,6 +76,9 @@ export default {
     window.addEventListener("notification-new", this.onNewNotification);
     this.checkPermission();
     this.pollTimer = setInterval(() => this.pollNotifications(), 10000);
+    ["click", "touchstart", "keydown"].forEach((evt) => {
+      window.addEventListener(evt, unlockAudio, { once: true, passive: true });
+    });
   },
   beforeUnmount() {
     window.removeEventListener("notification-new", this.onNewNotification);
@@ -53,6 +93,7 @@ export default {
     },
     async requestPermission() {
       if (!("Notification" in window)) return;
+      unlockAudio();
       try {
         const result = await Notification.requestPermission();
         this.showPermBanner = false;
@@ -66,10 +107,7 @@ export default {
       this.showPermBanner = false;
     },
     playSound() {
-      try {
-        notifSound.currentTime = 0;
-        notifSound.play().catch(() => {});
-      } catch (e) { void e; }
+      playNotifSound();
     },
     async onNewNotification(event) {
       const notif = event.detail;
