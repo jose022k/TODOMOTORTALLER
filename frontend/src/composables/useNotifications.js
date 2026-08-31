@@ -35,6 +35,7 @@ export function useNotifications() {
     state.initialized = true;
     fetchCount();
     setInterval(fetchCount, 10000);
+    requestPermission();
   }
 
   function requestPermission() {
