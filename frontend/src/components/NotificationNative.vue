@@ -20,37 +20,61 @@ const OPEN_CHAT_TYPES = new Set(["mensaje_recibido", "evidencia_enviada"]);
 let audioCtx = null;
 let audioBuffer = null;
 let audioUnlocked = false;
+let pendingPlay = false;
+
+function ensureAudioCtx() {
+  if (!audioCtx) {
+    try {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    } catch (e) { void e; }
+  }
+  return audioCtx;
+}
+
+function loadSound() {
+  const ctx = ensureAudioCtx();
+  if (!ctx || audioBuffer) return;
+  fetch("/sounds/notification.wav")
+    .then((r) => r.arrayBuffer())
+    .then((data) => ctx.decodeAudioData(data))
+    .then((buf) => {
+      audioBuffer = buf;
+      if (pendingPlay) {
+        pendingPlay = false;
+        playNotifSound();
+      }
+    })
+    .catch(() => {});
+}
 
 function unlockAudio() {
   if (audioUnlocked) return;
   try {
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const buf = audioCtx.createBuffer(1, 1, 22050);
-    const src = audioCtx.createBufferSource();
+    const ctx = ensureAudioCtx();
+    if (!ctx) return;
+    if (ctx.state === "suspended") ctx.resume();
+    const buf = ctx.createBuffer(1, 1, 22050);
+    const src = ctx.createBufferSource();
     src.buffer = buf;
-    src.connect(audioCtx.destination);
+    src.connect(ctx.destination);
     src.start(0);
     audioUnlocked = true;
-    loadSound();
   } catch (e) { void e; }
 }
 
-function loadSound() {
-  if (!audioCtx || audioBuffer) return;
-  fetch("/sounds/notification.wav")
-    .then((r) => r.arrayBuffer())
-    .then((data) => audioCtx.decodeAudioData(data))
-    .then((buf) => { audioBuffer = buf; })
-    .catch(() => {});
-}
-
 function playNotifSound() {
-  if (!audioCtx || !audioBuffer) return;
+  const ctx = ensureAudioCtx();
+  if (!ctx) return;
+  if (!audioBuffer) {
+    loadSound();
+    pendingPlay = true;
+    return;
+  }
   try {
-    if (audioCtx.state === "suspended") audioCtx.resume();
-    const src = audioCtx.createBufferSource();
+    if (ctx.state === "suspended") ctx.resume();
+    const src = ctx.createBufferSource();
     src.buffer = audioBuffer;
-    src.connect(audioCtx.destination);
+    src.connect(ctx.destination);
     src.start(0);
   } catch (e) { void e; }
 }
@@ -79,6 +103,8 @@ export default {
     ["click", "touchstart", "keydown"].forEach((evt) => {
       window.addEventListener(evt, unlockAudio, { once: true, passive: true });
     });
+    ensureAudioCtx();
+    loadSound();
   },
   beforeUnmount() {
     window.removeEventListener("notification-new", this.onNewNotification);
