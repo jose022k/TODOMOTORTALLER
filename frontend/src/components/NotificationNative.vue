@@ -1,11 +1,5 @@
 <template>
-  <div class="native-notifier">
-    <div v-if="showPrompt" class="notif-permission-banner">
-      <span>Habilita las notificaciones para recibir alertas de mensajes y evidencias.</span>
-      <button class="notif-permission-btn" @click="requestPerm">Activar</button>
-      <button class="notif-permission-dismiss" @click="dismissPrompt">×</button>
-    </div>
-  </div>
+  <div class="native-notifier"></div>
 </template>
 
 <script>
@@ -19,48 +13,17 @@ export default {
     const authStore = useAuthStore();
     return { authStore };
   },
-  data() {
-    return {
-      showPrompt: false,
-    };
-  },
   mounted() {
     this.swRegistration = null;
     navigator.serviceWorker?.ready.then((reg) => {
       this.swRegistration = reg;
     }).catch(() => {});
     window.addEventListener("notification-new", this.onNewNotification);
-    this.checkPermissionPrompt();
   },
   beforeUnmount() {
     window.removeEventListener("notification-new", this.onNewNotification);
   },
   methods: {
-    checkPermissionPrompt() {
-      if (typeof Notification === "undefined") return;
-      if (Notification.permission !== "default") return;
-      if (this.isMobileOrPwa()) return;
-      if (sessionStorage.getItem("notif_prompt_dismissed")) return;
-      this.showPrompt = true;
-    },
-    isMobileOrPwa() {
-      try {
-        if (window.matchMedia?.("(display-mode: standalone)").matches) return true;
-        if (window.navigator?.standalone) return true;
-        if (window.innerWidth <= 768) return true;
-      } catch (e) { void e; }
-      return false;
-    },
-    async requestPerm() {
-      if ("Notification" in window) {
-        const result = await Notification.requestPermission().catch(() => "default");
-        if (result === "granted") this.showPrompt = false;
-      }
-    },
-    dismissPrompt() {
-      this.showPrompt = false;
-      sessionStorage.setItem("notif_prompt_dismissed", "1");
-    },
     async onNewNotification(event) {
       const notif = event.detail;
       if (!notif) return;
@@ -89,24 +52,20 @@ export default {
             vibrate: [200, 100, 200],
           });
           return;
-        } catch {
-          // fallback to new Notification
-        }
+        } catch (e) { void e; }
       }
       try {
-        const n = new Notification("Todomotortaller", {
+        var notifObj = new Notification("Todomotortaller", {
           body: notif.mensaje || "",
           icon: "/img/icons/logo-192.png",
-          tag: `notif-${notif.id}`,
+          tag: "notif-" + notif.id,
         });
-        n.onclick = () => {
+        notifObj.onclick = function () {
           window.focus();
-          if (url && url !== "/") this.$router?.push(url);
-          n.close();
+          if (url && url !== "/") window.location.href = url;
+          notifObj.close();
         };
-      } catch {
-        // silent
-      }
+      } catch (e) { void e; }
     },
     buildUrl(n) {
       const orderId = n.orden_servicio_id;
@@ -123,52 +82,3 @@ export default {
   },
 };
 </script>
-
-<style scoped>
-.notif-permission-banner {
-  position: fixed;
-  top: 70px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #1a1a1a;
-  color: #fff;
-  padding: 10px 16px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-  z-index: 9999;
-  font-size: 13px;
-  max-width: 480px;
-  width: calc(100% - 32px);
-}
-.notif-permission-btn {
-  background: #ffaa00;
-  color: #1a1a1a;
-  border: none;
-  padding: 6px 14px;
-  border-radius: 6px;
-  font-weight: 700;
-  font-size: 12px;
-  cursor: pointer;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-.notif-permission-btn:hover {
-  background: #e69500;
-}
-.notif-permission-dismiss {
-  background: none;
-  border: none;
-  color: #94a3b8;
-  font-size: 18px;
-  cursor: pointer;
-  padding: 0 4px;
-  line-height: 1;
-  flex-shrink: 0;
-}
-.notif-permission-dismiss:hover {
-  color: #fff;
-}
-</style>
