@@ -82,9 +82,12 @@ async def startup():
 # --- SERVIR FRONTEND VUE (MONOLITO) ---
 DIST_DIR = os.path.join(os.path.dirname(__file__), "..", "frontend", "dist")
 ASSETS_DIR = os.path.join(DIST_DIR, "assets")
+SOUNDS_DIR = os.path.join(DIST_DIR, "sounds")
 
 if os.path.isdir(ASSETS_DIR):
     app.mount("/assets", StaticFiles(directory=ASSETS_DIR), name="static-assets")
+if os.path.isdir(SOUNDS_DIR):
+    app.mount("/sounds", StaticFiles(directory=SOUNDS_DIR), name="static-sounds")
 
 @app.get("/{full_path:path}")
 async def serve_spa(full_path: str):
