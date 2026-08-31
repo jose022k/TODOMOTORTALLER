@@ -1,9 +1,19 @@
 <template>
-  <div class="native-notifier"></div>
+  <div class="native-notifier">
+    <div v-if="showPermBanner" class="notif-perm-banner">
+      <div class="notif-perm-banner-inner">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span>Habilita las notificaciones para recibir alertas</span>
+        <button class="notif-perm-btn" @click="requestPermission">Activar</button>
+        <button class="notif-perm-close" @click="dismissPerm">&times;</button>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script>
 import { useAuthStore } from "@/stores/auth";
+import api from "@/services/api";
 
 const OPEN_CHAT_TYPES = new Set(["mensaje_recibido", "evidencia_enviada"]);
 const notifSound = new Audio("/sounds/notification.wav");
@@ -14,20 +24,47 @@ export default {
     const authStore = useAuthStore();
     return { authStore };
   },
+  data() {
+    return {
+      showPermBanner: false,
+      pollTimer: null,
+      knownIds: new Set(),
+    };
+  },
   mounted() {
     this.swRegistration = null;
     navigator.serviceWorker?.ready.then((reg) => {
       this.swRegistration = reg;
     }).catch(() => {});
     window.addEventListener("notification-new", this.onNewNotification);
-    if ("Notification" in window && Notification.permission === "default") {
-      Notification.requestPermission().catch(() => {});
-    }
+    this.checkPermission();
+    this.pollTimer = setInterval(() => this.pollNotifications(), 10000);
   },
   beforeUnmount() {
     window.removeEventListener("notification-new", this.onNewNotification);
+    if (this.pollTimer) clearInterval(this.pollTimer);
   },
   methods: {
+    checkPermission() {
+      if (!("Notification" in window)) return;
+      if (Notification.permission === "default") {
+        this.showPermBanner = true;
+      }
+    },
+    async requestPermission() {
+      if (!("Notification" in window)) return;
+      try {
+        const result = await Notification.requestPermission();
+        this.showPermBanner = false;
+        if (result === "granted") {
+          this.playSound();
+        }
+      } catch (e) { void e; }
+      this.showPermBanner = false;
+    },
+    dismissPerm() {
+      this.showPermBanner = false;
+    },
     playSound() {
       try {
         notifSound.currentTime = 0;
@@ -36,15 +73,23 @@ export default {
     },
     async onNewNotification(event) {
       const notif = event.detail;
-      if (!notif) return;
+      if (!notif || this.knownIds.has(notif.id)) return;
+      this.knownIds.add(notif.id);
       this.playSound();
-      await this.ensureRegistration();
       await this.showNativeNotification(notif);
     },
-    async ensureRegistration() {
-      if (this.swRegistration) return;
+    async pollNotifications() {
+      if (!this.authStore.isAuthenticated) return;
       try {
-        this.swRegistration = await navigator.serviceWorker.getRegistration();
+        const { data } = await api.get("/notifications/", { params: { limit: 10 } });
+        if (!Array.isArray(data)) return;
+        for (const n of data) {
+          if (!n.leido && !this.knownIds.has(n.id)) {
+            this.knownIds.add(n.id);
+            this.playSound();
+            await this.showNativeNotification(n);
+          }
+        }
       } catch (e) { void e; }
     },
     async showNativeNotification(notif) {
@@ -91,3 +136,60 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.notif-perm-banner {
+  position: fixed;
+  top: 70px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  animation: slideDown 0.3s ease;
+}
+.notif-perm-banner-inner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #1a1a1a;
+  color: #fff;
+  padding: 10px 18px;
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  font-size: 14px;
+  font-weight: 500;
+}
+.notif-perm-banner-inner svg {
+  color: #ffaa00;
+  flex-shrink: 0;
+}
+.notif-perm-btn {
+  background: #ffaa00;
+  color: #1a1a1a;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.notif-perm-btn:hover {
+  background: #e69900;
+}
+.notif-perm-close {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 0 2px;
+  line-height: 1;
+}
+.notif-perm-close:hover {
+  color: #fff;
+}
+@keyframes slideDown {
+  from { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+</style>
