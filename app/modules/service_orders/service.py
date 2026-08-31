@@ -344,8 +344,15 @@ def assign_mechanic(db: Session, order_id: int, mecanico_id: int, admin_user):
 
     updated = orden_dao.update(db, order, {"mecanico_id": mecanico_id})
 
-    # Broadcast WebSocket
+    # Notificar reasignación a cliente, nuevo mecánico y todos los admin
     admin_ids = [a.id for a in db.query(Admin.id).all()]
+    if order.cliente_id:
+        create_notification(db, "orden_actualizada", f"La orden #{order_id} tiene un nuevo mecánico asignado", orden_servicio_id=order_id, cliente_id=order.cliente_id)
+    create_notification(db, "orden_actualizada", f"Te han asignado la orden #{order_id}", orden_servicio_id=order_id, mecanico_id=mecanico_id)
+    for aid in admin_ids:
+        create_notification(db, "orden_actualizada", f"Se reasignó mecánico en la orden #{order_id}", orden_servicio_id=order_id, admin_id=aid)
+
+    # Broadcast WebSocket
     manager.schedule_broadcast_order_event(
         "orden_actualizada", order_id, updated.estado,
         cliente_id=updated.cliente_id, mecanico_id=mecanico_id,

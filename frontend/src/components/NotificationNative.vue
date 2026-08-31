@@ -8,7 +8,7 @@
         <button class="notif-perm-close" @click="dismissPerm">&times;</button>
       </div>
     </div>
-    <div v-if="isPwa && unreadCount > 0" class="notif-pwa-badge">{{ unreadCount > 99 ? '99+' : unreadCount }}</div>
+    <div v-if="unreadCount > 0" class="notif-pwa-badge">{{ unreadCount > 99 ? '99+' : unreadCount }}</div>
   </div>
 </template>
 
@@ -17,12 +17,44 @@ import { useAuthStore } from "@/stores/auth";
 import api from "@/services/api";
 
 const OPEN_CHAT_TYPES = new Set(["mensaje_recibido", "evidencia_enviada"]);
-let userInteracted = false;
+
+let audioEl = null;
+let audioReady = false;
+
+function getAudio() {
+  if (!audioEl && typeof Audio !== "undefined") {
+    audioEl = new Audio("/sounds/notification.wav");
+    audioEl.preload = "auto";
+    audioEl.volume = 1.0;
+    audioEl.load();
+  }
+  return audioEl;
+}
+
+function tryUnlockAudio() {
+  const a = getAudio();
+  if (!a || audioReady) return;
+  a.play().then(() => {
+    a.pause();
+    a.currentTime = 0;
+    audioReady = true;
+  }).catch(() => {});
+}
+
+function playNotifSound() {
+  const a = getAudio();
+  if (!a) return;
+  if (audioReady) {
+    a.currentTime = 0;
+    a.play().catch(() => {});
+  } else {
+    tryUnlockAudio();
+  }
+}
 
 if (typeof window !== "undefined") {
-  const mark = () => { userInteracted = true; };
   ["click", "touchstart", "touchend", "keydown"].forEach((e) => {
-    window.addEventListener(e, mark, { once: true, passive: true });
+    window.addEventListener(e, tryUnlockAudio, { once: true, passive: true });
   });
 }
 
@@ -40,16 +72,8 @@ export default {
       unreadCount: 0,
     };
   },
-  computed: {
-    isPwa() {
-      try {
-        if (typeof window === "undefined") return false;
-        return window.matchMedia("(display-mode: standalone)").matches
-          || window.navigator.standalone === true;
-      } catch (e) { return false; }
-    },
-  },
   mounted() {
+    getAudio();
     this.swRegistration = null;
     navigator.serviceWorker?.ready.then((reg) => {
       this.swRegistration = reg;
@@ -67,22 +91,20 @@ export default {
     if (this.pollTimer) clearInterval(this.pollTimer);
   },
   methods: {
-    isPwaCheck() {
-      return this.isPwa;
-    },
     checkPermission() {
       if (!("Notification" in window)) return;
-      if (Notification.permission === "default") {
+      if (Notification.permission === "default" || Notification.permission === "denied") {
         this.showPermBanner = true;
       }
     },
     async requestPermission() {
       if (!("Notification" in window)) return;
+      tryUnlockAudio();
       try {
         const result = await Notification.requestPermission();
         this.showPermBanner = false;
         if (result === "granted") {
-          this.playSound();
+          playNotifSound();
         }
       } catch (e) { void e; }
       this.showPermBanner = false;
@@ -90,19 +112,12 @@ export default {
     dismissPerm() {
       this.showPermBanner = false;
     },
-    playSound() {
-      try {
-        const a = new Audio("/sounds/notification.wav");
-        a.volume = 1.0;
-        a.play().catch(() => {});
-      } catch (e) { void e; }
-    },
     async onNewNotification(event) {
       const notif = event.detail;
       if (!notif || this.knownIds.has(notif.id)) return;
       this.knownIds.add(notif.id);
       this.unreadCount++;
-      if (userInteracted) this.playSound();
+      playNotifSound();
       await this.showNativeNotification(notif);
     },
     async fetchUnread() {
@@ -110,7 +125,7 @@ export default {
       try {
         const { data } = await api.get("/notifications/unread-count");
         this.unreadCount = data.count || 0;
-        if (this.isPwa && typeof navigator.setAppBadge === "function") {
+        if (typeof navigator.setAppBadge === "function") {
           try { navigator.setAppBadge(this.unreadCount); } catch (e) { void e; }
         }
       } catch (e) { void e; }
@@ -124,7 +139,7 @@ export default {
           if (!n.leido && !this.knownIds.has(n.id)) {
             this.knownIds.add(n.id);
             this.unreadCount++;
-            if (userInteracted) this.playSound();
+            playNotifSound();
             await this.showNativeNotification(n);
           }
         }
@@ -183,6 +198,8 @@ export default {
   transform: translateX(-50%);
   z-index: 9999;
   animation: slideDown 0.3s ease;
+  width: max-content;
+  max-width: 90vw;
 }
 .notif-perm-banner-inner {
   display: flex;
@@ -228,8 +245,8 @@ export default {
 }
 .notif-pwa-badge {
   position: fixed;
-  top: 12px;
-  right: 12px;
+  top: 10px;
+  right: 10px;
   z-index: 10000;
   min-width: 22px;
   height: 22px;
@@ -243,7 +260,6 @@ export default {
   justify-content: center;
   padding: 0 6px;
   box-shadow: 0 2px 8px rgba(220, 38, 38, 0.5);
-  pointer-events: none;
   line-height: 1;
 }
 @keyframes slideDown {
