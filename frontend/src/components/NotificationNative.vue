@@ -8,6 +8,7 @@
         <button class="notif-perm-close" @click="dismissPerm">&times;</button>
       </div>
     </div>
+    <div v-if="isPwa && unreadCount > 0" class="notif-pwa-badge">{{ unreadCount > 99 ? '99+' : unreadCount }}</div>
   </div>
 </template>
 
@@ -16,67 +17,13 @@ import { useAuthStore } from "@/stores/auth";
 import api from "@/services/api";
 
 const OPEN_CHAT_TYPES = new Set(["mensaje_recibido", "evidencia_enviada"]);
+let userInteracted = false;
 
-let audioCtx = null;
-let audioBuffer = null;
-let audioUnlocked = false;
-let pendingPlay = false;
-
-function ensureAudioCtx() {
-  if (!audioCtx) {
-    try {
-      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    } catch (e) { void e; }
-  }
-  return audioCtx;
-}
-
-function loadSound() {
-  const ctx = ensureAudioCtx();
-  if (!ctx || audioBuffer) return;
-  fetch("/sounds/notification.wav")
-    .then((r) => r.arrayBuffer())
-    .then((data) => ctx.decodeAudioData(data))
-    .then((buf) => {
-      audioBuffer = buf;
-      if (pendingPlay) {
-        pendingPlay = false;
-        playNotifSound();
-      }
-    })
-    .catch(() => {});
-}
-
-function unlockAudio() {
-  if (audioUnlocked) return;
-  try {
-    const ctx = ensureAudioCtx();
-    if (!ctx) return;
-    if (ctx.state === "suspended") ctx.resume();
-    const buf = ctx.createBuffer(1, 1, 22050);
-    const src = ctx.createBufferSource();
-    src.buffer = buf;
-    src.connect(ctx.destination);
-    src.start(0);
-    audioUnlocked = true;
-  } catch (e) { void e; }
-}
-
-function playNotifSound() {
-  const ctx = ensureAudioCtx();
-  if (!ctx) return;
-  if (!audioBuffer) {
-    loadSound();
-    pendingPlay = true;
-    return;
-  }
-  try {
-    if (ctx.state === "suspended") ctx.resume();
-    const src = ctx.createBufferSource();
-    src.buffer = audioBuffer;
-    src.connect(ctx.destination);
-    src.start(0);
-  } catch (e) { void e; }
+if (typeof window !== "undefined") {
+  const mark = () => { userInteracted = true; };
+  ["click", "touchstart", "touchend", "keydown"].forEach((e) => {
+    window.addEventListener(e, mark, { once: true, passive: true });
+  });
 }
 
 export default {
@@ -90,7 +37,17 @@ export default {
       showPermBanner: false,
       pollTimer: null,
       knownIds: new Set(),
+      unreadCount: 0,
     };
+  },
+  computed: {
+    isPwa() {
+      try {
+        if (typeof window === "undefined") return false;
+        return window.matchMedia("(display-mode: standalone)").matches
+          || window.navigator.standalone === true;
+      } catch (e) { return false; }
+    },
   },
   mounted() {
     this.swRegistration = null;
@@ -99,18 +56,20 @@ export default {
     }).catch(() => {});
     window.addEventListener("notification-new", this.onNewNotification);
     this.checkPermission();
-    this.pollTimer = setInterval(() => this.pollNotifications(), 10000);
-    ["click", "touchstart", "keydown"].forEach((evt) => {
-      window.addEventListener(evt, unlockAudio, { once: true, passive: true });
-    });
-    ensureAudioCtx();
-    loadSound();
+    this.fetchUnread();
+    this.pollTimer = setInterval(() => {
+      this.fetchUnread();
+      this.pollNotifications();
+    }, 10000);
   },
   beforeUnmount() {
     window.removeEventListener("notification-new", this.onNewNotification);
     if (this.pollTimer) clearInterval(this.pollTimer);
   },
   methods: {
+    isPwaCheck() {
+      return this.isPwa;
+    },
     checkPermission() {
       if (!("Notification" in window)) return;
       if (Notification.permission === "default") {
@@ -119,7 +78,6 @@ export default {
     },
     async requestPermission() {
       if (!("Notification" in window)) return;
-      unlockAudio();
       try {
         const result = await Notification.requestPermission();
         this.showPermBanner = false;
@@ -133,14 +91,29 @@ export default {
       this.showPermBanner = false;
     },
     playSound() {
-      playNotifSound();
+      try {
+        const a = new Audio("/sounds/notification.wav");
+        a.volume = 1.0;
+        a.play().catch(() => {});
+      } catch (e) { void e; }
     },
     async onNewNotification(event) {
       const notif = event.detail;
       if (!notif || this.knownIds.has(notif.id)) return;
       this.knownIds.add(notif.id);
-      this.playSound();
+      this.unreadCount++;
+      if (userInteracted) this.playSound();
       await this.showNativeNotification(notif);
+    },
+    async fetchUnread() {
+      if (!this.authStore.isAuthenticated) return;
+      try {
+        const { data } = await api.get("/notifications/unread-count");
+        this.unreadCount = data.count || 0;
+        if (this.isPwa && typeof navigator.setAppBadge === "function") {
+          try { navigator.setAppBadge(this.unreadCount); } catch (e) { void e; }
+        }
+      } catch (e) { void e; }
     },
     async pollNotifications() {
       if (!this.authStore.isAuthenticated) return;
@@ -150,7 +123,8 @@ export default {
         for (const n of data) {
           if (!n.leido && !this.knownIds.has(n.id)) {
             this.knownIds.add(n.id);
-            this.playSound();
+            this.unreadCount++;
+            if (userInteracted) this.playSound();
             await this.showNativeNotification(n);
           }
         }
@@ -251,6 +225,26 @@ export default {
 }
 .notif-perm-close:hover {
   color: #fff;
+}
+.notif-pwa-badge {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 10000;
+  min-width: 22px;
+  height: 22px;
+  border-radius: 11px;
+  background: #dc2626;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 6px;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.5);
+  pointer-events: none;
+  line-height: 1;
 }
 @keyframes slideDown {
   from { opacity: 0; transform: translateX(-50%) translateY(-10px); }
