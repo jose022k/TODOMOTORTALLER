@@ -42,8 +42,11 @@ export default {
     this.swRegistration = null;
     navigator.serviceWorker?.ready.then((reg) => {
       this.swRegistration = reg;
+      console.log("[NativeNotif] Service worker registered");
     }).catch(() => {});
     window.addEventListener("notification-new", this.onNewNotification);
+    console.log("[NativeNotif] Mounted, listening for notification-new events");
+    console.log("[NativeNotif] Notification permission:", typeof Notification !== "undefined" ? Notification.permission : "N/A");
   },
   beforeUnmount() {
     window.removeEventListener("notification-new", this.onNewNotification);
@@ -51,9 +54,20 @@ export default {
   methods: {
     async onNewNotification(event) {
       const notif = event.detail;
-      if (!notif) return;
-      if (!("Notification" in window)) return;
-      if (Notification.permission !== "granted") return;
+      if (!notif) {
+        console.log("[NativeNotif] Received event with no detail");
+        return;
+      }
+      console.log("[NativeNotif] Received notification:", notif.id, notif.tipo, notif.mensaje);
+      if (!("Notification" in window)) {
+        console.log("[NativeNotif] Notification API not available");
+        return;
+      }
+      if (Notification.permission !== "granted") {
+        console.log("[NativeNotif] Permission not granted:", Notification.permission);
+        return;
+      }
+      console.log("[NativeNotif] Playing sound and showing notification...");
       playNotifSound();
       await this.ensureRegistration();
       await this.showNativeNotification(notif);

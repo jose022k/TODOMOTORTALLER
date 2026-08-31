@@ -10,6 +10,7 @@ const state = reactive({
 let lastUnreadCount = -1;
 const shownNotifIds = new Set();
 let baselineLoaded = false;
+let pollCount = 0;
 
 function setBadge(n) {
   try {
@@ -27,53 +28,70 @@ async function refreshCount() {
   try {
     const { data } = await api.get("/notifications/unread-count");
     const newCount = data.count || 0;
+    pollCount++;
+
+    console.log(`[NotifPoll #${pollCount}] count=${newCount} last=${lastUnreadCount} baseline=${baselineLoaded} shownIds=${shownNotifIds.size}`);
 
     if (!baselineLoaded) {
       baselineLoaded = true;
       lastUnreadCount = newCount;
       state.unreadCount = newCount;
       setBadge(newCount);
+      console.log("[NotifPoll] Baseline set:", newCount);
       return;
     }
 
     if (newCount > lastUnreadCount) {
+      console.log(`[NotifPoll] Count INCREASED: ${lastUnreadCount} -> ${newCount}, fetching list...`);
       try {
         const { data: notifs } = await api.get("/notifications/?limit=5");
+        console.log("[NotifPoll] Got", notifs.length, "notifications:", notifs.map(n => ({id: n.id, tipo: n.tipo, leido: n.leido})));
+        let dispatched = 0;
         for (const notif of notifs) {
           if (!notif.leido && !shownNotifIds.has(notif.id)) {
             shownNotifIds.add(notif.id);
             window.dispatchEvent(
               new CustomEvent("notification-new", { detail: notif })
             );
+            dispatched++;
           }
         }
+        console.log(`[NotifPoll] Dispatched ${dispatched} notification-new events`);
       } catch (e) {
-        console.error("[Notifications] Failed to fetch notification list:", e.message);
+        console.error("[NotifPoll] Failed to fetch notification list:", e.message);
       }
+    } else if (newCount < lastUnreadCount) {
+      console.log(`[NotifPoll] Count DECREASED: ${lastUnreadCount} -> ${newCount}`);
     }
 
     lastUnreadCount = newCount;
     state.unreadCount = newCount;
     setBadge(newCount);
   } catch (e) {
-    console.error("[Notifications] Failed to refresh unread count:", e.message);
+    console.error("[NotifPoll] Failed to refresh unread count:", e.message, e.response?.status);
   }
 }
 
 function onNew(notif) {
   if (!notif) return;
-  if (shownNotifIds.has(notif.id)) return;
+  if (shownNotifIds.has(notif.id)) {
+    console.log("[NotifEvent] Duplicate notification id=" + notif.id + ", skipping");
+    return;
+  }
   shownNotifIds.add(notif.id);
+  console.log("[NotifEvent] New notification:", notif.id, notif.tipo, notif.mensaje);
   refreshCount();
 }
 
 export function useNotifications() {
   function init() {
     if (state.initialized) {
+      console.log("[NotifInit] Already initialized, refreshing...");
       refreshCount();
       return;
     }
     state.initialized = true;
+    console.log("[NotifInit] Initializing notification system");
     if (typeof Notification !== "undefined" && Notification.permission === "default") {
       const reqPerm = () => {
         Notification.requestPermission().catch(() => {});
@@ -112,3 +130,10 @@ export function useNotifications() {
 
   return { state, init, refreshCount, buildUrl, requestPermission };
 }
+
+window.__notifDebug = async function() {
+  const apiMod = await import("@/services/api");
+  const { data } = await apiMod.default.get("/notifications/debug");
+  console.table(data);
+  return data;
+};

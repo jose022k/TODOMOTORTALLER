@@ -89,9 +89,13 @@ export default {
     async fetchUnread() {
       try {
         const { data } = await api.get("/notifications/unread-count");
+        const prev = this.unread;
         this.unread = data.count;
+        if (prev !== data.count) {
+          console.log(`[Dropdown] Unread changed: ${prev} -> ${data.count}`);
+        }
       } catch (e) {
-        console.error("[NotificationsDropdown] Failed to fetch unread count:", e.message);
+        console.error("[Dropdown] Failed to fetch unread count:", e.message, e.response?.status);
       }
     },
     async markRead(n) {

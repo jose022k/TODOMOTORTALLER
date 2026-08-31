@@ -33,6 +33,36 @@ def unread_count(
     return {"count": count}
 
 
+@router.get("/debug")
+def debug_notifications(
+    db: Session = Depends(get_db),
+    current_user: AnyUser = Depends(get_current_user),
+):
+    from app.modules.notifications.models import Notificacion
+    from app.modules.preferences.service import allowed_tipos
+    allowed = allowed_tipos(db, current_user.rol, current_user.id)
+    field = {"admin": "admin_id", "cliente": "cliente_id", "mecanico": "mecanico_id"}.get(current_user.rol)
+    base_query = db.query(Notificacion).filter(getattr(Notificacion, field) == current_user.id)
+    total = base_query.count()
+    unread = base_query.filter(Notificacion.leido == False).count()
+    tipo_counts = {}
+    for tipo, cnt in base_query.filter(Notificacion.leido == False).with_entities(Notificacion.tipo, db.func.count(Notificacion.id)).group_by(Notificacion.tipo).all():
+        tipo_counts[tipo] = cnt
+    recent = []
+    for n in base_query.order_by(Notificacion.fecha_creacion.desc()).limit(5).all():
+        recent.append({"id": n.id, "tipo": n.tipo, "mensaje": n.mensaje, "leido": n.leido, "fecha": str(n.fecha_creacion), "admin_id": n.admin_id, "cliente_id": n.cliente_id, "mecanico_id": n.mecanico_id})
+    return {
+        "user_id": current_user.id,
+        "rol": current_user.rol,
+        "field": field,
+        "total_notifs": total,
+        "unread_count": unread,
+        "unread_by_tipo": tipo_counts,
+        "allowed_tipos": list(allowed) if allowed else None,
+        "recent": recent,
+    }
+
+
 @router.put("/{notif_id}/read", response_model=NotificacionResponse)
 def mark_notification_read(
     notif_id: int,

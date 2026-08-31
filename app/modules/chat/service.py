@@ -224,7 +224,7 @@ def get_evidencias(db: Session, orden_id: int, current_user):
     ]
 
 
-async def create_evidencia(db: Session, orden_id: int, file: UploadFile, mensaje_id, current_user):
+def create_evidencia(db: Session, orden_id: int, file: UploadFile, mensaje_id, current_user):
     order = orden_dao.get_by_id(db, orden_id)
     if not order:
         raise HTTPException(
@@ -261,14 +261,17 @@ async def create_evidencia(db: Session, orden_id: int, file: UploadFile, mensaje
     db.refresh(evidencia)
 
     # Notificar a los participantes de la orden (excluyendo al remitente)
+    notif_created = 0
     try:
         if cliente_id and cliente_id != current_user.id:
             create_notification(db, "evidencia_enviada", f"Nueva evidencia en la orden #{orden_id}", orden_servicio_id=orden_id, cliente_id=cliente_id, open_chat=True)
+            notif_created += 1
     except Exception as e:
         logger.error(f"Evidencia notif cliente failed for orden {orden_id}: {e}", exc_info=True)
     try:
         if mecanico_id and mecanico_id != current_user.id:
             create_notification(db, "evidencia_enviada", f"Nueva evidencia en la orden #{orden_id}", orden_servicio_id=orden_id, mecanico_id=mecanico_id, open_chat=True)
+            notif_created += 1
     except Exception as e:
         logger.error(f"Evidencia notif mecanico failed for orden {orden_id}: {e}", exc_info=True)
     try:
@@ -276,8 +279,11 @@ async def create_evidencia(db: Session, orden_id: int, file: UploadFile, mensaje
         for aid in admin_ids:
             if aid != current_user.id:
                 create_notification(db, "evidencia_enviada", f"Nueva evidencia en la orden #{orden_id}", orden_servicio_id=orden_id, admin_id=aid, open_chat=True)
+                notif_created += 1
     except Exception as e:
         logger.error(f"Evidencia notif admins failed for orden {orden_id}: {e}", exc_info=True)
+
+    logger.info(f"[CHAT] Total evidence notifications created for orden {orden_id}: {notif_created}")
 
     return evidencia
 

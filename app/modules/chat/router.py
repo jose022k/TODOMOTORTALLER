@@ -37,14 +37,14 @@ def list_evidencias(
 
 
 @router.post("/{orden_id}/evidencias", response_model=EvidenciaResponse, status_code=201)
-async def create_evidencia(
+def create_evidencia(
     orden_id: int,
     file: UploadFile = File(...),
     mensaje_id: int = Form(None),
     db: Session = Depends(get_db),
     current_user: AnyUser = Depends(get_current_user),
 ):
-    return await service.create_evidencia(db, orden_id, file, mensaje_id, current_user)
+    return service.create_evidencia(db, orden_id, file, mensaje_id, current_user)
 
 
 @router.put("/{orden_id}/{mensaje_id}", response_model=MensajeResponse)
