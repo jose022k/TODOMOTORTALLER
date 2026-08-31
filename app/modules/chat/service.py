@@ -1,4 +1,3 @@
-import logging
 import cloudinary
 import cloudinary.uploader
 from datetime import datetime
@@ -11,8 +10,6 @@ from app.modules.service_orders.dao import OrdenServicioDAO
 from app.modules.service_orders.models import Evidencia
 from app.modules.auth.models import Admin
 from app.modules.notifications.service import create_notification
-
-logger = logging.getLogger(__name__)
 
 cloudinary.config(
     cloud_name=CLOUDINARY_CLOUD_NAME,
@@ -91,10 +88,6 @@ def send_message(db: Session, orden_id: int, contenido: str, current_user):
         "cliente": "cliente_id",
     }.get(current_user.rol)
 
-    # Capturar IDs ANTES del commit (mensaje_dao.create hace commit y expira el order)
-    cliente_id = order.cliente_id
-    mecanico_id = order.mecanico_id
-
     msg_data = {
         "contenido": contenido,
         "fecha_hora": datetime.utcnow(),
@@ -103,32 +96,26 @@ def send_message(db: Session, orden_id: int, contenido: str, current_user):
     }
 
     msg = mensaje_dao.create(db, msg_data)
-    logger.info(f"[CHAT] Message {msg.id} created for orden {orden_id} by {current_user.rol} {current_user.id}")
 
-    sender_id = current_user.id
-    notif_created = 0
-    try:
-        if cliente_id and cliente_id != sender_id:
-            create_notification(db, "mensaje_recibido", f"Nuevo mensaje en la orden #{orden_id}", orden_servicio_id=orden_id, cliente_id=cliente_id, open_chat=True)
-            notif_created += 1
-    except Exception:
-        pass
-    try:
-        if mecanico_id and mecanico_id != sender_id:
-            create_notification(db, "mensaje_recibido", f"Nuevo mensaje en la orden #{orden_id}", orden_servicio_id=orden_id, mecanico_id=mecanico_id, open_chat=True)
-            notif_created += 1
-    except Exception:
-        pass
-    try:
-        admin_ids = [a.id for a in db.query(Admin.id).all()]
-        for aid in admin_ids:
-            if aid != sender_id:
+    # Notificar a los otros participantes de la orden (excluyendo al remitente)
+    sender_role = current_user.rol
+    if sender_role == "admin":
+        if order.cliente_id:
+            create_notification(db, "mensaje_recibido", f"Nuevo mensaje en la orden #{orden_id}", orden_servicio_id=orden_id, cliente_id=order.cliente_id, open_chat=True)
+        if order.mecanico_id:
+            create_notification(db, "mensaje_recibido", f"Nuevo mensaje en la orden #{orden_id}", orden_servicio_id=orden_id, mecanico_id=order.mecanico_id, open_chat=True)
+    elif sender_role == "mecanico":
+        if order.cliente_id:
+            create_notification(db, "mensaje_recibido", f"Nuevo mensaje en la orden #{orden_id}", orden_servicio_id=orden_id, cliente_id=order.cliente_id, open_chat=True)
+        for aid in [a.id for a in db.query(Admin.id).all()]:
+            if aid != user_id:
                 create_notification(db, "mensaje_recibido", f"Nuevo mensaje en la orden #{orden_id}", orden_servicio_id=orden_id, admin_id=aid, open_chat=True)
-                notif_created += 1
-    except Exception:
-        pass
-
-    logger.info(f"[CHAT] Total notifications created for orden {orden_id}: {notif_created}")
+    elif sender_role == "cliente":
+        if order.mecanico_id:
+            create_notification(db, "mensaje_recibido", f"Nuevo mensaje en la orden #{orden_id}", orden_servicio_id=orden_id, mecanico_id=order.mecanico_id, open_chat=True)
+        for aid in [a.id for a in db.query(Admin.id).all()]:
+            if aid != user_id:
+                create_notification(db, "mensaje_recibido", f"Nuevo mensaje en la orden #{orden_id}", orden_servicio_id=orden_id, admin_id=aid, open_chat=True)
 
     return _build_mensaje_response(msg)
 
@@ -245,10 +232,6 @@ def create_evidencia(db: Session, orden_id: int, file: UploadFile, mensaje_id, c
         public_id=f"evidencia_{orden_id}_{int(datetime.utcnow().timestamp())}",
     )
 
-    # Capturar IDs ANTES del commit (db.commit expira el order)
-    cliente_id = order.cliente_id
-    mecanico_id = order.mecanico_id
-
     evidencia = Evidencia(
         url=result["secure_url"],
         fecha=datetime.utcnow(),
@@ -259,29 +242,14 @@ def create_evidencia(db: Session, orden_id: int, file: UploadFile, mensaje_id, c
     db.commit()
     db.refresh(evidencia)
 
-    notif_created = 0
-    try:
-        if cliente_id and cliente_id != current_user.id:
-            create_notification(db, "evidencia_enviada", f"Nueva evidencia en la orden #{orden_id}", orden_servicio_id=orden_id, cliente_id=cliente_id, open_chat=True)
-            notif_created += 1
-    except Exception:
-        pass
-    try:
-        if mecanico_id and mecanico_id != current_user.id:
-            create_notification(db, "evidencia_enviada", f"Nueva evidencia en la orden #{orden_id}", orden_servicio_id=orden_id, mecanico_id=mecanico_id, open_chat=True)
-            notif_created += 1
-    except Exception:
-        pass
-    try:
-        admin_ids = [a.id for a in db.query(Admin.id).all()]
-        for aid in admin_ids:
-            if aid != current_user.id:
-                create_notification(db, "evidencia_enviada", f"Nueva evidencia en la orden #{orden_id}", orden_servicio_id=orden_id, admin_id=aid, open_chat=True)
-                notif_created += 1
-    except Exception:
-        pass
-
-    logger.info(f"[CHAT] Total evidence notifications created for orden {orden_id}: {notif_created}")
+    # Notificar a los participantes de la orden (excluyendo al remitente)
+    if order.cliente_id and order.cliente_id != current_user.id:
+        create_notification(db, "evidencia_enviada", f"Nueva evidencia en la orden #{orden_id}", orden_servicio_id=orden_id, cliente_id=order.cliente_id, open_chat=True)
+    if order.mecanico_id and order.mecanico_id != current_user.id:
+        create_notification(db, "evidencia_enviada", f"Nueva evidencia en la orden #{orden_id}", orden_servicio_id=orden_id, mecanico_id=order.mecanico_id, open_chat=True)
+    for aid in [a.id for a in db.query(Admin.id).all()]:
+        if aid != current_user.id:
+            create_notification(db, "evidencia_enviada", f"Nueva evidencia en la orden #{orden_id}", orden_servicio_id=orden_id, admin_id=aid, open_chat=True)
 
     return evidencia
 

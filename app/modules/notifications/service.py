@@ -1,4 +1,3 @@
-import logging
 from datetime import datetime
 from typing import List, Optional
 from sqlalchemy.orm import Session
@@ -7,7 +6,6 @@ from app.modules.notifications.schemas import NotificacionResponse
 from app.modules.notifications.push_service import notify_user
 from app.modules.preferences.service import should_notify, allowed_tipos
 
-logger = logging.getLogger(__name__)
 notificacion_dao = NotificacionDAO()
 
 
@@ -74,21 +72,15 @@ def create_notification(
     }
     extra = "&open_chat=1" if open_chat else ""
 
-    logger.info(f"[NOTIF] create tipo={tipo} admin={admin_id} cliente={cliente_id} mecanico={mecanico_id}")
-
     # Verificar preferencias antes de notificar
     if admin_id and not should_notify(db, "admin", admin_id, tipo):
-        logger.info(f"[NOTIF] Skipped admin {admin_id} - preferences disabled for {tipo}")
         return None
     if cliente_id and not should_notify(db, "cliente", cliente_id, tipo):
-        logger.info(f"[NOTIF] Skipped cliente {cliente_id} - preferences disabled for {tipo}")
         return None
     if mecanico_id and not should_notify(db, "mecanico", mecanico_id, tipo):
-        logger.info(f"[NOTIF] Skipped mecanico {mecanico_id} - preferences disabled for {tipo}")
         return None
 
     result = notificacion_dao.create(db, data)
-    logger.info(f"[NOTIF] Created DB record id={result.id} tipo={tipo} admin={admin_id} cliente={cliente_id} mecanico={mecanico_id}")
 
     # WebSocket: notificación instantánea
     try:
@@ -101,20 +93,16 @@ def create_notification(
             targets.append((mecanico_id, "mecanico"))
         if targets:
             from app.core.ws_manager import manager
-            notif_dict = _build_response(result).model_dump(mode="json")
-            manager.schedule_broadcast_notification(notif_dict, targets)
-    except Exception as e:
-        logger.error(f"[NOTIF] WS broadcast failed: {e}")
+            manager.schedule_broadcast_notification(_build_response(result).model_dump(mode="json"), targets)
+    except Exception:
+        pass
 
-    # Enviar Web Push — cada destinatario aislado
-    if admin_id:
-        try:
+    # También enviar Web Push si hay un destinatario
+    try:
+        if admin_id:
             url = f"/admin/service-orders?order_id={orden_servicio_id}{extra}" if orden_servicio_id else "/"
             notify_user(db, admin_id, "admin", "Todomotortaller", mensaje, url)
-        except Exception:
-            pass
-    if cliente_id:
-        try:
+        if cliente_id:
             if orden_servicio_id and open_chat:
                 url = f"/cliente/orders?order_id={orden_servicio_id}&open_chat=1"
             elif orden_servicio_id:
@@ -122,13 +110,10 @@ def create_notification(
             else:
                 url = "/cliente/orders"
             notify_user(db, cliente_id, "cliente", "Todomotortaller", mensaje, url)
-        except Exception:
-            pass
-    if mecanico_id:
-        try:
+        if mecanico_id:
             url = f"/mecanico/orders?order_id={orden_servicio_id}{extra}" if orden_servicio_id else "/"
             notify_user(db, mecanico_id, "mecanico", "Todomotortaller", mensaje, url)
-        except Exception:
-            pass
+    except Exception:
+        pass
 
     return result

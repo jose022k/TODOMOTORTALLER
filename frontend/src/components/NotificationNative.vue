@@ -5,39 +5,7 @@
 <script>
 import { useAuthStore } from "@/stores/auth";
 
-const NATIVE_NOTIF_TYPES = new Set([
-  "orden_creada",
-  "orden_en_proceso",
-  "orden_cancelada",
-  "mensaje_recibido",
-  "evidencia_enviada",
-]);
 const OPEN_CHAT_TYPES = new Set(["mensaje_recibido", "evidencia_enviada"]);
-
-function playNotifSound() {
-  try {
-    const Ctx = window.AudioContext || window.webkitAudioContext;
-    if (!Ctx) return;
-    const ctx = new Ctx();
-    if (ctx.state === "suspended") ctx.resume();
-    const now = ctx.currentTime;
-    [880, 1320].forEach((freq, i) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = "sine";
-      osc.frequency.value = freq;
-      const t = now + i * 0.12;
-      gain.gain.setValueAtTime(0.0001, t);
-      gain.gain.exponentialRampToValueAtTime(0.25, t + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
-      osc.connect(gain).connect(ctx.destination);
-      osc.start(t);
-      osc.stop(t + 0.2);
-    });
-  } catch (e) {
-    /* silent */
-  }
-}
 
 export default {
   name: "NotificationNative",
@@ -51,8 +19,6 @@ export default {
       this.swRegistration = reg;
     }).catch(() => {});
     window.addEventListener("notification-new", this.onNewNotification);
-    console.log("[NativeNotif] Mounted, listening for notification-new events");
-    console.log("[NativeNotif] Notification permission:", typeof Notification !== "undefined" ? Notification.permission : "N/A");
   },
   beforeUnmount() {
     window.removeEventListener("notification-new", this.onNewNotification);
@@ -60,12 +26,7 @@ export default {
   methods: {
     async onNewNotification(event) {
       const notif = event.detail;
-      if (!notif || !notif.tipo) return;
-      if (!NATIVE_NOTIF_TYPES.has(notif.tipo)) return;
-      if (!("Notification" in window)) return;
-      if (Notification.permission !== "granted") return;
-      console.log("[NativeNotif] Received notification:", notif.id, notif.tipo, notif.mensaje);
-      playNotifSound();
+      if (!notif) return;
       await this.ensureRegistration();
       await this.showNativeNotification(notif);
     },
@@ -78,40 +39,21 @@ export default {
       }
     },
     async showNativeNotification(notif) {
-      const url = this.buildUrl(notif);
-      const options = {
-        body: notif.mensaje || "",
-        icon: "/img/app-icon-512.png",
-        badge: "/img/app-icon-512.png",
-        data: { url },
-        vibrate: [200, 100, 200],
-      };
-      if (this.isMobileView()) {
-        let reg = this.swRegistration;
-        if (!reg) {
-          try { reg = await navigator.serviceWorker.getRegistration(); } catch { reg = null; }
-        }
-        if (reg && reg.showNotification) {
-          try { await reg.showNotification("Todomotortaller", options); return; } catch (e) { /* fallback */ }
-        }
-      }
+      if (!("Notification" in window)) return;
+      if (Notification.permission !== "granted") return;
+      const reg = this.swRegistration;
+      if (!reg) return;
       try {
-        const n = new Notification("Todomotortaller", options);
-        n.onclick = () => {
-          window.focus();
-          if (url) window.location.href = url;
-          n.close();
-        };
-      } catch (e) { /* notification blocked */ }
-    },
-    isMobileView() {
-      try {
-        const standalone =
-          window.matchMedia &&
-          window.matchMedia("(display-mode: standalone)").matches;
-        return window.innerWidth <= 768 || standalone;
-      } catch (e) {
-        return false;
+        const url = this.buildUrl(notif);
+        await reg.showNotification("Todomotortaller", {
+          body: notif.mensaje || "",
+          icon: "/img/icons/logo-192.png",
+          badge: "/img/icons/logo-192.png",
+          data: { url },
+          vibrate: [200, 100, 200],
+        });
+      } catch {
+        // silent
       }
     },
     buildUrl(n) {
