@@ -10,6 +10,22 @@
       </div>
     </div>
     <div v-if="unreadCount > 0" class="notif-pwa-badge">{{ unreadCount > 99 ? '99+' : unreadCount }}</div>
+
+    <!-- In-App Toasts -->
+    <div class="in-app-toast-container">
+      <transition-group name="toast-list" tag="div">
+        <div v-for="toast in activeToasts" :key="toast.id" class="in-app-toast" @click="handleToastClick(toast)">
+          <div class="toast-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          </div>
+          <div class="toast-content">
+            <div class="toast-title">Todomotortaller</div>
+            <div class="toast-body">{{ toast.mensaje }}</div>
+          </div>
+          <button class="toast-close" @click.stop="removeToast(toast.id)">&times;</button>
+        </div>
+      </transition-group>
+    </div>
   </div>
 </template>
 
@@ -105,6 +121,7 @@ export default {
       pollTimer: null,
       knownIds: new Set(),
       unreadCount: 0,
+      activeToasts: [],
     };
   },
   mounted() {
@@ -159,7 +176,24 @@ export default {
       this.knownIds.add(notif.id);
       this.unreadCount++;
       playNotifSound();
+      this.showInAppToast(notif);
       await this.showNativeNotification(notif);
+    },
+    showInAppToast(notif) {
+      this.activeToasts.push(notif);
+      setTimeout(() => {
+        this.removeToast(notif.id);
+      }, 5000);
+    },
+    removeToast(id) {
+      this.activeToasts = this.activeToasts.filter((t) => t.id !== id);
+    },
+    handleToastClick(notif) {
+      const url = this.buildUrl(notif);
+      if (url && url !== "/") {
+        window.location.href = url;
+      }
+      this.removeToast(notif.id);
     },
     async fetchUnread() {
       if (!this.authStore.isAuthenticated) return;
@@ -181,6 +215,7 @@ export default {
             this.knownIds.add(n.id);
             this.unreadCount++;
             playNotifSound();
+            this.showInAppToast(n);
             await this.showNativeNotification(n);
           }
         }
@@ -307,5 +342,80 @@ export default {
 @keyframes slideDown {
   from { opacity: 0; transform: translateX(-50%) translateY(-10px); }
   to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+.in-app-toast-container {
+  position: fixed;
+  bottom: env(safe-area-inset-bottom, 20px);
+  right: 20px;
+  z-index: 100000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;
+}
+.in-app-toast {
+  background: #1a1a1a;
+  color: #fff;
+  border-left: 4px solid #ffaa00;
+  padding: 12px 16px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  width: 320px;
+  max-width: calc(100vw - 40px);
+  pointer-events: auto;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.3s ease;
+}
+.toast-icon {
+  color: #ffaa00;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.toast-content {
+  flex: 1;
+}
+.toast-title {
+  font-weight: 700;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+.toast-body {
+  font-size: 13px;
+  color: #d1d5db;
+  line-height: 1.4;
+}
+.toast-close {
+  background: none;
+  border: none;
+  color: #9ca3af;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+.toast-close:hover {
+  color: #fff;
+}
+.toast-list-enter-active,
+.toast-list-leave-active {
+  transition: all 0.3s ease;
+}
+.toast-list-enter-from {
+  opacity: 0;
+  transform: translateX(30px);
+}
+.toast-list-leave-to {
+  opacity: 0;
+  transform: scale(0.9);
+}
+
+html.dark .in-app-toast {
+  background: #1e293b;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
 }
 </style>

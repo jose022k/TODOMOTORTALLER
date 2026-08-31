@@ -37,13 +37,17 @@ def unsubscribe(db: Session, endpoint: str, current_user):
         sub_dao.delete(db, sub)
 
 
-def send_push(subscription, title: str, body: str, icon: str = None, url: str = None):
+def send_push(subscription, title: str, body: str, icon: str = None, url: str = None, unread_count: int = 0):
     payload = json.dumps({
         "title": title,
         "body": body,
         "icon": icon or "/img/icons/logo-192.png",
         "badge": "/img/icons/logo-192.png",
-        "data": {"url": url or "/"},
+        "sound": "/sounds/notification.wav",
+        "data": {
+            "url": url or "/",
+            "unread_count": unread_count
+        },
     })
     try:
         sub_info = {
@@ -62,11 +66,11 @@ def send_push(subscription, title: str, body: str, icon: str = None, url: str = 
     return True
 
 
-def notify_user(db: Session, user_id: int, role: str, title: str, body: str, url: str = None):
+def notify_user(db: Session, user_id: int, role: str, title: str, body: str, url: str = None, unread_count: int = 0):
     subs = sub_dao.get_by_user(db, user_id, role)
     stale = []
     for sub in subs:
-        ok = send_push(sub, title, body, url=url)
+        ok = send_push(sub, title, body, url=url, unread_count=unread_count)
         if ok is False:
             stale.append(sub)
     for s in stale:

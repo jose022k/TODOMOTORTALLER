@@ -342,12 +342,15 @@ def assign_mechanic(db: Session, order_id: int, mecanico_id: int, admin_user):
             detail=f"No se puede reasignar mecánico en una orden '{order.estado}'",
         )
 
+    old_mecanico_id = order.mecanico_id
     updated = orden_dao.update(db, order, {"mecanico_id": mecanico_id})
 
-    # Notificar reasignación a cliente, nuevo mecánico y todos los admin
+    # Notificar reasignación a cliente, antiguo y nuevo mecánico, y todos los admin
     admin_ids = [a.id for a in db.query(Admin.id).all()]
-    if order.cliente_id:
-        create_notification(db, "orden_actualizada", f"La orden #{order_id} tiene un nuevo mecánico asignado", orden_servicio_id=order_id, cliente_id=order.cliente_id)
+    if old_mecanico_id and old_mecanico_id != mecanico_id:
+        create_notification(db, "orden_actualizada", f"Has sido desasignado de la orden #{order_id}", orden_servicio_id=order_id, mecanico_id=old_mecanico_id)
+    if updated.cliente_id:
+        create_notification(db, "orden_actualizada", f"La orden #{order_id} tiene un nuevo mecánico asignado", orden_servicio_id=order_id, cliente_id=updated.cliente_id)
     create_notification(db, "orden_actualizada", f"Te han asignado la orden #{order_id}", orden_servicio_id=order_id, mecanico_id=mecanico_id)
     for aid in admin_ids:
         create_notification(db, "orden_actualizada", f"Se reasignó mecánico en la orden #{order_id}", orden_servicio_id=order_id, admin_id=aid)

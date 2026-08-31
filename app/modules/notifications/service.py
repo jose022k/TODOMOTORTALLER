@@ -99,9 +99,15 @@ def create_notification(
 
     # También enviar Web Push si hay un destinatario
     try:
+        from app.modules.notifications.dao import NotificacionDAO
+        from app.modules.preferences.service import allowed_tipos
+        dao = NotificacionDAO()
+
         if admin_id:
             url = f"/admin/service-orders?order_id={orden_servicio_id}{extra}" if orden_servicio_id else "/"
-            notify_user(db, admin_id, "admin", "Todomotortaller", mensaje, url)
+            allowed = allowed_tipos(db, "admin", admin_id)
+            unread_count = dao.get_unread_count(db, admin_id, "admin", allowed)
+            notify_user(db, admin_id, "admin", "Todomotortaller", mensaje, url, unread_count=unread_count)
         if cliente_id:
             if orden_servicio_id and open_chat:
                 url = f"/cliente/orders?order_id={orden_servicio_id}&open_chat=1"
@@ -109,10 +115,14 @@ def create_notification(
                 url = f"/tracker/{orden_servicio_id}"
             else:
                 url = "/cliente/orders"
-            notify_user(db, cliente_id, "cliente", "Todomotortaller", mensaje, url)
+            allowed = allowed_tipos(db, "cliente", cliente_id)
+            unread_count = dao.get_unread_count(db, cliente_id, "cliente", allowed)
+            notify_user(db, cliente_id, "cliente", "Todomotortaller", mensaje, url, unread_count=unread_count)
         if mecanico_id:
             url = f"/mecanico/orders?order_id={orden_servicio_id}{extra}" if orden_servicio_id else "/"
-            notify_user(db, mecanico_id, "mecanico", "Todomotortaller", mensaje, url)
+            allowed = allowed_tipos(db, "mecanico", mecanico_id)
+            unread_count = dao.get_unread_count(db, mecanico_id, "mecanico", allowed)
+            notify_user(db, mecanico_id, "mecanico", "Todomotortaller", mensaje, url, unread_count=unread_count)
     except Exception:
         pass
 

@@ -56,6 +56,14 @@ self.addEventListener("push", (event) => {
       vibrate: [200, 100, 200],
       sound: data.sound || "/sounds/notification.wav",
     };
+    
+    // Update app badge if supported and provided
+    if (data.data && typeof data.data.unread_count === "number") {
+      if (typeof navigator.setAppBadge === "function") {
+        navigator.setAppBadge(data.data.unread_count).catch(() => {});
+      }
+    }
+
     event.waitUntil(self.registration.showNotification(data.title || "Todomotortaller", options));
   } catch {
     const text = event.data.text();
