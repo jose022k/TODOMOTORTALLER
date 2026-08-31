@@ -45,9 +45,9 @@
         </thead>
         <tbody>
           <tr v-for="m in paginatedMechanics" :key="m.id">
-            <td>{{ m.nombre }}</td>
-            <td>{{ m.email }}</td>
-            <td>
+            <td data-label="Nombre">{{ m.nombre }}</td>
+            <td data-label="Email">{{ m.email }}</td>
+            <td data-label="Estado">
               <span :class="['badge', m.activo ? 'badge-active' : 'badge-inactive']">
                 {{ m.activo ? 'Activo' : 'Inactivo' }}
               </span>
@@ -92,11 +92,11 @@
         </thead>
         <tbody>
           <tr v-for="c in paginatedClients" :key="c.id">
-            <td>{{ c.cedula }}</td>
-            <td>{{ c.nombre }}</td>
-            <td>{{ c.email }}</td>
-            <td>{{ c.telefono || '-' }}</td>
-            <td>
+            <td data-label="Cédula">{{ c.cedula }}</td>
+            <td data-label="Nombre">{{ c.nombre }}</td>
+            <td data-label="Email">{{ c.email }}</td>
+            <td data-label="Teléfono">{{ c.telefono || '-' }}</td>
+            <td data-label="Estado">
               <span :class="['badge', c.activo ? 'badge-active' : 'badge-inactive']">
                 {{ c.activo ? 'Activo' : 'Inactivo' }}
               </span>
@@ -499,6 +499,12 @@ export default {
   color: #1a1a1a;
   font-weight: 800;
 }
+.page-subtitle {
+  color: #666;
+  margin-top: 5px;
+  margin-left: 48px;
+  font-size: 1.05rem;
+}
 .alert {
   padding: 12px 16px;
   border-radius: 8px;
@@ -839,5 +845,243 @@ export default {
   color: #64748b;
   min-width: 60px;
   text-align: center;
+}
+
+/* ===== MOBILE / PWA native feel ===== */
+@media (max-width: 768px) {
+  .admin-users {
+    padding: 12px 12px 80px;
+  }
+  .users-header h1 {
+    font-size: 1.3rem;
+  }
+  .page-subtitle {
+    margin-left: 0;
+    font-size: 0.9rem;
+  }
+  .tabs {
+    border-radius: 10px;
+    overflow: hidden;
+    background: #f1f5f9;
+    border-bottom: none;
+    padding: 3px;
+    gap: 0;
+  }
+  .tab {
+    flex: 1;
+    padding: 12px 16px;
+    font-size: 14px;
+    border-bottom: none;
+    margin-bottom: 0;
+    border-radius: 8px;
+    text-align: center;
+  }
+  .tab.active {
+    background: #fff;
+    color: #1a1a1a;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  }
+  .toolbar {
+    flex-direction: column;
+    gap: 10px;
+  }
+  .search-input {
+    max-width: 100%;
+    width: 100%;
+    padding: 14px;
+    border-radius: 12px;
+    font-size: 15px;
+  }
+  .btn-primary {
+    width: 100%;
+    padding: 14px;
+    border-radius: 12px;
+    font-size: 15px;
+    text-align: center;
+    justify-content: center;
+  }
+  .data-table {
+    display: block;
+    overflow-x: hidden;
+    background: transparent;
+    box-shadow: none;
+  }
+  .data-table thead { display: none; }
+  .data-table tbody { display: flex; flex-direction: column; gap: 10px; }
+  .data-table tr {
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    border-radius: 14px;
+    padding: 14px 16px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    border: 1px solid #f1f5f9;
+    gap: 6px;
+  }
+  .data-table td {
+    padding: 2px 0;
+    border-bottom: none;
+    font-size: 13px;
+  }
+  .data-table td::before {
+    content: attr(data-label);
+    font-weight: 700;
+    color: #94a3b8;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    display: block;
+    margin-bottom: 2px;
+  }
+  .data-table td:last-child {
+    padding-top: 8px;
+    border-top: 1px solid #f1f5f9;
+  }
+  .actions-cell {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .btn-sm {
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .modal-card {
+    width: 95%;
+    padding: 20px;
+    border-radius: 16px;
+  }
+  .modal-header h2 {
+    font-size: 1.2rem;
+  }
+  .detail-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .pagination {
+    padding: 8px 0 20px;
+  }
+}
+html.dark .data-table tr {
+  background: #1a1f2e;
+  border-color: #1e293b;
+}
+html.dark .modal-card {
+  background: #1a1f2e;
+}
+html.dark .users-header h1 {
+  color: #e2e8f0;
+}
+html.dark .page-subtitle {
+  color: #94a3b8;
+}
+html.dark .tabs {
+  background: #1e293b;
+}
+html.dark .tab {
+  color: #94a3b8;
+}
+html.dark .tab.active {
+  background: #0d1117;
+  color: #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+html.dark .tab:hover {
+  color: #e2e8f0;
+}
+html.dark .search-input {
+  background: #0d1117;
+  border-color: #334155;
+  color: #e2e8f0;
+}
+html.dark .data-table {
+  background: transparent;
+}
+html.dark .data-table th {
+  background: #1e293b;
+  color: #94a3b8;
+  border-bottom-color: #334155;
+}
+html.dark .data-table td {
+  color: #cbd5e1;
+  border-bottom-color: #1e293b;
+}
+html.dark .data-table td::before {
+  color: #64748b;
+}
+html.dark .data-table td:last-child {
+  border-top-color: #1e293b;
+}
+html.dark .btn-view {
+  background: #1e3a5f;
+  color: #60a5fa;
+}
+html.dark .btn-edit {
+  background: #422006;
+  color: #fbbf24;
+}
+html.dark .btn-deactivate {
+  background: #450a0a;
+  color: #f87171;
+}
+html.dark .btn-activate {
+  background: #052e16;
+  color: #4ade80;
+}
+html.dark .badge-active {
+  background: #052e16;
+  color: #4ade80;
+}
+html.dark .badge-inactive {
+  background: #1e293b;
+  color: #94a3b8;
+}
+html.dark .form-group label {
+  color: #94a3b8;
+}
+html.dark .form-group input {
+  background: #0d1117;
+  border-color: #334155;
+  color: #e2e8f0;
+}
+html.dark .btn-secondary {
+  background: #1e293b;
+  color: #94a3b8;
+}
+html.dark .btn-secondary:hover {
+  background: #334155;
+}
+html.dark .page-btn {
+  background: #0d1117;
+  border-color: #334155;
+  color: #94a3b8;
+}
+html.dark .page-info {
+  color: #94a3b8;
+}
+html.dark .motos-title {
+  color: #e2e8f0;
+}
+html.dark .detail-grid div {
+  color: #cbd5e1;
+}
+html.dark .detail-grid strong {
+  color: #94a3b8;
+}
+html.dark .empty-state,
+html.dark .loading-state {
+  color: #64748b;
+}
+html.dark .alert-success {
+  background: #052e16;
+  color: #4ade80;
+  border-color: #166534;
+}
+html.dark .alert-error {
+  background: #450a0a;
+  color: #f87171;
+  border-color: #991b1b;
 }
 </style>

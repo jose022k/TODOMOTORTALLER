@@ -38,21 +38,21 @@
           <button class="btn-clear" @click="saveTasa">Guardar</button>
           <button class="btn-clear" @click="editTasa = false">Cancelar</button>
         </div>
-        <div class="pdf-dropdown">
-          <button class="btn-pdf" @click="showPdfMenu = !showPdfMenu">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-            Generar PDF
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="margin-left:2px;"><polyline points="6 9 12 15 18 9"/></svg>
-          </button>
-          <div v-if="showPdfMenu" class="pdf-dropdown-content">
-            <div class="pdf-dropdown-header">Seleccionar secciones</div>
-            <label class="pdf-check" v-for="s in printSections" :key="s.key">
-              <input type="checkbox" v-model="s.checked" />
-              <span>{{ s.label }}</span>
-            </label>
-            <div class="pdf-dropdown-actions">
-              <button class="btn-pdf-generate" @click="printReport">Generar PDF</button>
-            </div>
+      </div>
+      <div class="pdf-dropdown no-print">
+        <button class="btn-pdf" @click="showPdfMenu = !showPdfMenu">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          Generar PDF
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="margin-left:2px;"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div v-if="showPdfMenu" class="pdf-dropdown-content">
+          <div class="pdf-dropdown-header">Seleccionar secciones</div>
+          <label class="pdf-check" v-for="s in printSections" :key="s.key">
+            <input type="checkbox" v-model="s.checked" />
+            <span>{{ s.label }}</span>
+          </label>
+          <div class="pdf-dropdown-actions">
+            <button class="btn-pdf-generate" @click="printReport">Generar PDF</button>
           </div>
         </div>
       </div>
@@ -115,6 +115,7 @@
         </div>
       </div>
     </template>
+
   </div>
 </template>
 
@@ -488,6 +489,12 @@ export default {
   gap: 12px;
 }
 .reports-header h1 { font-size: 1.8rem; color: #1a1a1a; font-weight: 800; }
+.page-subtitle {
+  color: #666;
+  margin-top: 5px;
+  margin-left: 48px;
+  font-size: 1.05rem;
+}
 .print-header { display: none; }
 .reports-toolbar {
   display: flex;
@@ -561,6 +568,25 @@ html.dark .tasa-chip:hover { background: #3b4a63; }
 html.dark .tasa-chip-label { color: #fbbf24; }
 html.dark .tasa-chip-value { color: var(--text-default); }
 html.dark .card-subtitle { background: #1e293b; color: #94a3b8; }
+html.dark .reports-header h1 { color: #f1f5f9; }
+html.dark .reports-header h1 svg { color: #ffaa00; }
+html.dark .page-subtitle { color: #94a3b8; }
+html.dark .pdf-dropdown-content {
+  background: #1a1f2e;
+  border-color: #334155;
+}
+html.dark .pdf-dropdown-header {
+  background: #1e293b;
+  color: #e2e8f0;
+}
+html.dark .pdf-check {
+  color: #cbd5e1;
+}
+html.dark .pdf-dropdown-actions {
+  border-top-color: #334155;
+}
+html.dark .loading-state { color: #64748b; }
+html.dark .spinner { border-color: #334155; border-top-color: #ffaa00; }
 .loading-state { text-align: center; padding: 60px; color: #64748b; font-size: 1rem; }
 
 /* PDF dropdown */
@@ -698,6 +724,119 @@ html.dark .card-subtitle { background: #1e293b; color: #94a3b8; }
 
 /* Print table (hidden on screen) */
 .print-table-wrapper { display: none; }
+
+/* ===== MOBILE / PWA native feel ===== */
+@media (max-width: 768px) {
+  .reports-page {
+    padding: 12px 12px 80px;
+  }
+  .reports-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .reports-header h1 {
+    font-size: 1.3rem;
+  }
+  .page-subtitle {
+    margin-left: 0;
+    font-size: 0.9rem;
+  }
+  .reports-toolbar {
+    margin-left: 0;
+    width: 100%;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .tasa-chip {
+    width: 100%;
+    justify-content: center;
+    padding: 12px 16px;
+    border-radius: 10px;
+    font-size: 14px;
+  }
+  .pdf-dropdown {
+    width: 100%;
+  }
+  .btn-pdf {
+    width: 100%;
+    justify-content: center;
+    padding: 14px 16px;
+    border-radius: 10px;
+    font-size: 15px;
+  }
+  .pdf-dropdown-content {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    width: 100%;
+    z-index: 150;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    margin-top: 6px;
+    background: #fff;
+  }
+  .pdf-check {
+    font-size: 15px;
+    padding: 10px 8px;
+    gap: 12px;
+  }
+  .pdf-check input {
+    width: 20px;
+    height: 20px;
+  }
+  .btn-pdf-generate {
+    padding: 14px;
+    font-size: 15px;
+    border-radius: 10px;
+  }
+  .highlight-card {
+    padding: 24px 16px;
+    margin-bottom: 16px;
+    border-radius: 14px;
+  }
+  .highlight-value {
+    font-size: 2rem;
+  }
+  .highlight-label {
+    font-size: 0.85rem;
+  }
+  .reports-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  .report-card {
+    padding: 16px;
+    border-radius: 14px;
+  }
+  .report-card-header h3 {
+    font-size: 0.9rem;
+  }
+  .chart-wrapper {
+    height: 180px;
+  }
+  .filter-date {
+    width: 100%;
+    padding: 12px;
+    border-radius: 10px;
+    font-size: 14px;
+  }
+  .btn-clear {
+    width: 100%;
+    padding: 12px;
+    border-radius: 10px;
+    text-align: center;
+  }
+  .tasa-editor {
+    width: 100%;
+    flex-direction: column;
+  }
+  .tasa-editor input {
+    width: 100%;
+  }
+}
 </style>
 
 <style>
@@ -716,6 +855,7 @@ html.dark .card-subtitle { background: #1e293b; color: #94a3b8; }
   .notif-bell,
   .notif-badge,
   .notif-dropdown,
+  .pwa-bottom-nav,
   .admin-panel .welcome-section,
   .admin-panel .dashboard-grid,
   .chat-overlay {

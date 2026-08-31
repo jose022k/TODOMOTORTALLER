@@ -4,11 +4,16 @@
       <div class="pwa-splash-inner">
         <img
           class="pwa-splash-logo"
-          src="https://res.cloudinary.com/dorj3mvvr/image/upload/v1783609693/logos/logotaller01.png"
+          src="/img/logo-splash.png"
           alt="Todomotortaller"
         />
+        <div class="pwa-splash-progress" aria-hidden="true">
+          <svg class="progress-ring" width="56" height="56" viewBox="0 0 56 56">
+            <circle class="ring-bg" cx="28" cy="28" r="24" />
+            <circle class="ring-fg" cx="28" cy="28" r="24" />
+          </svg>
+        </div>
         <p class="pwa-splash-name">Todomotortaller</p>
-        <div class="pwa-splash-spinner" aria-hidden="true"></div>
       </div>
     </div>
   </transition>
@@ -30,9 +35,10 @@ export default {
       // nunca en la vista web del navegador (ni móvil ni escritorio).
       if (isPwa.value) {
         visible.value = true;
+        // Logo aparece gradualmente (2.5s), luego barra circular y nombre, y entra a la PWA.
         timer = setTimeout(() => {
           visible.value = false;
-        }, 1600);
+        }, 3500);
       }
     });
 
@@ -53,7 +59,7 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #1a1a1a;
+  background-color: #000000;
   padding: env(safe-area-inset-top) env(safe-area-inset-right)
     env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
@@ -67,9 +73,37 @@ export default {
 }
 
 .pwa-splash-logo {
-  width: 120px;
+  width: 140px;
   height: auto;
   display: block;
+  opacity: 0;
+  transform: scale(0.92);
+  animation: logo-appear 2.5s ease forwards;
+}
+
+/* Barra circular de carga (determinante) */
+.pwa-splash-progress {
+  opacity: 0;
+  animation: appear 0.5s ease forwards;
+  animation-delay: 2.5s;
+}
+.progress-ring {
+  transform: rotate(-90deg);
+}
+.ring-bg {
+  fill: none;
+  stroke: rgba(255, 170, 0, 0.18);
+  stroke-width: 4;
+}
+.ring-fg {
+  fill: none;
+  stroke: #ffaa00;
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-dasharray: 150.8; /* 2 * pi * 24 */
+  stroke-dashoffset: 150.8;
+  animation: ring-fill 0.9s linear forwards;
+  animation-delay: 2.5s;
 }
 
 .pwa-splash-name {
@@ -79,20 +113,32 @@ export default {
   letter-spacing: 0.5px;
   text-transform: uppercase;
   color: #ffaa00;
+  opacity: 0;
+  animation: appear 1s ease forwards;
+  animation-delay: 2.6s;
 }
 
-.pwa-splash-spinner {
-  width: 34px;
-  height: 34px;
-  border: 3px solid rgba(255, 170, 0, 0.25);
-  border-top-color: #ffaa00;
-  border-radius: 50%;
-  animation: pwa-splash-spin 0.9s linear infinite;
-}
-
-@keyframes pwa-splash-spin {
+@keyframes logo-appear {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
   to {
-    transform: rotate(360deg);
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@keyframes appear {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes ring-fill {
+  to {
+    stroke-dashoffset: 0;
   }
 }
 

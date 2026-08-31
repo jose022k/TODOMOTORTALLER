@@ -1,7 +1,13 @@
 <template>
   <div class="mecanico-orders">
     <div class="header">
-      <h1>Mis Órdenes de Servicio</h1>
+      <div class="header-content">
+        <h1>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px; vertical-align: middle;"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 14l2 2 4-4"/></svg>
+          Mis Órdenes de Servicio
+        </h1>
+        <p class="page-subtitle">Gestiona las órdenes asignadas</p>
+      </div>
     </div>
 
     <div v-if="alert.message" :class="['alert', 'alert-' + alert.type]">
@@ -28,12 +34,12 @@
       </thead>
       <tbody>
         <tr v-for="o in orders" :key="o.id">
-          <td>{{ o.id }}</td>
-          <td>{{ capitalize(o.cliente_nombre) }}</td>
-          <td>{{ o.moto_marca }} {{ o.moto_modelo }} ({{ o.moto_placa }})</td>
-          <td class="desc-cell">{{ o.descripcion }}</td>
-          <td><span :class="['badge', 'badge-' + o.estado]">{{ statusLabel(o.estado) }}</span></td>
-          <td>{{ formatDate(o.fecha_creacion) }}</td>
+          <td data-label="ID">{{ o.id }}</td>
+          <td data-label="Cliente">{{ capitalize(o.cliente_nombre) }}</td>
+          <td data-label="Moto">{{ o.moto_marca }} {{ o.moto_modelo }} ({{ o.moto_placa }})</td>
+          <td data-label="Descripción" class="desc-cell">{{ o.descripcion }}</td>
+          <td data-label="Estado"><span :class="['badge', 'badge-' + o.estado]">{{ statusLabel(o.estado) }}</span></td>
+          <td data-label="Fecha">{{ formatDate(o.fecha_creacion) }}</td>
           <td class="actions-cell">
             <button class="btn-sm btn-view" @click="openDetail(o)">Ver</button>
             <button v-if="o.estado === 'en_proceso'" class="btn-sm btn-chat" @click="openChat(o)">Chat</button>
@@ -41,6 +47,22 @@
         </tr>
       </tbody>
     </table>
+
+    <!-- Mobile cards -->
+    <div class="mecanico-mobile-cards">
+      <div v-for="o in orders" :key="'m-' + o.id" class="mecanico-mobile-card">
+        <div class="mecanico-mobile-row"><span class="mecanico-mobile-lbl">ID:</span> <span class="mecanico-mobile-val">{{ o.id }}</span></div>
+        <div class="mecanico-mobile-row"><span class="mecanico-mobile-lbl">Cliente:</span> <span class="mecanico-mobile-val">{{ capitalize(o.cliente_nombre) }}</span></div>
+        <div class="mecanico-mobile-row"><span class="mecanico-mobile-lbl">Moto:</span> <span class="mecanico-mobile-val">{{ o.moto_marca }} {{ o.moto_modelo }} ({{ o.moto_placa }})</span></div>
+        <div class="mecanico-mobile-row"><span class="mecanico-mobile-lbl">Descripción:</span> <span class="mecanico-mobile-val">{{ o.descripcion }}</span></div>
+        <div class="mecanico-mobile-row"><span class="mecanico-mobile-lbl">Estado:</span> <span class="mecanico-mobile-val"><span :class="['badge', 'badge-' + o.estado]">{{ statusLabel(o.estado) }}</span></span></div>
+        <div class="mecanico-mobile-row"><span class="mecanico-mobile-lbl">Fecha:</span> <span class="mecanico-mobile-val">{{ formatDate(o.fecha_creacion) }}</span></div>
+        <div class="mecanico-mobile-row mecanico-mobile-actions">
+          <button class="btn-sm btn-view" @click="openDetail(o)">Ver</button>
+          <button v-if="o.estado === 'en_proceso'" class="btn-sm btn-chat" @click="openChat(o)">Chat</button>
+        </div>
+      </div>
+    </div>
 
     <!-- Paginación -->
     <div v-if="!loading && totalPages > 1" class="pagination">
@@ -268,12 +290,19 @@ export default {
       if (this.$route.query.open_chat === "1") {
         this.chatOrdenId = Number(orderId);
         this.showChatModal = true;
+        this.clearOrderRouteQuery();
         return;
       }
       this.showDetail = true;
       api.get(`/service-orders/${orderId}`).then(({ data }) => {
         this.detail = data;
       }).catch(() => {});
+      this.clearOrderRouteQuery();
+    },
+    clearOrderRouteQuery() {
+      if (this.$route.query.order_id || this.$route.query.open_chat) {
+        this.$router.replace({ path: this.$route.path, query: {} });
+      }
     },
     onOrderUpdated() {
       this.fetchOrders();
@@ -316,7 +345,13 @@ export default {
   padding: 24px;
 }
 .header { margin-bottom: 20px; }
-.header h1 { font-size: 1.8rem; color: #1a1a1a; }
+.header h1 { font-size: 1.8rem; color: #1a1a1a; font-weight: 800; }
+.page-subtitle {
+  color: #666;
+  margin-top: 5px;
+  margin-left: 48px;
+  font-size: 1.05rem;
+}
 .loading-state, .empty-state {
   text-align: center; padding: 40px; color: #64748b; font-size: 1rem;
 }
@@ -495,4 +530,63 @@ export default {
   min-width: 60px;
   text-align: center;
 }
+/* ===== MOBILE / PWA native feel ===== */
+@media (max-width: 768px) {
+  .mecanico-orders {
+    padding: 12px 12px 80px;
+  }
+  .header h1 {
+    font-size: 1.3rem;
+  }
+  .page-subtitle {
+    margin-left: 0;
+    font-size: 0.9rem;
+  }
+  .btn-sm {
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .modal {
+    width: 95%;
+    border-radius: 16px;
+    max-height: 80vh;
+  }
+  .modal-body { padding: 16px; }
+  .detail-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .actions-row {
+    flex-direction: column;
+    gap: 8px;
+  }
+  .action-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 14px;
+    border-radius: 12px;
+    font-size: 14px;
+  }
+  .pagination {
+    padding: 8px 0 20px;
+  }
+}
+html.dark .data-table tr {
+  background: #1a1f2e;
+  border-color: #1e293b;
+}
+html.dark .header h1 { color: #f1f5f9 !important; }
+html.dark .page-subtitle { color: var(--text-muted) !important; }
+html.dark .data-table { background: transparent !important; }
+html.dark .data-table th { background: var(--bg-muted) !important; color: var(--text-secondary) !important; border-bottom-color: var(--border-default) !important; }
+html.dark .data-table td { color: var(--text-default) !important; border-bottom-color: var(--border-light) !important; }
+html.dark .btn-view { background: #1e3a5f !important; color: #93c5fd !important; }
+html.dark .btn-chat { background: #064e3b !important; color: #6ee7b7 !important; }
+html.dark .mecanico-mobile-card { background: var(--bg-card) !important; border-color: var(--border-default) !important; box-shadow: 0 1px 3px rgba(0,0,0,0.3) !important; }
+html.dark .mecanico-mobile-val { color: var(--text-default) !important; }
+html.dark .mecanico-mobile-actions { border-top-color: var(--border-light) !important; }
+html.dark .form-control { background: var(--bg-input) !important; border-color: var(--border-strong) !important; color: var(--text-default) !important; }
+html.dark .page-btn { background: var(--bg-card) !important; border-color: var(--border-default) !important; color: var(--text-secondary) !important; }
 </style>

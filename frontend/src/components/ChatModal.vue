@@ -56,13 +56,23 @@
 
       <div class="chat-footer">
         <div class="chat-input-row">
-          <label class="upload-icon-btn" title="Adjuntar foto">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-              <circle cx="12" cy="13" r="4"/>
-            </svg>
-            <input type="file" accept="image/*" capture="environment" @change="selectFile" />
-          </label>
+          <div class="upload-btns">
+            <label class="upload-icon-btn" title="Tomar foto">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                <circle cx="12" cy="13" r="4"/>
+              </svg>
+              <input type="file" accept="image/*" capture="environment" @change="selectFile" />
+            </label>
+            <label class="upload-icon-btn" title="Elegir de galería">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                <circle cx="8.5" cy="8.5" r="1.5"/>
+                <polyline points="21 15 16 10 5 21"/>
+              </svg>
+              <input type="file" accept="image/*" @change="selectFile" />
+            </label>
+          </div>
           <div class="input-wrap">
             <div v-if="previewUrl" class="inline-preview">
               <img :src="previewUrl" class="inline-preview-img" />
@@ -191,19 +201,15 @@ export default {
       }
       try {
         if (textContent && file) {
+          const msgRes = await api.post(`/chat/${this.ordenId}`, { contenido: textContent, orden_servicio_id: this.ordenId });
+          Object.assign(tempMsg, msgRes.data);
           const fd = new FormData();
           fd.append("file", file);
-          const [msgRes, evRes] = await Promise.all([
-            api.post(`/chat/${this.ordenId}`, { contenido: textContent, orden_servicio_id: this.ordenId }),
-            api.post(`/chat/${this.ordenId}/evidencias`, fd),
-          ]);
-          Object.assign(tempMsg, msgRes.data);
+          fd.append("mensaje_id", msgRes.data.id);
+          const evRes = await api.post(`/chat/${this.ordenId}/evidencias`, fd);
           const evIdx = this.evidencias.indexOf(tempEv);
-          const realEv = { _key: tempEv._key, ...evRes.data, mensaje_id: msgRes.data.id || null };
+          const realEv = { _key: tempEv._key, ...evRes.data };
           if (evIdx !== -1) this.evidencias.splice(evIdx, 1, realEv);
-          if (msgRes.data.id) {
-            api.patch(`/chat/${this.ordenId}/evidencias/${evRes.data.id}/link?mensaje_id=${msgRes.data.id}`).catch(() => {});
-          }
         } else if (file) {
           const fd = new FormData();
           fd.append("file", file);
@@ -477,6 +483,10 @@ export default {
   display: flex;
   gap: 8px;
   align-items: flex-end;
+}
+.upload-btns {
+  display: flex;
+  gap: 2px;
 }
 .upload-icon-btn {
   cursor: pointer;

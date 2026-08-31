@@ -58,7 +58,7 @@
       </nav>
     </header>
 
-    <main class="app-main" :class="{ 'pwa-main': showMobileNav }">
+    <main class="app-main" :class="{ 'pwa-main': showMobileNav }" ref="mainContent" @touchstart="onTouchStart" @touchmove="onTouchMove" @touchend="onTouchEnd">
       <router-view v-slot="{ Component }">
         <transition name="page-fade" mode="out-in">
           <component :is="Component" />
@@ -67,23 +67,23 @@
     </main>
 
     <!-- BOTTOM NAV MOBILE: paginas publicas -->
-    <nav v-if="showMobileNav && !authStore.isAuthenticated && isPublicPage" class="pwa-bottom-nav">
-      <router-link to="/workshop" class="pwa-nav-item" :class="{ active: $route.path === '/workshop' }">
+    <nav v-if="showMobileNav && !authStore.isAuthenticated && isPublicPage" class="pwa-bottom-nav pwa-bottom-nav--centered">
+      <a href="/workshop" class="pwa-nav-item" @click.prevent="$router.push('/workshop')">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>
         <span>Taller</span>
-      </router-link>
-      <router-link to="/location" class="pwa-nav-item" :class="{ active: $route.path === '/location' }">
+      </a>
+      <a href="/location" class="pwa-nav-item" @click.prevent="$router.push('/location')">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
         <span>Ubicación</span>
-      </router-link>
-      <router-link v-if="$route.path !== '/login'" to="/login" class="pwa-nav-item" :class="{ active: $route.path === '/login' }">
+      </a>
+      <a href="/login" class="pwa-nav-item" @click.prevent="$router.push('/login')">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
         <span>Iniciar</span>
-      </router-link>
-      <router-link v-if="$route.path === '/login'" to="/register/cliente" class="pwa-nav-item">
+      </a>
+      <a href="/register/cliente" class="pwa-nav-item" @click.prevent="$router.push('/register/cliente')">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
         <span>Registrar</span>
-      </router-link>
+      </a>
       <button class="pwa-nav-item" @click="toggleTheme">
         <span v-html="isDark ? sunIcon : moonIcon"></span>
         <span>{{ isDark ? 'Claro' : 'Oscuro' }}</span>
@@ -92,70 +92,83 @@
 
     <!-- BOTTOM NAV MOBILE: ADMIN -->
     <nav v-if="showMobileNav && authStore.isAuthenticated && authStore.isAdmin" class="pwa-bottom-nav">
-      <router-link to="/admin" class="pwa-nav-item" :class="{ active: $route.path === '/admin' }">
+      <a href="/admin" class="pwa-nav-item" @click.prevent="$router.push('/admin')">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
         <span>Panel</span>
-      </router-link>
-      <router-link to="/admin/service-orders" class="pwa-nav-item" :class="{ active: $route.path === '/admin/service-orders' }">
+      </a>
+      <a href="/admin/service-orders" class="pwa-nav-item" @click.prevent="$router.push('/admin/service-orders')">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M9 14l2 2 4-4"/></svg>
         <span>Órdenes</span>
-      </router-link>
-      <router-link to="/admin/reports" class="pwa-nav-item" :class="{ active: $route.path === '/admin/reports' }">
+      </a>
+      <a href="/admin/reports" class="pwa-nav-item" @click.prevent="$router.push('/admin/reports')">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16"/><path d="M4 20V4"/><path d="M8 14V8"/><path d="M12 14v-4"/><path d="M16 14v-6"/><path d="M20 14V6"/></svg>
         <span>Reportes</span>
-      </router-link>
-      <router-link to="/admin/catalog" class="pwa-nav-item" :class="{ active: $route.path === '/admin/catalog' }">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+      </a>
+      <a href="/admin/catalog" class="pwa-nav-item" @click.prevent="$router.push('/admin/catalog')">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h8v16H3z"/><path d="M13 4h8v16H13z"/><path d="M11 4v16"/></svg>
         <span>Catálogo</span>
-      </router-link>
-      <router-link to="/notifications" class="pwa-nav-item" :class="{ active: $route.path === '/notifications' }">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-        <span>Alertas</span>
-      </router-link>
-      <div class="pwa-nav-item pwa-nav-settings">
-        <SettingsDropdown :above="true" @theme-change="onThemeChange" />
-        <span>Ajustes</span>
-      </div>
-      <button class="pwa-nav-item pwa-nav-logout" @click="handleLogout">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-        <span>Salir</span>
-      </button>
+      </a>
+      <a href="/admin/users" class="pwa-nav-item" @click.prevent="$router.push('/admin/users')">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span>Usuarios</span>
+      </a>
+      <a href="/notifications" class="pwa-nav-item" @click.prevent="notif.requestPermission(); $router.push('/notifications')">
+        <span class="notif-badge-wrap">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span v-if="notif.state.unreadCount > 0" class="notif-badge">{{ notif.state.unreadCount > 99 ? '99+' : notif.state.unreadCount }}</span>
+         </span>
+         <span>Alertas</span>
+       </a>
+       <div class="pwa-nav-item pwa-nav-settings">
+         <SettingsDropdown :above="true" @theme-change="onThemeChange" />
+         <span>Ajustes</span>
+       </div>
+       <button class="pwa-nav-item pwa-nav-logout" @click="handleLogout">
+         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+         <span>Salir</span>
+       </button>
     </nav>
 
     <!-- BOTTOM NAV MOBILE: MECANICO -->
-    <nav v-if="showMobileNav && authStore.isAuthenticated && authStore.isMecanico" class="pwa-bottom-nav">
-      <router-link to="/mecanico/orders" class="pwa-nav-item" :class="{ active: $route.path === '/mecanico/orders' }">
+    <nav v-if="showMobileNav && authStore.isAuthenticated && authStore.isMecanico" class="pwa-bottom-nav pwa-bottom-nav--centered">
+      <a href="/mecanico/orders" class="pwa-nav-item" @click.prevent="$router.push('/mecanico/orders')">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 14l2 2 4-4"/></svg>
         <span>Mis Órdenes</span>
-      </router-link>
-      <router-link to="/notifications" class="pwa-nav-item" :class="{ active: $route.path === '/notifications' }">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-        <span>Alertas</span>
-      </router-link>
-      <div class="pwa-nav-item pwa-nav-settings">
-        <SettingsDropdown :above="true" @theme-change="onThemeChange" />
-        <span>Ajustes</span>
-      </div>
-      <button class="pwa-nav-item pwa-nav-logout" @click="handleLogout">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-        <span>Salir</span>
-      </button>
+      </a>
+      <a href="/notifications" class="pwa-nav-item" @click.prevent="notif.requestPermission(); $router.push('/notifications')">
+        <span class="notif-badge-wrap">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span v-if="notif.state.unreadCount > 0" class="notif-badge">{{ notif.state.unreadCount > 99 ? '99+' : notif.state.unreadCount }}</span>
+         </span>
+         <span>Alertas</span>
+       </a>
+       <div class="pwa-nav-item pwa-nav-settings">
+         <SettingsDropdown :above="true" @theme-change="onThemeChange" />
+         <span>Ajustes</span>
+       </div>
+       <button class="pwa-nav-item pwa-nav-logout" @click="handleLogout">
+         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 14l2 2 4-4"/></svg>
+         <span>Salir</span>
+       </button>
     </nav>
 
     <!-- BOTTOM NAV MOBILE: CLIENTE -->
-    <nav v-if="showMobileNav && authStore.isAuthenticated && authStore.isCliente" class="pwa-bottom-nav">
-      <router-link to="/cliente/orders" class="pwa-nav-item" :class="{ active: $route.path === '/cliente/orders' }">
+    <nav v-if="showMobileNav && authStore.isAuthenticated && authStore.isCliente" class="pwa-bottom-nav pwa-bottom-nav--centered">
+      <a href="/cliente/orders" class="pwa-nav-item" @click.prevent="$router.push('/cliente/orders')">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
         <span>Mi Panel</span>
-      </router-link>
-      <router-link to="/notifications" class="pwa-nav-item" :class="{ active: $route.path === '/notifications' }">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-        <span>Alertas</span>
-      </router-link>
-      <div class="pwa-nav-item pwa-nav-settings">
-        <SettingsDropdown :above="true" @theme-change="onThemeChange" />
-        <span>Ajustes</span>
-      </div>
+      </a>
+      <a href="/notifications" class="pwa-nav-item" @click.prevent="notif.requestPermission(); $router.push('/notifications')">
+        <span class="notif-badge-wrap">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span v-if="notif.state.unreadCount > 0" class="notif-badge">{{ notif.state.unreadCount > 99 ? '99+' : notif.state.unreadCount }}</span>
+         </span>
+         <span>Alertas</span>
+       </a>
+       <div class="pwa-nav-item pwa-nav-settings">
+         <SettingsDropdown :above="true" @theme-change="onThemeChange" />
+         <span>Ajustes</span>
+       </div>
       <button class="pwa-nav-item pwa-nav-logout" @click="handleLogout">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
         <span>Salir</span>
@@ -179,6 +192,7 @@
 
 <script>
 import { useAuthStore } from "@/stores/auth";
+import { useNotifications } from "@/composables/useNotifications";
 import NotificationsDropdown from "@/components/NotificationsDropdown.vue";
 import SettingsDropdown from "@/components/SettingsDropdown.vue";
 import ConfirmModal from "@/components/ConfirmModal.vue";
@@ -193,15 +207,24 @@ export default {
   components: { NotificationsDropdown, SettingsDropdown, ConfirmModal, LoadingOverlay, NotificationNative, SplashScreen },
   setup() {
     const authStore = useAuthStore();
-    return { authStore };
+    const notif = useNotifications();
+    return { authStore, notif };
   },
   watch: {
+    "$route"() {
+      this.$nextTick(() => {
+        this.syncNavActive();
+      });
+    },
     "authStore.isAuthenticated": {
       immediate: true,
       handler(val) {
         if (val) {
           orderSocket.enable();
           setTimeout(() => setupPush(), 1000);
+          this.notif.init();
+        } else {
+          this.notif.state.unreadCount = 0;
         }
       },
     },
@@ -210,6 +233,14 @@ export default {
     if (this.authStore.isAuthenticated && !this.authStore.user) {
       this.authStore.fetchUser();
     }
+    this.$nextTick(() => {
+      this.syncNavActive();
+    });
+  },
+  mounted() {
+    this.syncNavActive();
+  },
+  beforeUnmount() {
   },
   computed: {
     homeRoute() {
@@ -244,6 +275,21 @@ export default {
         return false;
       }
     },
+    swipePages() {
+      if (this.authStore.isAdmin) {
+        return ["/admin", "/admin/service-orders", "/admin/reports", "/admin/catalog", "/admin/users", "/notifications"];
+      }
+      if (this.authStore.isMecanico) {
+        return ["/mecanico/orders", "/notifications"];
+      }
+      if (this.authStore.isCliente) {
+        return ["/cliente/orders", "/notifications"];
+      }
+      return ["/workshop", "/location", "/login", "/register/cliente"];
+    },
+    currentSwipeIndex() {
+      return this.swipePages.indexOf(this.$route.path);
+    },
   },
   data() {
     return {
@@ -252,9 +298,27 @@ export default {
       isDark: document.documentElement.classList.contains("dark"),
       sunIcon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>',
       moonIcon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>',
+      touchStartX: 0,
+      touchStartY: 0,
+      touchStartTime: 0,
+      isSwiping: false,
+      swipeDirection: "left",
     };
   },
   methods: {
+    syncNavActive() {
+      const items = document.querySelectorAll(".pwa-bottom-nav .pwa-nav-item");
+      const path = this.$route.path;
+      items.forEach(el => {
+        el.style.color = "";
+      });
+      items.forEach(el => {
+        const href = el.getAttribute("href");
+        if (href === path) {
+          el.style.color = "#ffaa00";
+        }
+      });
+    },
     onThemeChange(dark) {
       this.isDark = dark;
       document.documentElement.classList.toggle("dark", dark);
@@ -272,8 +336,48 @@ export default {
       setTimeout(() => {
         this.authStore.logout();
         this.loggingOut = false;
+        this.notif.state.unreadCount = 0;
         this.$router.push("/login");
       }, 3000);
+    },
+    onTouchStart(e) {
+      if (!this.showMobileNav || this.swipePages.length < 2) return;
+      this.touchStartX = e.touches[0].clientX;
+      this.touchStartY = e.touches[0].clientY;
+      this.touchStartTime = Date.now();
+      this.isSwiping = false;
+    },
+    onTouchMove(e) {
+      if (!this.showMobileNav || this.swipePages.length < 2) return;
+      const dx = e.touches[0].clientX - this.touchStartX;
+      const dy = e.touches[0].clientY - this.touchStartY;
+      if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 15) {
+        this.isSwiping = true;
+        e.preventDefault();
+      }
+    },
+    onTouchEnd(e) {
+      if (!this.showMobileNav || !this.isSwiping) return;
+      const dx = e.changedTouches[0].clientX - this.touchStartX;
+      const dt = Date.now() - this.touchStartTime;
+      this.isSwiping = false;
+      this.swipeDirection = "left";
+      if (Math.abs(dx) < 60 || dt > 500) return;
+      const idx = this.currentSwipeIndex;
+      if (idx === -1) return;
+      if (dx < 0 && idx < this.swipePages.length - 1) {
+        this.swipeDirection = "left";
+        this.isSwiping = true;
+        this.$router.push(this.swipePages[idx + 1]).then(() => {
+          this.$nextTick(() => { this.isSwiping = false; });
+        });
+      } else if (dx > 0 && idx > 0) {
+        this.swipeDirection = "right";
+        this.isSwiping = true;
+        this.$router.push(this.swipePages[idx - 1]).then(() => {
+          this.$nextTick(() => { this.isSwiping = false; });
+        });
+      }
     },
   },
 };
@@ -344,6 +448,29 @@ export default {
 .page-fade-leave-to {
   opacity: 0;
   transform: translateY(-8px);
+}
+.slide-left-enter-active,
+.slide-left-leave-active,
+.slide-right-enter-active,
+.slide-right-leave-active {
+  transition: transform 0.28s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.28s ease;
+  will-change: transform, opacity;
+}
+.slide-left-enter-from {
+  opacity: 0;
+  transform: translateX(40px);
+}
+.slide-left-leave-to {
+  opacity: 0;
+  transform: translateX(-40px);
+}
+.slide-right-enter-from {
+  opacity: 0;
+  transform: translateX(-40px);
+}
+.slide-right-leave-to {
+  opacity: 0;
+  transform: translateX(40px);
 }
 .app-nav a {
   color: #ffffff;
@@ -478,14 +605,25 @@ html.dark .theme-toggle:hover { color: #ffaa00; }
   right: 0;
   background: #1a1a1a;
   display: flex;
-  justify-content: space-evenly;
+  justify-content: flex-start;
   align-items: stretch;
-  padding: 8px 4px;
+  padding: 8px 8px;
   padding-bottom: calc(8px + env(safe-area-inset-bottom));
   z-index: 100;
   border-top: 1px solid rgba(255, 170, 0, 0.2);
-  gap: 0;
-  overflow: visible;
+  gap: 4px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x;
+  scrollbar-width: none;
+}
+.pwa-bottom-nav::-webkit-scrollbar {
+  display: none;
+}
+.pwa-bottom-nav--centered {
+  justify-content: space-evenly;
+  overflow-x: visible;
 }
 .pwa-nav-item {
   display: flex;
@@ -500,16 +638,20 @@ html.dark .theme-toggle:hover { color: #ffaa00; }
   background: none;
   border: none;
   cursor: pointer;
-  padding: 6px 10px;
+  padding: 6px 14px;
   border-radius: 8px;
   transition: color 0.15s;
   white-space: nowrap;
   flex-shrink: 0;
-  min-width: 0;
+  min-width: 52px;
 }
-.pwa-nav-item.active,
-.pwa-nav-item:hover {
+.pwa-nav-item.is-active {
   color: #ffaa00;
+}
+@media (hover: hover) {
+  .pwa-nav-item:not(.pwa-nav-settings):not(.pwa-nav-logout):hover {
+    color: #ffaa00;
+  }
 }
 .pwa-nav-item svg {
   width: 20px;
@@ -523,6 +665,28 @@ html.dark .theme-toggle:hover { color: #ffaa00; }
 }
 .pwa-nav-settings span {
   color: #8b9299;
+}
+.notif-badge-wrap {
+  position: relative;
+  display: inline-flex;
+}
+.notif-badge {
+  position: absolute;
+  top: -4px;
+  right: -6px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 8px;
+  background: #ffaa00;
+  color: #1a1a1a;
+  font-size: 9px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  box-shadow: 0 0 0 2px #1a1a1a;
 }
 html.dark .pwa-bottom-nav {
   background: #0d1117;

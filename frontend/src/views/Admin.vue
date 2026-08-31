@@ -96,17 +96,50 @@
         </div>
       </router-link>
     </div>
+
+    <!-- Daily Stats Banner -->
+    <div v-if="dailyStats" class="daily-stats-banner">
+      <div class="daily-stats-track">
+        <span class="daily-stat">Clientes registrados hoy: <strong>{{ dailyStats.clientes_registrados_hoy }}</strong></span>
+        <span class="daily-stat">Motos atendidas hoy: <strong>{{ dailyStats.motos_atendidas_hoy }}</strong></span>
+        <span class="daily-stat">Clientes nuevos hoy: <strong>{{ dailyStats.clientes_nuevos_hoy }}</strong></span>
+        <span class="daily-stat">Servicio más realizado: <strong>{{ dailyStats.servicio_mas_realizado_hoy }}</strong></span>
+        <span class="daily-stat">Marca más atendida: <strong>{{ dailyStats.marca_mas_atendida_hoy }}</strong></span>
+        <span class="daily-stat">Clientes registrados hoy: <strong>{{ dailyStats.clientes_registrados_hoy }}</strong></span>
+        <span class="daily-stat">Motos atendidas hoy: <strong>{{ dailyStats.motos_atendidas_hoy }}</strong></span>
+        <span class="daily-stat">Clientes nuevos hoy: <strong>{{ dailyStats.clientes_nuevos_hoy }}</strong></span>
+        <span class="daily-stat">Servicio más realizado: <strong>{{ dailyStats.servicio_mas_realizado_hoy }}</strong></span>
+        <span class="daily-stat">Marca más atendida: <strong>{{ dailyStats.marca_mas_atendida_hoy }}</strong></span>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
 import { useAuthStore } from "@/stores/auth";
+import api from "@/services/api";
 
 export default {
   name: "AdminPanel",
   setup() {
     const authStore = useAuthStore();
     return { authStore };
+  },
+  data() {
+    return {
+      dailyStats: null,
+    };
+  },
+  mounted() {
+    this.fetchDailyStats();
+  },
+  methods: {
+    async fetchDailyStats() {
+      try {
+        const { data } = await api.get("/admin/daily-stats");
+        this.dailyStats = data;
+      } catch { /* silent */ }
+    },
   },
 };
 </script>
@@ -131,6 +164,12 @@ export default {
   margin-bottom: 8px;
   font-weight: 800;
   letter-spacing: -0.5px;
+}
+.page-subtitle {
+  color: #666;
+  margin-top: 5px;
+  margin-left: 48px;
+  font-size: 1.05rem;
 }
 .dashboard-grid {
   flex: 1;
@@ -226,5 +265,114 @@ export default {
 }
 .dash-card:hover .dash-footer svg {
   transform: translateX(4px);
+}
+/* ===== MOBILE / PWA native feel ===== */
+@media (max-width: 768px) {
+  .admin-panel {
+    padding: 10px 12px 0;
+    height: auto;
+    min-height: 0;
+  }
+  .welcome-section h1 {
+    font-size: 1.3rem;
+  }
+  .page-subtitle {
+    margin-left: 0;
+    font-size: 0.9rem;
+    display: none;
+  }
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+    flex: none;
+    height: auto;
+    margin-top: 14px;
+    order: 2;
+  }
+  .dash-card {
+    padding: 12px 14px;
+    border-radius: 14px;
+    gap: 6px;
+    justify-content: center;
+  }
+  .dash-icon-wrap {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+  }
+  .dash-icon-wrap svg {
+    width: 20px;
+    height: 20px;
+  }
+  .dash-info h2 {
+    font-size: 1.15rem;
+    font-weight: 800;
+  }
+  .dash-card p {
+    display: none;
+  }
+  .dash-footer {
+    font-size: 0.78rem;
+    padding-top: 6px;
+    margin-top: 8px;
+    border-top: none;
+  }
+}
+html.dark .admin-panel .dash-card {
+  background: #1a1f2e;
+  border-color: #1e293b;
+}
+html.dark .admin-panel .dash-info h2 {
+  color: #e2e8f0;
+}
+html.dark .admin-panel .dash-card p {
+  color: #94a3b8;
+}
+html.dark .admin-panel .dash-footer {
+  border-top-color: #1e293b;
+}
+
+/* ===== DAILY STATS BANNER ===== */
+.daily-stats-banner {
+  margin-top: 16px;
+  background: #ffaa00;
+  border-radius: 10px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.daily-stats-track {
+  display: inline-flex;
+  gap: 40px;
+  padding: 10px 0;
+  animation: scroll-banner 20s linear infinite;
+}
+.daily-stat {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  white-space: nowrap;
+}
+.daily-stat strong {
+  font-weight: 800;
+}
+@keyframes scroll-banner {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+@media (max-width: 768px) {
+  .daily-stats-banner {
+    order: 1;
+    margin-top: 14px;
+    border-radius: 10px;
+  }
+  .daily-stats-track {
+    gap: 36px;
+    padding: 10px 0;
+  }
+  .daily-stat {
+    font-size: 0.9rem;
+  }
 }
 </style>
