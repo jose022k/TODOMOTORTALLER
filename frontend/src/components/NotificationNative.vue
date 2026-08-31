@@ -1,5 +1,6 @@
 <template>
   <div class="native-notifier">
+    <audio ref="audioEl" src="/sounds/notification.wav" preload="auto" style="display:none" />
     <div v-if="showPermBanner" class="notif-perm-banner">
       <div class="notif-perm-banner-inner">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
@@ -22,40 +23,44 @@ let audioCtx = null;
 let audioBuffer = null;
 let audioUnlocked = false;
 
-function initAudio() {
+function ensureAudioCtx() {
+  if (audioCtx) return audioCtx;
   try {
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    fetch("/sounds/notification.wav")
-      .then((r) => r.arrayBuffer())
-      .then((data) => audioCtx.decodeAudioData(data))
-      .then((buf) => { audioBuffer = buf; })
-      .catch(() => {});
   } catch (e) { void e; }
+  return audioCtx;
 }
 
 function unlockAudio() {
-  if (audioUnlocked || !audioCtx) return;
+  const ctx = ensureAudioCtx();
+  if (!ctx || audioUnlocked) return;
   try {
-    if (audioCtx.state === "suspended") audioCtx.resume();
+    if (ctx.state === "suspended") ctx.resume();
     audioUnlocked = true;
   } catch (e) { void e; }
 }
 
 function playNotifSound() {
-  if (!audioCtx || !audioBuffer || !audioUnlocked) return;
+  unlockAudio();
+  const ctx = ensureAudioCtx();
+  if (!ctx || !audioBuffer || !audioUnlocked) return;
   try {
-    if (audioCtx.state === "suspended") audioCtx.resume();
-    const src = audioCtx.createBufferSource();
+    if (ctx.state === "suspended") ctx.resume();
+    const src = ctx.createBufferSource();
     src.buffer = audioBuffer;
-    src.connect(audioCtx.destination);
+    src.connect(ctx.destination);
     src.start(0);
   } catch (e) { void e; }
 }
 
-if (typeof window !== "undefined") {
-  ["click", "touchstart", "touchend", "keydown"].forEach((e) => {
-    window.addEventListener(e, unlockAudio, { once: true, passive: true });
-  });
+function preloadSound() {
+  const ctx = ensureAudioCtx();
+  if (!ctx || audioBuffer) return;
+  fetch("/sounds/notification.wav")
+    .then((r) => r.arrayBuffer())
+    .then((data) => ctx.decodeAudioData(data))
+    .then((buf) => { audioBuffer = buf; })
+    .catch(() => {});
 }
 
 export default {
@@ -74,11 +79,12 @@ export default {
   },
   mounted() {
     this.swRegistration = null;
-    initAudio();
-    navigator.serviceWorker?.ready.then((reg) => {
-      this.swRegistration = reg;
-    }).catch(() => {});
+    navigator.serviceWorker?.ready.then((reg) => { this.swRegistration = reg; }).catch(() => {});
     window.addEventListener("notification-new", this.onNewNotification);
+    window.addEventListener("click", unlockAudio, { passive: true });
+    window.addEventListener("touchstart", unlockAudio, { passive: true });
+    window.addEventListener("keydown", unlockAudio, { passive: true });
+    preloadSound();
     this.checkPermission();
     this.fetchUnread();
     this.pollTimer = setInterval(() => {
@@ -88,6 +94,9 @@ export default {
   },
   beforeUnmount() {
     window.removeEventListener("notification-new", this.onNewNotification);
+    window.removeEventListener("click", unlockAudio);
+    window.removeEventListener("touchstart", unlockAudio);
+    window.removeEventListener("keydown", unlockAudio);
     if (this.pollTimer) clearInterval(this.pollTimer);
   },
   methods: {
@@ -99,6 +108,7 @@ export default {
     },
     async requestPermission() {
       if (!("Notification" in window)) return;
+      unlockAudio();
       try {
         const result = await Notification.requestPermission();
         this.showPermBanner = false;
@@ -192,7 +202,7 @@ export default {
 <style scoped>
 .notif-perm-banner {
   position: fixed;
-  top: 70px;
+  top: env(safe-area-inset-top, 70px);
   left: 50%;
   transform: translateX(-50%);
   z-index: 9999;
@@ -244,7 +254,7 @@ export default {
 }
 .notif-pwa-badge {
   position: fixed;
-  top: 10px;
+  top: env(safe-area-inset-top, 10px);
   right: 10px;
   z-index: 99999;
   min-width: 22px;
