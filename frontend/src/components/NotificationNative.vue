@@ -1,14 +1,14 @@
 <template>
   <div class="native-notifier">
     <audio ref="audioEl" src="/sounds/notification.wav" preload="auto" style="display:none" />
-    <div v-if="showPermBanner" class="notif-perm-banner">
-      <div class="notif-perm-banner-inner">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-        <span>Habilita las notificaciones para recibir alertas</span>
-        <button class="notif-perm-btn" @click="requestPermission">Activar</button>
-        <button class="notif-perm-close" @click="dismissPerm">&times;</button>
+      <div v-if="showPermBanner" class="notif-perm-banner">
+        <div class="notif-perm-banner-inner">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span>{{ permDenied ? "Activa las notificaciones en la configuración de tu navegador" : "Habilita las notificaciones para recibir alertas" }}</span>
+          <button v-if="!permDenied" class="notif-perm-btn" @click="requestPermission">Activar</button>
+          <button class="notif-perm-close" @click="dismissPerm">&times;</button>
+        </div>
       </div>
-    </div>
     <div v-if="unreadCount > 0" class="notif-pwa-badge">{{ unreadCount > 99 ? '99+' : unreadCount }}</div>
   </div>
 </template>
@@ -72,6 +72,7 @@ export default {
   data() {
     return {
       showPermBanner: false,
+      permDenied: false,
       pollTimer: null,
       knownIds: new Set(),
       unreadCount: 0,
@@ -104,6 +105,7 @@ export default {
       if (!("Notification" in window)) return;
       if (Notification.permission !== "granted") {
         this.showPermBanner = true;
+        this.permDenied = Notification.permission === "denied";
       }
     },
     async requestPermission() {
@@ -115,6 +117,7 @@ export default {
         if (result === "granted") {
           playNotifSound();
         }
+        this.permDenied = false;
       } catch (e) { void e; }
       this.showPermBanner = false;
     },
