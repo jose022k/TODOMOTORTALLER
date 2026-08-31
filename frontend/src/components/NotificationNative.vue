@@ -18,43 +18,43 @@ import api from "@/services/api";
 
 const OPEN_CHAT_TYPES = new Set(["mensaje_recibido", "evidencia_enviada"]);
 
-let audioEl = null;
-let audioReady = false;
+let audioCtx = null;
+let audioBuffer = null;
+let audioUnlocked = false;
 
-function getAudio() {
-  if (!audioEl && typeof Audio !== "undefined") {
-    audioEl = new Audio("/sounds/notification.wav");
-    audioEl.preload = "auto";
-    audioEl.volume = 1.0;
-    audioEl.load();
-  }
-  return audioEl;
+function initAudio() {
+  try {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    fetch("/sounds/notification.wav")
+      .then((r) => r.arrayBuffer())
+      .then((data) => audioCtx.decodeAudioData(data))
+      .then((buf) => { audioBuffer = buf; })
+      .catch(() => {});
+  } catch (e) { void e; }
 }
 
-function tryUnlockAudio() {
-  const a = getAudio();
-  if (!a || audioReady) return;
-  a.play().then(() => {
-    a.pause();
-    a.currentTime = 0;
-    audioReady = true;
-  }).catch(() => {});
+function unlockAudio() {
+  if (audioUnlocked || !audioCtx) return;
+  try {
+    if (audioCtx.state === "suspended") audioCtx.resume();
+    audioUnlocked = true;
+  } catch (e) { void e; }
 }
 
 function playNotifSound() {
-  const a = getAudio();
-  if (!a) return;
-  if (audioReady) {
-    a.currentTime = 0;
-    a.play().catch(() => {});
-  } else {
-    tryUnlockAudio();
-  }
+  if (!audioCtx || !audioBuffer || !audioUnlocked) return;
+  try {
+    if (audioCtx.state === "suspended") audioCtx.resume();
+    const src = audioCtx.createBufferSource();
+    src.buffer = audioBuffer;
+    src.connect(audioCtx.destination);
+    src.start(0);
+  } catch (e) { void e; }
 }
 
 if (typeof window !== "undefined") {
   ["click", "touchstart", "touchend", "keydown"].forEach((e) => {
-    window.addEventListener(e, tryUnlockAudio, { once: true, passive: true });
+    window.addEventListener(e, unlockAudio, { once: true, passive: true });
   });
 }
 
@@ -73,8 +73,8 @@ export default {
     };
   },
   mounted() {
-    getAudio();
     this.swRegistration = null;
+    initAudio();
     navigator.serviceWorker?.ready.then((reg) => {
       this.swRegistration = reg;
     }).catch(() => {});
@@ -93,13 +93,12 @@ export default {
   methods: {
     checkPermission() {
       if (!("Notification" in window)) return;
-      if (Notification.permission === "default" || Notification.permission === "denied") {
+      if (Notification.permission !== "granted") {
         this.showPermBanner = true;
       }
     },
     async requestPermission() {
       if (!("Notification" in window)) return;
-      tryUnlockAudio();
       try {
         const result = await Notification.requestPermission();
         this.showPermBanner = false;
@@ -247,7 +246,7 @@ export default {
   position: fixed;
   top: 10px;
   right: 10px;
-  z-index: 10000;
+  z-index: 99999;
   min-width: 22px;
   height: 22px;
   border-radius: 11px;
@@ -260,6 +259,7 @@ export default {
   justify-content: center;
   padding: 0 6px;
   box-shadow: 0 2px 8px rgba(220, 38, 38, 0.5);
+  pointer-events: none;
   line-height: 1;
 }
 @keyframes slideDown {
