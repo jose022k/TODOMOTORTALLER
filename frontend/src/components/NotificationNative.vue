@@ -1,22 +1,34 @@
 <template>
   <div class="native-notifier">
-    <audio ref="audioEl" src="/sounds/notification.wav" preload="auto" style="display:none"></audio>
+    <audio ref="audioEl" src="/sounds/notification.wav" preload="auto" data-notif-sound style="display:none"></audio>
+
+    <!-- Permission banner -->
     <div v-if="showPermBanner" class="notif-perm-banner">
       <div class="notif-perm-banner-inner">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+        </svg>
         <span>{{ permDenied ? "Activa las notificaciones en la configuración de tu navegador" : "Habilita las notificaciones para recibir alertas" }}</span>
         <button v-if="!permDenied" class="notif-perm-btn" @click="requestPermission">Activar</button>
         <button class="notif-perm-close" @click="dismissPerm">&times;</button>
       </div>
     </div>
-    <div v-if="unreadCount > 0" class="notif-pwa-badge">{{ unreadCount > 99 ? '99+' : unreadCount }}</div>
 
-    <!-- In-App Toasts -->
+    <!-- In-App Toasts (shown in all views - PC, mobile, PWA) -->
     <div class="in-app-toast-container">
       <transition-group name="toast-list" tag="div">
-        <div v-for="toast in activeToasts" :key="toast.id" class="in-app-toast" @click="handleToastClick(toast)">
+        <div
+          v-for="toast in activeToasts"
+          :key="toast.id"
+          class="in-app-toast"
+          @click="handleToastClick(toast)"
+        >
           <div class="toast-icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+            </svg>
           </div>
           <div class="toast-content">
             <div class="toast-title">Todomotortaller</div>
@@ -31,132 +43,140 @@
 
 <script>
 import { useAuthStore } from "@/stores/auth";
+import { useNotificationsStore } from "@/stores/notifications";
 import api from "@/services/api";
 
 const OPEN_CHAT_TYPES = new Set(["mensaje_recibido", "evidencia_enviada"]);
 
+// ── Audio Engine ────────────────────────────────────────────────────────────
 let audioCtx = null;
 let audioBuffer = null;
-let audioReady = false;
+let audioUnlocked = false;
 
-function ensureAudioCtx() {
-  if (audioCtx) return audioCtx;
-  try {
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  } catch (e) { void e; }
+function getAudioCtx() {
+  if (!audioCtx) {
+    try {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    } catch { /* not supported */ }
+  }
   return audioCtx;
 }
 
 function unlockAudio() {
-  const ctx = ensureAudioCtx();
-  if (!ctx) return;
+  const ctx = getAudioCtx();
+  if (ctx && ctx.state === "suspended") {
+    ctx.resume().then(() => { audioUnlocked = true; }).catch(() => {});
+  } else if (ctx) {
+    audioUnlocked = true;
+  }
+}
+
+async function preloadAudio() {
   try {
-    if (ctx.state === "suspended") ctx.resume();
-  } catch (e) { void e; }
+    const res = await fetch("/sounds/notification.wav");
+    if (!res.ok) return;
+    const buf = await res.arrayBuffer();
+    const ctx = getAudioCtx();
+    if (!ctx) return;
+    audioBuffer = await ctx.decodeAudioData(buf);
+  } catch { /* fallback to <audio> element */ }
 }
 
 function playNotifSound() {
-  unlockAudio();
-  const ctx = ensureAudioCtx();
+  // Try Web Audio API first (works on mobile after user interaction)
+  const ctx = getAudioCtx();
   if (ctx && audioBuffer) {
-    try {
-      if (ctx.state === "suspended") ctx.resume();
-      const src = ctx.createBufferSource();
-      src.buffer = audioBuffer;
-      src.connect(ctx.destination);
-      src.start(0);
-      return;
-    } catch (e) { void e; }
+    const resume = ctx.state === "suspended" ? ctx.resume() : Promise.resolve();
+    resume.then(() => {
+      try {
+        const src = ctx.createBufferSource();
+        src.buffer = audioBuffer;
+        src.connect(ctx.destination);
+        src.start(0);
+      } catch { playFallback(); }
+    }).catch(() => playFallback());
+    return;
   }
-  const audioEl = document.querySelector('audio[src="/sounds/notification.wav"]');
-  if (audioEl) {
-    try {
-      audioEl.currentTime = 0;
-      audioEl.volume = 1;
-      const p = audioEl.play();
-      if (p && p.catch) p.catch(() => {});
-    } catch (e) { void e; }
-  }
+  playFallback();
 }
 
-function loadAudioBuffer() {
-  if (audioReady) return;
-  fetch("/sounds/notification.wav")
-    .then((r) => {
-      if (!r.ok) throw new Error("fetch failed");
-      return r.arrayBuffer();
-    })
-    .then((data) => {
-      const ctx = ensureAudioCtx();
-      if (!ctx) throw new Error("no ctx");
-      return ctx.decodeAudioData(data).then((buf) => {
-        audioBuffer = buf;
-        audioReady = true;
-      });
-    })
-    .catch(() => {
-      const audioEl = document.querySelector('audio[src="/sounds/notification.wav"]');
-      if (audioEl) {
-        audioEl.addEventListener("canplaythrough", () => { audioReady = true; }, { once: true });
-        audioEl.addEventListener("loadeddata", () => { audioReady = true; }, { once: true });
-        audioEl.load();
-      }
-    });
+function playFallback() {
+  // Fallback: HTML audio element
+  const el = document.querySelector('audio[data-notif-sound]');
+  if (el) {
+    el.currentTime = 0;
+    el.volume = 1;
+    el.play().catch(() => {});
+  }
 }
-
-function preloadSound() {
-  loadAudioBuffer();
-}
+// ── End Audio Engine ────────────────────────────────────────────────────────
 
 export default {
   name: "NotificationNative",
   setup() {
     const authStore = useAuthStore();
-    return { authStore };
+    const notifStore = useNotificationsStore();
+    return { authStore, notifStore };
   },
   data() {
     return {
       showPermBanner: false,
       permDenied: false,
-      pollTimer: null,
-      knownIds: new Set(),
-      unreadCount: 0,
       activeToasts: [],
     };
   },
   mounted() {
     this.swRegistration = null;
-    navigator.serviceWorker?.ready.then((reg) => { this.swRegistration = reg; }).catch(() => {});
-    // Listen for postMessage from SW to play sound when push arrives while app is open
-    if (navigator.serviceWorker) {
-      this._swMessageHandler = (event) => {
+
+    // Get SW registration for native OS notifications
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.ready
+        .then((reg) => { this.swRegistration = reg; })
+        .catch(() => {});
+
+      // Listen for SW postMessage (plays sound when push arrives and app is open)
+      this._swMsg = (event) => {
         if (event.data && event.data.type === "PLAY_NOTIFICATION_SOUND") {
           playNotifSound();
         }
       };
-      navigator.serviceWorker.addEventListener("message", this._swMessageHandler);
+      navigator.serviceWorker.addEventListener("message", this._swMsg);
     }
-    window.addEventListener("notification-new", this.onNewNotification);
-    window.addEventListener("click", unlockAudio, { passive: true });
-    window.addEventListener("touchstart", unlockAudio, { passive: true });
-    window.addEventListener("keydown", unlockAudio, { passive: true });
-    preloadSound();
+
+    // Listen for WS real-time notification events
+    this._onNotif = this.onNewNotification.bind(this);
+    window.addEventListener("notification-new", this._onNotif);
+
+    // Unlock audio on first user interaction (required by browsers)
+    this._unlockFns = [
+      () => unlockAudio(),
+    ];
+    window.addEventListener("click", this._unlockFns[0], { passive: true });
+    window.addEventListener("touchstart", this._unlockFns[0], { passive: true });
+    window.addEventListener("touchend", this._unlockFns[0], { passive: true });
+    window.addEventListener("keydown", this._unlockFns[0], { passive: true });
+
+    // Preload audio
+    preloadAudio();
+
+    // Show permission prompt
     this.checkPermission();
-    this.fetchUnread();
-    this.pollTimer = setInterval(() => {
-      this.fetchUnread();
-      this.pollNotifications();
-    }, 10000);
+
+    // Start shared polling (only if not already polling)
+    if (this.authStore.isAuthenticated) {
+      this.notifStore.startPolling();
+    }
   },
   beforeUnmount() {
-    window.removeEventListener("notification-new", this.onNewNotification);
-    window.removeEventListener("click", unlockAudio);
-    window.removeEventListener("touchstart", unlockAudio);
-    window.removeEventListener("keydown", unlockAudio);
-    if (this.pollTimer) clearInterval(this.pollTimer);
-    if (navigator.serviceWorker && this._swMessageHandler) {
-      navigator.serviceWorker.removeEventListener("message", this._swMessageHandler);
+    window.removeEventListener("notification-new", this._onNotif);
+    window.removeEventListener("click", this._unlockFns[0]);
+    window.removeEventListener("touchstart", this._unlockFns[0]);
+    window.removeEventListener("touchend", this._unlockFns[0]);
+    window.removeEventListener("keydown", this._unlockFns[0]);
+    if ("serviceWorker" in navigator && this._swMsg) {
+      navigator.serviceWorker.removeEventListener("message", this._swMsg);
     }
+    // Don't stop polling here — NotificationsDropdown might still need it
   },
   methods: {
     checkPermission() {
@@ -171,102 +191,86 @@ export default {
       unlockAudio();
       try {
         const result = await Notification.requestPermission();
-        this.showPermBanner = false;
         if (result === "granted") {
           playNotifSound();
+          this.permDenied = false;
+        } else {
+          this.permDenied = result === "denied";
         }
-        this.permDenied = false;
-      } catch (e) { void e; }
+      } catch { /* ignored */ }
       this.showPermBanner = false;
     },
     dismissPerm() {
       this.showPermBanner = false;
     },
+
     async onNewNotification(event) {
       const notif = event.detail;
-      if (!notif || this.knownIds.has(notif.id)) return;
-      this.knownIds.add(notif.id);
-      this.unreadCount++;
+      if (!notif) return;
+
+      // Register in shared store (deduplication + badge update)
+      const isNew = this.notifStore.onNewNotification(notif);
+      if (!isNew) return;
+
+      // Play sound
       playNotifSound();
+
+      // Show in-app toast (visible in all views: PC, mobile, PWA)
       this.showInAppToast(notif);
-      await this.showNativeNotification(notif);
+
+      // Show OS notification only when tab is NOT visible (user is elsewhere)
+      if (document.visibilityState !== "visible") {
+        await this.showNativeNotification(notif);
+      }
     },
+
     showInAppToast(notif) {
       this.activeToasts.push(notif);
-      setTimeout(() => {
-        this.removeToast(notif.id);
-      }, 5000);
+      setTimeout(() => this.removeToast(notif.id), 6000);
     },
     removeToast(id) {
       this.activeToasts = this.activeToasts.filter((t) => t.id !== id);
     },
     handleToastClick(notif) {
       const url = this.buildUrl(notif);
-      if (url && url !== "/") {
-        window.location.href = url;
-      }
       this.removeToast(notif.id);
+      if (url && url !== "/") {
+        this.$router.push(url).catch(() => { window.location.href = url; });
+      }
     },
-    async fetchUnread() {
-      if (!this.authStore.isAuthenticated) return;
-      try {
-        const { data } = await api.get("/notifications/unread-count");
-        this.unreadCount = data.count || 0;
-        if (typeof navigator.setAppBadge === "function") {
-          try { navigator.setAppBadge(this.unreadCount); } catch (e) { void e; }
-        }
-      } catch (e) { void e; }
-    },
-    async pollNotifications() {
-      if (!this.authStore.isAuthenticated) return;
-      try {
-        const { data } = await api.get("/notifications/", { params: { limit: 10 } });
-        if (!Array.isArray(data)) return;
-        for (const n of data) {
-          if (!n.leido && !this.knownIds.has(n.id)) {
-            this.knownIds.add(n.id);
-            this.unreadCount++;
-            playNotifSound();
-            this.showInAppToast(n);
-            await this.showNativeNotification(n);
-          }
-        }
-      } catch (e) { void e; }
-    },
+
     async showNativeNotification(notif) {
-      if (!("Notification" in window)) return;
-      if (Notification.permission !== "granted") return;
-      // If the page is currently visible, the in-app toast is already shown — skip OS notification
-      if (document.visibilityState === "visible") return;
+      if (!("Notification" in window) || Notification.permission !== "granted") return;
       const url = this.buildUrl(notif);
+      const opts = {
+        body: notif.mensaje || "",
+        icon: "/img/icons/logo-192.png",
+        badge: "/img/icons/logo-192.png",
+        data: { url },
+        vibrate: [200, 100, 200],
+        silent: false,
+      };
       if (this.swRegistration) {
         try {
-          await this.swRegistration.showNotification("Todomotortaller", {
-            body: notif.mensaje || "",
-            icon: "/img/icons/logo-192.png",
-            badge: "/img/icons/logo-192.png",
-            data: { url },
-            vibrate: [200, 100, 200],
-            silent: false,
-          });
+          await this.swRegistration.showNotification("Todomotortaller", opts);
           return;
-        } catch (e) { void e; }
+        } catch { /* fall through to basic Notification */ }
       }
-      // Fallback to basic Notification API
       try {
-        var n = new Notification("Todomotortaller", {
+        const n = new Notification("Todomotortaller", {
           body: notif.mensaje || "",
           icon: "/img/icons/logo-192.png",
-          tag: "notif-" + notif.id,
+          tag: `notif-${notif.id}`,
           silent: false,
         });
-        n.onclick = function () {
+        n.onclick = () => {
           window.focus();
           if (url && url !== "/") window.location.href = url;
           n.close();
         };
-      } catch (e) { void e; }
+      } catch { /* not supported */ }
     },
+
     buildUrl(n) {
       const orderId = n.orden_servicio_id;
       if (!orderId) return "/";
@@ -306,10 +310,7 @@ export default {
   font-size: 14px;
   font-weight: 500;
 }
-.notif-perm-banner-inner svg {
-  color: #ffaa00;
-  flex-shrink: 0;
-}
+.notif-perm-banner-inner svg { color: #ffaa00; flex-shrink: 0; }
 .notif-perm-btn {
   background: #ffaa00;
   color: #1a1a1a;
@@ -321,9 +322,7 @@ export default {
   cursor: pointer;
   white-space: nowrap;
 }
-.notif-perm-btn:hover {
-  background: #e69900;
-}
+.notif-perm-btn:hover { background: #e69900; }
 .notif-perm-close {
   background: none;
   border: none;
@@ -333,43 +332,19 @@ export default {
   padding: 0 2px;
   line-height: 1;
 }
-.notif-perm-close:hover {
-  color: #fff;
-}
-.notif-pwa-badge {
-  position: fixed;
-  top: env(safe-area-inset-top, 10px);
-  right: 10px;
-  z-index: 99999;
-  min-width: 22px;
-  height: 22px;
-  border-radius: 11px;
-  background: #dc2626;
-  color: #fff;
-  font-size: 12px;
-  font-weight: 800;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 6px;
-  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.5);
-  pointer-events: none;
-  line-height: 1;
-}
-@keyframes slideDown {
-  from { opacity: 0; transform: translateX(-50%) translateY(-10px); }
-  to { opacity: 1; transform: translateX(-50%) translateY(0); }
-}
+.notif-perm-close:hover { color: #fff; }
 
+/* Toast Container */
 .in-app-toast-container {
   position: fixed;
-  bottom: env(safe-area-inset-bottom, 20px);
+  bottom: 24px;
   right: 20px;
   z-index: 100000;
   display: flex;
-  flex-direction: column;
+  flex-direction: column-reverse;
   gap: 10px;
   pointer-events: none;
+  max-width: calc(100vw - 40px);
 }
 .in-app-toast {
   background: #1a1a1a;
@@ -377,35 +352,19 @@ export default {
   border-left: 4px solid #ffaa00;
   padding: 12px 16px;
   border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.35);
   display: flex;
   align-items: flex-start;
   gap: 12px;
   width: 320px;
-  max-width: calc(100vw - 40px);
+  max-width: 100%;
   pointer-events: auto;
   cursor: pointer;
-  position: relative;
-  transition: all 0.3s ease;
 }
-.toast-icon {
-  color: #ffaa00;
-  flex-shrink: 0;
-  margin-top: 2px;
-}
-.toast-content {
-  flex: 1;
-}
-.toast-title {
-  font-weight: 700;
-  font-size: 14px;
-  margin-bottom: 4px;
-}
-.toast-body {
-  font-size: 13px;
-  color: #d1d5db;
-  line-height: 1.4;
-}
+.toast-icon { color: #ffaa00; flex-shrink: 0; margin-top: 2px; }
+.toast-content { flex: 1; min-width: 0; }
+.toast-title { font-weight: 700; font-size: 14px; margin-bottom: 3px; }
+.toast-body { font-size: 13px; color: #d1d5db; line-height: 1.4; word-break: break-word; }
 .toast-close {
   background: none;
   border: none;
@@ -414,25 +373,18 @@ export default {
   cursor: pointer;
   padding: 0;
   line-height: 1;
+  flex-shrink: 0;
 }
-.toast-close:hover {
-  color: #fff;
-}
-.toast-list-enter-active,
-.toast-list-leave-active {
-  transition: all 0.3s ease;
-}
-.toast-list-enter-from {
-  opacity: 0;
-  transform: translateX(30px);
-}
-.toast-list-leave-to {
-  opacity: 0;
-  transform: scale(0.9);
-}
+.toast-close:hover { color: #fff; }
 
-html.dark .in-app-toast {
-  background: #1e293b;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+/* Transitions */
+.toast-list-enter-active { transition: all 0.35s cubic-bezier(.25,.8,.25,1); }
+.toast-list-leave-active { transition: all 0.25s ease; }
+.toast-list-enter-from { opacity: 0; transform: translateX(40px); }
+.toast-list-leave-to { opacity: 0; transform: scale(0.88); }
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateX(-50%) translateY(-12px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
 </style>

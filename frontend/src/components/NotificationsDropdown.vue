@@ -52,21 +52,26 @@
 <script>
 import api from "@/services/api";
 import { useAuthStore } from "@/stores/auth";
+import { useNotificationsStore } from "@/stores/notifications";
 
 export default {
   name: "NotificationsDropdown",
   setup() {
     const authStore = useAuthStore();
-    return { authStore };
+    const notifStore = useNotificationsStore();
+    return { authStore, notifStore };
   },
   data() {
     return {
       open: false,
       notifications: [],
-      unread: 0,
       loading: false,
-      pollTimer: null,
     };
+  },
+  computed: {
+    unread() {
+      return this.notifStore.unreadCount;
+    },
   },
   methods: {
     async toggleDropdown() {
@@ -79,19 +84,11 @@ export default {
       this.loading = true;
       try {
         const { data } = await api.get("/notifications/", { params: { limit: 20 } });
-        this.notifications = data;
+        this.notifications = Array.isArray(data) ? data : [];
       } catch {
         // silent
       } finally {
         this.loading = false;
-      }
-    },
-    async fetchUnread() {
-      try {
-        const { data } = await api.get("/notifications/unread-count");
-        this.unread = data.count;
-      } catch {
-        // silent
       }
     },
     async markRead(n) {
@@ -99,7 +96,7 @@ export default {
       try {
         await api.put(`/notifications/${n.id}/read`);
         n.leido = true;
-        this.unread = Math.max(0, this.unread - 1);
+        this.notifStore.markOneRead(n.id);
       } catch {
         // silent
       }
@@ -134,7 +131,7 @@ export default {
     async markAllRead() {
       try {
         await api.put("/notifications/read-all");
-        this.unread = 0;
+        this.notifStore.markAllRead();
         this.notifications.forEach((n) => (n.leido = true));
       } catch {
         // silent
@@ -144,7 +141,7 @@ export default {
       try {
         await api.delete("/notifications/");
         this.notifications = [];
-        this.unread = 0;
+        this.notifStore.clearAll();
       } catch {
         // silent
       }
@@ -164,25 +161,21 @@ export default {
         this.open = false;
       }
     },
-    onNotificationNew() {
-      // Real-time badge update via WebSocket event (all roles)
-      this.fetchUnread();
-    },
   },
   mounted() {
-    this.fetchUnread();
-    this.pollTimer = setInterval(() => this.fetchUnread(), 10000);
+    // Ensure shared polling is running (started by NotificationNative, but also start here as fallback)
+    if (this.authStore.isAuthenticated) {
+      this.notifStore.startPolling();
+    }
     document.addEventListener("click", this.handleClickOutside);
-    window.addEventListener("notification-new", this.onNotificationNew);
   },
   beforeUnmount() {
-    if (this.pollTimer) clearInterval(this.pollTimer);
     document.removeEventListener("click", this.handleClickOutside);
-    window.removeEventListener("notification-new", this.onNotificationNew);
+    // Don't stop polling — NotificationNative might still be mounted
   },
   watch: {
     $route() {
-      this.fetchUnread();
+      this.notifStore.fetchUnreadCount();
     },
   },
 };
