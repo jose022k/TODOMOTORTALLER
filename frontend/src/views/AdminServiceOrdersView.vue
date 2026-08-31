@@ -18,42 +18,21 @@
 
     <!-- Barra de herramientas -->
     <div class="toolbar">
-      <div class="toolbar-search">
-        <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input
-          v-model="searchQuery"
-          type="text"
-          class="search-input"
-          placeholder="Buscar por cliente o ID..."
-          @input="onSearch"
-        />
-        <button v-if="searchQuery" class="search-clear" @click="clearSearch" title="Limpiar búsqueda">×</button>
-      </div>
-      <button class="clear-filters-btn" @click="clearFilters" title="Limpiar filtros">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
-        <span>Limpiar</span>
-      </button>
-      <button class="filters-toggle" @click="showFilters = !showFilters" :aria-expanded="showFilters">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
-        <span>Filtros</span>
-      </button>
-      <div class="filters-group" :class="{ 'filters-open': showFilters }">
-        <select v-model="filterEstado" class="filter-select" @change="onFilterChange">
-          <option value="">Todos los estados</option>
-          <option value="pendiente">Pendiente</option>
-          <option value="en_proceso">En Proceso</option>
-          <option value="completada">Completada</option>
-          <option value="cancelada">Cancelada</option>
-        </select>
-        <select v-model="filterClienteId" class="filter-select" @change="onFilterChange">
-          <option value="">Todos los clientes</option>
-          <option v-for="c in clients" :key="c.id" :value="c.id">{{ capitalize(c.nombre) }}</option>
-        </select>
-        <select v-model="filterMecanicoId" class="filter-select" @change="onFilterChange">
-          <option value="">Todos los mecánicos</option>
-          <option v-for="m in mechanics" :key="m.id" :value="m.id">{{ capitalize(m.nombre) }}</option>
-        </select>
-      </div>
+      <select v-model="filterEstado" class="filter-select" @change="onFilterChange">
+        <option value="">Todos los estados</option>
+        <option value="pendiente">Pendiente</option>
+        <option value="en_proceso">En Proceso</option>
+        <option value="completada">Completada</option>
+        <option value="cancelada">Cancelada</option>
+      </select>
+      <select v-model="filterClienteId" class="filter-select" @change="onFilterChange">
+        <option value="">Todos los clientes</option>
+        <option v-for="c in clients" :key="c.id" :value="c.id">{{ capitalize(c.nombre) }}</option>
+      </select>
+      <select v-model="filterMecanicoId" class="filter-select" @change="onFilterChange">
+        <option value="">Todos los mecánicos</option>
+        <option v-for="m in mechanics" :key="m.id" :value="m.id">{{ capitalize(m.nombre) }}</option>
+      </select>
       <button class="btn-primary" @click="openCreateModal">+ Nueva Orden</button>
     </div>
 
@@ -77,35 +56,19 @@
       </thead>
       <tbody>
         <tr v-for="o in orders" :key="o.id">
-          <td data-label="ID">{{ o.id }}</td>
-          <td data-label="Cliente">{{ capitalize(o.cliente_nombre) }}</td>
-          <td data-label="Moto">{{ o.moto_marca }} {{ o.moto_modelo }} ({{ o.moto_placa }})</td>
-          <td data-label="Mecánico">{{ capitalize(o.mecanico_nombre) }}</td>
-          <td data-label="Estado"><span :class="['badge', 'badge-' + o.estado]">{{ statusLabel(o.estado) }}</span></td>
-          <td data-label="Fecha">{{ formatDate(o.fecha_creacion) }}</td>
+          <td>{{ o.id }}</td>
+          <td>{{ capitalize(o.cliente_nombre) }}</td>
+          <td>{{ o.moto_marca }} {{ o.moto_modelo }} ({{ o.moto_placa }})</td>
+          <td>{{ capitalize(o.mecanico_nombre) }}</td>
+          <td><span :class="['badge', 'badge-' + o.estado]">{{ statusLabel(o.estado) }}</span></td>
+          <td>{{ formatDate(o.fecha_creacion) }}</td>
           <td class="actions-cell">
-            <button class="btn-sm btn-view" @click="openDetailModal(o)">Ver detalles</button>
+            <button class="btn-sm btn-view" @click="openDetailModal(o)">Ver</button>
             <button v-if="o.estado === 'en_proceso'" class="btn-sm btn-chat" @click="openChat(o)">Chat</button>
           </td>
         </tr>
       </tbody>
     </table>
-
-    <!-- Mobile cards: ALWAYS in DOM, shown only on mobile via global CSS -->
-    <div class="admin-mobile-cards">
-      <div v-for="o in orders" :key="'m-' + o.id" class="admin-mobile-card">
-        <div class="admin-mobile-row"><span class="admin-mobile-lbl">ID:</span> <span class="admin-mobile-val">{{ o.id }}</span></div>
-        <div class="admin-mobile-row"><span class="admin-mobile-lbl">Cliente:</span> <span class="admin-mobile-val">{{ capitalize(o.cliente_nombre) }}</span></div>
-        <div class="admin-mobile-row"><span class="admin-mobile-lbl">Moto:</span> <span class="admin-mobile-val">{{ o.moto_marca }} {{ o.moto_modelo }} ({{ o.moto_placa }})</span></div>
-        <div class="admin-mobile-row"><span class="admin-mobile-lbl">Mecánico:</span> <span class="admin-mobile-val">{{ capitalize(o.mecanico_nombre) }}</span></div>
-        <div class="admin-mobile-row"><span class="admin-mobile-lbl">Estado:</span> <span class="admin-mobile-val"><span :class="['badge', 'badge-' + o.estado]">{{ statusLabel(o.estado) }}</span></span></div>
-        <div class="admin-mobile-row"><span class="admin-mobile-lbl">Fecha:</span> <span class="admin-mobile-val">{{ formatDate(o.fecha_creacion) }}</span></div>
-        <div class="admin-mobile-row admin-mobile-actions">
-          <button class="btn-sm btn-view" @click="openDetailModal(o)">Ver detalles</button>
-          <button v-if="o.estado === 'en_proceso'" class="btn-sm btn-chat" @click="openChat(o)">Chat</button>
-        </div>
-      </div>
-    </div>
 
     <!-- Paginación -->
     <div v-if="!loading && totalPages > 1" class="pagination">
@@ -361,39 +324,38 @@
 
           <div class="detail-actions" v-if="canChangeStatus || (detail.estado !== 'completada' && detail.estado !== 'cancelada')">
             <span class="actions-title">Acciones</span>
-            <div class="actions-row" v-if="detail.estado === 'pendiente'">
-              <button class="action-btn action-btn--start" @click="changeStatus('en_proceso')">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                Iniciar
-              </button>
-              <button class="action-btn action-btn--cancel" @click="changeStatus('cancelada')">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
-                Cancelar
-              </button>
-            </div>
-            <div class="actions-row" v-else-if="detail.estado === 'en_proceso'">
-              <button class="action-btn action-btn--complete" @click="changeStatus('completada')">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                Completar
-              </button>
-              <button class="action-btn action-btn--cancel" @click="changeStatus('cancelada')">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
-                Cancelar
-              </button>
-            </div>
-              <div class="reassign-inline" v-if="detail.estado !== 'completada' && detail.estado !== 'cancelada'">
-                <span class="reassign-label">Reasignar mecánico</span>
-                <div class="reassign-controls">
-                  <select v-model="reassignMecanicoId" class="form-control">
-                    <option value="">Seleccionar mecánico...</option>
-                    <option v-for="m in mechanics" :key="m.id" :value="m.id">{{ m.nombre }}</option>
-                  </select>
-                  <button class="action-btn action-btn--assign" @click="handleReassign" :disabled="!reassignMecanicoId">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg>
-                    Reasignar
-                  </button>
-                </div>
+            <div class="actions-bar">
+              <div class="actions-row" v-if="detail.estado === 'pendiente'">
+                <button class="action-btn action-btn--start" @click="changeStatus('en_proceso')">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                  Iniciar
+                </button>
+                <button class="action-btn action-btn--cancel" @click="changeStatus('cancelada')">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                  Cancelar
+                </button>
               </div>
+              <div class="actions-row" v-else-if="detail.estado === 'en_proceso'">
+                <button class="action-btn action-btn--complete" @click="changeStatus('completada')">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  Completar
+                </button>
+                <button class="action-btn action-btn--cancel" @click="changeStatus('cancelada')">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                  Cancelar
+                </button>
+              </div>
+              <div class="reassign-inline" v-if="detail.estado !== 'completada' && detail.estado !== 'cancelada'">
+                <select v-model="reassignMecanicoId" class="form-control">
+                  <option value="">Reasignar mecánico...</option>
+                  <option v-for="m in mechanics" :key="m.id" :value="m.id">{{ m.nombre }}</option>
+                </select>
+                <button class="action-btn action-btn--assign" @click="handleReassign" :disabled="!reassignMecanicoId">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg>
+                  Reasignar
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -428,8 +390,6 @@ export default {
       filterEstado: "",
       filterClienteId: "",
       filterMecanicoId: "",
-      searchQuery: "",
-      showFilters: false,
       showCreateModal: false,
       showDetailModal: false,
       clients: [],
@@ -553,7 +513,6 @@ export default {
         if (this.filterEstado) params.estado = this.filterEstado;
         if (this.filterClienteId) params.cliente_id = this.filterClienteId;
         if (this.filterMecanicoId) params.mecanico_id = this.filterMecanicoId;
-        if (this.searchQuery && this.searchQuery.trim()) params.q = this.searchQuery.trim();
         const { data } = await api.get("/service-orders/", { params });
         this.orders = data;
       } catch (err) {
@@ -568,7 +527,6 @@ export default {
         if (this.filterEstado) params.estado = this.filterEstado;
         if (this.filterClienteId) params.cliente_id = this.filterClienteId;
         if (this.filterMecanicoId) params.mecanico_id = this.filterMecanicoId;
-        if (this.searchQuery && this.searchQuery.trim()) params.q = this.searchQuery.trim();
         const { data } = await api.get("/service-orders/count", { params });
         this.totalItems = data.total;
         this.totalPages = Math.ceil(this.totalItems / this.pageSize) || 1;
@@ -584,29 +542,6 @@ export default {
       this.form.placa = this.form.placa.replace(/[^a-zA-Z0-9]/g, "").toUpperCase().slice(0, 7);
     },
     onFilterChange() {
-      this.page = 1;
-      this.fetchOrders();
-      this.fetchCount();
-    },
-    onSearch() {
-      this.page = 1;
-      if (this._searchTimer) clearTimeout(this._searchTimer);
-      this._searchTimer = setTimeout(() => {
-        this.fetchOrders();
-        this.fetchCount();
-      }, 300);
-    },
-    clearSearch() {
-      this.searchQuery = "";
-      this.page = 1;
-      this.fetchOrders();
-      this.fetchCount();
-    },
-    clearFilters() {
-      this.filterEstado = "";
-      this.filterClienteId = "";
-      this.filterMecanicoId = "";
-      this.searchQuery = "";
       this.page = 1;
       this.fetchOrders();
       this.fetchCount();
@@ -787,7 +722,6 @@ export default {
       if (this.$route.query.open_chat === "1") {
         this.chatOrdenId = Number(orderId);
         this.showChatModal = true;
-        this.clearOrderRouteQuery();
         return;
       }
       this.reassignMecanicoId = "";
@@ -795,13 +729,6 @@ export default {
       api.get(`/service-orders/${orderId}`).then(({ data }) => {
         this.detail = data;
       }).catch(() => {});
-      this.clearOrderRouteQuery();
-    },
-    clearOrderRouteQuery() {
-      // Quitar order_id/open_chat de la URL para que al recargar no se reabra el modal
-      if (this.$route.query.order_id || this.$route.query.open_chat) {
-        this.$router.replace({ path: this.$route.path, query: {} });
-      }
     },
     onOrderUpdated() {
       this.fetchOrders();
@@ -848,101 +775,11 @@ export default {
   color: #1a1a1a;
   font-weight: 800;
 }
-.page-subtitle {
-  color: #666;
-  margin-top: 5px;
-  margin-left: 48px;
-  font-size: 1.05rem;
-}
 .toolbar {
   display: flex;
-  flex-wrap: wrap;
   gap: 12px;
   margin-bottom: 20px;
   align-items: center;
-}
-.toolbar-search {
-  position: relative;
-  display: flex;
-  align-items: center;
-  flex: 1 1 240px;
-  min-width: 200px;
-}
-.toolbar-search .search-icon {
-  position: absolute;
-  left: 12px;
-  color: #94a3b8;
-  pointer-events: none;
-}
-.search-input {
-  width: 100%;
-  padding: 9px 34px 9px 36px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  font-size: 14px;
-  background: #fff;
-  box-sizing: border-box;
-}
-.search-input:focus {
-  outline: none;
-  border-color: #ffaa00;
-  box-shadow: 0 0 0 3px rgba(255,170,0,0.1);
-}
-.search-clear {
-  position: absolute;
-  right: 8px;
-  width: 22px;
-  height: 22px;
-  border: none;
-  border-radius: 50%;
-  background: #e2e8f0;
-  color: #475569;
-  font-size: 15px;
-  line-height: 1;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.search-clear:hover { background: #ffaa00; color: #1a1a1a; }
-.clear-filters-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 9px 14px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  background: #fff;
-  color: #475569;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-.clear-filters-btn:hover {
-  border-color: #ffaa00;
-  color: #1a1a1a;
-  background: #fff8e6;
-}
-.filters-toggle {
-  display: none;
-  align-items: center;
-  gap: 6px;
-  padding: 9px 14px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  background: #fff;
-  color: #475569;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-}
-.filters-toggle:hover { border-color: #ffaa00; color: #1a1a1a; }
-.filters-group {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  flex-wrap: wrap;
 }
 .filter-select {
   padding: 8px 12px;
@@ -1186,27 +1023,11 @@ html.dark .monto-original { color: #4ade80; }
 }
 .reassign-inline {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 14px;
-  padding: 14px;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  background: #f8fafc;
-}
-.reassign-label {
-  font-size: 12px;
-  font-weight: 700;
-  color: #64748b;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-.reassign-controls {
-  display: flex;
   gap: 10px;
   align-items: center;
+  margin-left: auto;
 }
-.reassign-controls .form-control { flex: 1; min-width: 0; }
+.reassign-inline .form-control { width: auto; min-width: 180px; }
 .action-btn {
   display: inline-flex;
   align-items: center;
@@ -1593,150 +1414,4 @@ html.dark .monto-tasa.warn { color: #fbbf24; }
   min-width: 60px;
   text-align: center;
 }
-/* ===== MOBILE / PWA native feel ===== */
-@media (max-width: 768px) {
-  .admin-orders {
-    padding: 12px 12px 80px;
-  }
-  .orders-header h1 {
-    font-size: 1.3rem;
-  }
-  .page-subtitle {
-    margin-left: 0;
-    font-size: 0.9rem;
-  }
-  .orders-header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  .toolbar {
-    flex-direction: column;
-    gap: 8px;
-  }
-  .toolbar-search {
-    flex: 1 1 100%;
-    min-width: 100%;
-  }
-  .search-input {
-    padding: 12px 38px 12px 40px;
-    border-radius: 10px;
-    font-size: 15px;
-  }
-  .toolbar-search .search-icon {
-    left: 14px;
-  }
-  .clear-filters-btn {
-    width: 100%;
-    justify-content: center;
-    padding: 12px;
-    border-radius: 10px;
-    font-size: 15px;
-  }
-  .filters-toggle {
-    display: flex;
-    width: 100%;
-    justify-content: center;
-    padding: 12px;
-    border-radius: 10px;
-    font-size: 15px;
-  }
-  .filters-group {
-    display: none;
-    flex-direction: column;
-    gap: 8px;
-    width: 100%;
-  }
-  .filters-group.filters-open {
-    display: flex;
-  }
-  .filter-select {
-    min-width: 100%;
-    width: 100%;
-    padding: 12px;
-    border-radius: 10px;
-    font-size: 14px;
-  }
-  .btn-primary {
-    width: 100%;
-    padding: 14px;
-    border-radius: 12px;
-    font-size: 15px;
-    text-align: center;
-    justify-content: center;
-  }
-  .modal {
-    width: 95%;
-    max-width: none;
-    border-radius: 16px;
-    max-height: 80vh;
-  }
-  .modal-body {
-    padding: 16px;
-  }
-  .detail-grid {
-    grid-template-columns: 1fr;
-    gap: 10px;
-  }
-  .detail-item {
-    padding: 10px;
-  }
-  .actions-row {
-    flex-direction: column;
-    gap: 8px;
-  }
-  .action-btn {
-    width: 100%;
-    justify-content: center;
-    padding: 14px;
-    border-radius: 12px;
-    font-size: 14px;
-  }
-  .reassign-inline {
-    margin-top: 12px;
-    padding: 12px;
-  }
-  .reassign-controls {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  .reassign-controls .form-control {
-    width: 100%;
-  }
-  .pagination {
-    padding: 8px 0 20px;
-  }
-}
-html.dark .data-table tr {
-  background: #1a1f2e;
-  border-color: #1e293b;
-}
-html.dark .data-table td {
-  color: #e2e8f0;
-}
-html.dark .search-input {
-  background: var(--bg-input, #1a1f2e);
-  border-color: var(--border-input, #334155);
-  color: var(--text-default, #e2e8f0);
-}
-html.dark .search-input:focus { border-color: var(--color-primary, #ffaa00); }
-html.dark .toolbar-search .search-icon { color: var(--text-muted, #94a3b8); }
-html.dark .search-clear { background: var(--bg-muted, #334155); color: var(--text-secondary, #cbd5e1); }
-html.dark .search-clear:hover { background: var(--color-primary, #ffaa00); color: #1a1a1a; }
-html.dark .clear-filters-btn {
-  background: var(--bg-input, #1a1f2e);
-  border-color: var(--border-input, #334155);
-  color: var(--text-secondary, #cbd5e1);
-}
-html.dark .clear-filters-btn:hover { color: var(--text-default, #e2e8f0); background: var(--bg-hover, #232b3d); }
-html.dark .filters-toggle {
-  background: var(--bg-input, #1a1f2e);
-  border-color: var(--border-input, #334155);
-  color: var(--text-secondary, #cbd5e1);
-}
-html.dark .filters-toggle:hover { color: var(--text-default, #e2e8f0); }
-html.dark .reassign-inline {
-  background: var(--bg-input, #1a1f2e);
-  border-color: var(--border-input, #334155);
-}
-html.dark .reassign-label { color: var(--text-muted, #94a3b8); }
 </style>

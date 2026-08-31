@@ -1,7 +1,7 @@
 <template>
   <div class="settings-wrap" ref="wrap">
     <button class="settings-trigger" :class="{ open: open }" title="Ajustes" @click.stop="open = !open">
-      <svg class="settings-chevron" :class="{ rotated: open }" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
     </button>
     <div v-if="open" :class="['settings-panel', { 'settings-above': above }]" @click.stop>
       <div class="settings-section">
@@ -96,34 +96,20 @@ export default {
   color: #ffaa00;
   background: rgba(255,170,0,0.1);
 }
-.settings-chevron {
-  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.settings-chevron.rotated {
-  transform: rotate(180deg);
-}
 .settings-panel {
   position: absolute;
   top: calc(100% + 8px);
   right: 0;
   background: var(--settings-bg, #fff);
-  border-radius: 14px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
-  padding: 14px 0;
-  min-width: 230px;
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  padding: 12px 0;
+  min-width: 220px;
   z-index: 300;
-  animation: settings-pop 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-@keyframes settings-pop {
-  from { opacity: 0; transform: translateY(8px) scale(0.95); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 .settings-above {
-  position: fixed;
-  bottom: calc(56px + env(safe-area-inset-bottom, 0px));
-  right: 12px;
   top: auto;
-  left: auto;
+  bottom: calc(100% + 8px);
 }
 .settings-section {
   padding: 0 14px;

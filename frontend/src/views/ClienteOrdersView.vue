@@ -42,12 +42,12 @@
         </thead>
         <tbody>
           <tr v-for="o in orders" :key="o.id">
-            <td data-label="ID">{{ o.id }}</td>
-            <td data-label="Moto">{{ o.moto_marca }} {{ o.moto_modelo }} ({{ o.moto_placa }})</td>
-            <td data-label="Mecánico">{{ o.mecanico_nombre }}</td>
-            <td data-label="Descripción" class="desc-cell">{{ o.descripcion }}</td>
-            <td data-label="Estado"><span :class="['badge', 'badge-' + o.estado]">{{ statusLabel(o.estado) }}</span></td>
-            <td data-label="Fecha">{{ formatDate(o.fecha_creacion) }}</td>
+            <td>{{ o.id }}</td>
+            <td>{{ o.moto_marca }} {{ o.moto_modelo }} ({{ o.moto_placa }})</td>
+            <td>{{ o.mecanico_nombre }}</td>
+            <td class="desc-cell">{{ o.descripcion }}</td>
+            <td><span :class="['badge', 'badge-' + o.estado]">{{ statusLabel(o.estado) }}</span></td>
+            <td>{{ formatDate(o.fecha_creacion) }}</td>
             <td>
               <button class="btn-sm btn-view" @click="openDetail(o)">Ver</button>
               <button v-if="o.estado === 'en_proceso'" class="btn-sm btn-chat" @click="openChat(o)">Chat</button>
@@ -55,22 +55,6 @@
           </tr>
         </tbody>
       </table>
-
-      <!-- Mobile cards -->
-      <div class="cliente-mobile-cards">
-        <div v-for="o in orders" :key="'m-' + o.id" class="cliente-mobile-card">
-          <div class="cliente-mobile-row"><span class="cliente-mobile-lbl">ID:</span> <span class="cliente-mobile-val">{{ o.id }}</span></div>
-          <div class="cliente-mobile-row"><span class="cliente-mobile-lbl">Moto:</span> <span class="cliente-mobile-val">{{ o.moto_marca }} {{ o.moto_modelo }} ({{ o.moto_placa }})</span></div>
-          <div class="cliente-mobile-row"><span class="cliente-mobile-lbl">Mecánico:</span> <span class="cliente-mobile-val">{{ o.mecanico_nombre }}</span></div>
-          <div class="cliente-mobile-row"><span class="cliente-mobile-lbl">Descripción:</span> <span class="cliente-mobile-val">{{ o.descripcion }}</span></div>
-          <div class="cliente-mobile-row"><span class="cliente-mobile-lbl">Estado:</span> <span class="cliente-mobile-val"><span :class="['badge', 'badge-' + o.estado]">{{ statusLabel(o.estado) }}</span></span></div>
-          <div class="cliente-mobile-row"><span class="cliente-mobile-lbl">Fecha:</span> <span class="cliente-mobile-val">{{ formatDate(o.fecha_creacion) }}</span></div>
-          <div class="cliente-mobile-row cliente-mobile-actions">
-            <button class="btn-sm btn-view" @click="openDetail(o)">Ver</button>
-            <button v-if="o.estado === 'en_proceso'" class="btn-sm btn-chat" @click="openChat(o)">Chat</button>
-          </div>
-        </div>
-      </div>
 
       <!-- Paginación -->
       <div v-if="!loading && totalPages > 1" class="pagination">
@@ -108,64 +92,40 @@
 
     <!-- Modal Detalle -->
     <div v-if="showDetail" class="modal-overlay" @click.self="showDetail = false">
-      <div class="modal modal-lg" :class="'modal--' + detail?.estado">
-        <div class="modal-topbar">
-          <div class="topbar-left">
-            <span :class="['badge', 'badge-' + detail?.estado]">{{ statusLabel(detail?.estado) }}</span>
-            <span class="topbar-id">#{{ detail?.id }}</span>
-          </div>
-          <button class="modal-close" @click="showDetail = false">&times;</button>
+      <div class="modal modal-lg">
+        <div class="modal-header">
+          <h2>Orden #{{ detail.id }}</h2>
+          <button class="modal-close" @click="showDetail = false">×</button>
         </div>
         <div class="modal-body" v-if="detail">
           <div class="detail-grid">
-            <div class="detail-item">
-              <div class="detail-icon">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="14" r="4"/><circle cx="18" cy="14" r="4"/><path d="M6 14h12"/><path d="M16 4h-4l-3 5h7l2 3"/><path d="M3 10h3l1-2"/></svg>
-              </div>
-              <div>
-                <span class="detail-label">Moto</span>
-                <span class="detail-value moto-value"><span>{{ detail.moto_marca }} {{ detail.moto_modelo }}</span><span><span class="detail-sub">Placa:</span> {{ detail.moto_placa }}</span><span><span class="detail-sub">Año:</span> {{ detail.moto_anio }}</span></span>
-              </div>
+            <div class="detail-field">
+              <span class="detail-label">Estado</span>
+              <span :class="['badge', 'badge-' + detail.estado]">{{ statusLabel(detail.estado) }}</span>
             </div>
-            <div class="detail-item" v-if="detail.moto_color_especifico || detail.moto_color">
-              <div class="detail-icon">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
-              </div>
-              <div>
-                <span class="detail-label">Color</span>
-                <span class="detail-value" v-if="detail.moto_color_especifico">
-                  <span class="color-dot" :style="{ backgroundColor: colorHex(detail.moto_color_especifico) }"></span>
-                  {{ detail.moto_color_especifico }}
-                </span>
-                <span class="detail-value" v-else>{{ detail.moto_color }}</span>
-              </div>
+            <div class="detail-field">
+              <span class="detail-label">Moto</span>
+              <span class="moto-info">{{ detail.moto_marca }} {{ detail.moto_modelo }}<br>Placa: {{ detail.moto_placa }}<br>Año: {{ detail.moto_anio }}</span>
             </div>
-            <div class="detail-item">
-              <div class="detail-icon">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-              </div>
-              <div>
-                <span class="detail-label">Mecánico</span>
-                <span class="detail-value">{{ detail.mecanico_nombre }}</span>
-              </div>
+            <div class="detail-field" v-if="detail.moto_color_especifico">
+              <span class="detail-label">Color</span>
+              <span><span class="color-dot" :style="{ backgroundColor: colorHex(detail.moto_color_especifico) }"></span> {{ detail.moto_color_especifico }}</span>
             </div>
-            <div class="detail-item">
-              <div class="detail-icon">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-              </div>
-              <div>
-                <span class="detail-label">Creada</span>
-                <span class="detail-value">{{ formatDate(detail.fecha_creacion) }}</span>
-              </div>
+            <div class="detail-field" v-else-if="detail.moto_color">
+              <span class="detail-label">Color</span>
+              <span>{{ detail.moto_color }}</span>
             </div>
-            <div class="detail-item" v-if="detail.fecha_cierre">
-              <div class="detail-icon">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-              </div>
-              <div>
-                <span class="detail-label">Cerrada</span>
-                <span class="detail-value">{{ formatDate(detail.fecha_cierre) }}</span>
-              </div>
+            <div class="detail-field">
+              <span class="detail-label">Mecánico</span>
+              <span>{{ detail.mecanico_nombre }}</span>
+            </div>
+            <div class="detail-field">
+              <span class="detail-label">Fecha de Creación</span>
+              <span>{{ formatDate(detail.fecha_creacion) }}</span>
+            </div>
+            <div class="detail-field" v-if="detail.fecha_cierre">
+              <span class="detail-label">Fecha de Cierre</span>
+              <span>{{ formatDate(detail.fecha_cierre) }}</span>
             </div>
           </div>
 
@@ -191,17 +151,12 @@
             </div>
           </div>
 
-          <div class="detail-card">
-            <div class="detail-card-header">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-              <span>Descripción</span>
-            </div>
-            <p class="detail-card-body">{{ detail.descripcion }}</p>
+          <div class="detail-section">
+            <h3>Descripción</h3>
+            <p>{{ detail.descripcion }}</p>
           </div>
         </div>
-        <div class="modal-footer">
-          <button class="btn-cancel" @click="showDetail = false">Cerrar</button>
-        </div>
+        <div class="modal-footer"></div>
       </div>
     </div>
 
@@ -218,30 +173,24 @@
     <!-- Modal QR -->
     <div v-if="showQRModal" class="modal-overlay" @click.self="showQRModal = false">
       <div class="modal modal-sm">
-        <div class="modal-topbar">
-          <div class="topbar-left">
-            <span class="topbar-id">QR de {{ qrMoto.marca }} {{ qrMoto.modelo }}</span>
-          </div>
-          <button class="modal-close" @click="showQRModal = false">&times;</button>
+        <div class="modal-header">
+          <h2>QR de {{ qrMoto.marca }} {{ qrMoto.modelo }}</h2>
+          <button class="modal-close" @click="showQRModal = false">×</button>
         </div>
         <div class="modal-body qr-body">
           <img :src="qrMoto.codigo_qr" alt="QR" class="qr-image" />
           <p class="qr-placa">Placa: {{ qrMoto.placa }}</p>
         </div>
-        <div class="modal-footer">
-          <button class="btn-cancel" @click="showQRModal = false">Cerrar</button>
-        </div>
+        <div class="modal-footer"></div>
       </div>
     </div>
 
     <!-- Modal Historial -->
     <div v-if="showHistoryModal" class="modal-overlay" @click.self="showHistoryModal = false">
       <div class="modal modal-lg">
-        <div class="modal-topbar">
-          <div class="topbar-left">
-            <span class="topbar-id">Historial — {{ historyMoto.marca }} {{ historyMoto.modelo }} ({{ historyMoto.placa }})</span>
-          </div>
-          <button class="modal-close" @click="showHistoryModal = false">&times;</button>
+        <div class="modal-header">
+          <h2>Historial — {{ historyMoto.marca }} {{ historyMoto.modelo }} ({{ historyMoto.placa }})</h2>
+          <button class="modal-close" @click="showHistoryModal = false">×</button>
         </div>
         <div class="modal-body">
           <div v-if="historyLoading" class="loading-state">
@@ -422,19 +371,12 @@ export default {
       if (this.$route.query.open_chat === "1") {
         this.chatOrdenId = Number(orderId);
         this.showChatModal = true;
-        this.clearOrderRouteQuery();
         return;
       }
       api.get(`/service-orders/${orderId}`).then(({ data }) => {
         this.detail = data;
         this.showDetail = true;
       }).catch(() => {});
-      this.clearOrderRouteQuery();
-    },
-    clearOrderRouteQuery() {
-      if (this.$route.query.order_id || this.$route.query.open_chat) {
-        this.$router.replace({ path: this.$route.path, query: {} });
-      }
     },
     onOrderUpdated() {
       this.fetchOrders();
@@ -541,44 +483,19 @@ export default {
 }
 .modal {
   background: #fff; border-radius: 20px; width: 90%; max-width: 640px;
-  overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+  padding: 28px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
   max-height: 90vh; overflow-y: auto;
 }
-.modal--pendiente { border-top: 4px solid #f59e0b; }
-.modal--en_proceso { border-top: 4px solid #3b82f6; }
-.modal-topbar {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 20px 28px; border-bottom: 1px solid #f1f5f9;
+.modal-header {
+  display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;
 }
-.topbar-left { display: flex; align-items: center; gap: 10px; }
-.topbar-left .badge { font-size: 13px; padding: 6px 16px; border-radius: 20px; }
-.topbar-id { font-size: 14px; font-weight: 700; color: #94a3b8; letter-spacing: 0.3px; }
-.modal-close { background: none; border: none; width: 36px; height: 36px; border-radius: 8px; cursor: pointer; color: #64748b; font-size: 24px; font-weight: 400; line-height: 1; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+.modal-header h2 { font-size: 1.3rem; }
+.modal-close { background: none; border: none; width: 36px; height: 36px; border-radius: 8px; font-size: 1.5rem; cursor: pointer; color: #94a3b8; display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s; }
 .modal-close:hover { background: #fee2e2; color: #dc2626; }
-.modal-body { padding: 24px 28px 28px; }
-.detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
-.detail-item {
-  display: flex; align-items: flex-start; gap: 10px;
-  padding: 12px; background: #f8fafc; border-radius: 10px;
-}
-.detail-icon {
-  width: 32px; height: 32px; border-radius: 8px;
-  background: #fff; color: #ffaa00;
-  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-}
-.detail-label { display: block; font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 1px; }
-.detail-value { font-size: 13px; font-weight: 600; color: #1a1a1a; display: flex; align-items: center; gap: 6px; }
-.detail-value.moto-value { flex-direction: column; align-items: flex-start; gap: 4px; }
-.detail-sub { font-weight: 700; color: #94a3b8; }
-.detail-card {
-  margin-bottom: 24px; padding: 16px; background: #f8fafc; border-radius: 12px;
-}
-.detail-card-header {
-  display: flex; align-items: center; gap: 8px;
-  font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;
-  margin-bottom: 8px;
-}
-.detail-card-body { margin: 0; font-size: 14px; color: #475569; line-height: 1.6; }
+.detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+.detail-field { font-size: 0.9rem; }
+.detail-label { display: block; font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 2px; }
+.moto-info { line-height: 1.6; }
 .detail-section { margin-top: 20px; }
 .detail-section h3 { font-size: 1rem; margin-bottom: 8px; color: #1a1a1a; }
 .progress-tracker {
@@ -605,7 +522,7 @@ export default {
 }
 .progress-line.completed { background: #16a34a; }
 .progress-line.cancelled { background: #ef4444; }
-.modal-footer { display: flex; justify-content: flex-end; gap: 12px; padding: 16px 28px; border-top: 1px solid #f1f5f9; }
+.modal-footer { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; }
 .btn-cancel { padding: 10px 20px; background: #f1f5f9; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
 .alert {
   padding: 12px 16px;
@@ -688,89 +605,4 @@ export default {
   min-width: 60px;
   text-align: center;
 }
-/* ===== MOBILE / PWA native feel ===== */
-@media (max-width: 768px) {
-  .cliente-orders {
-    padding: 12px 12px 80px;
-  }
-  .header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
-  }
-  .header h1 {
-    font-size: 1.2rem;
-  }
-  .nav-tabs {
-    width: 100%;
-    display: flex;
-  }
-  .nav-tab {
-    flex: 1;
-    justify-content: center;
-    padding: 10px 12px;
-    font-size: 13px;
-    border-radius: 8px;
-  }
-  .btn-sm {
-    padding: 8px 14px;
-    border-radius: 8px;
-    font-size: 13px;
-    font-weight: 700;
-  }
-  .modal {
-    width: 95%;
-    border-radius: 16px;
-    max-height: 80vh;
-  }
-  .modal-body { padding: 16px; }
-  .detail-grid {
-    grid-template-columns: 1fr;
-    gap: 10px;
-  }
-  .progress-tracker {
-    transform: scale(0.85);
-  }
-  .progress-line {
-    width: 30px;
-  }
-  .motos-grid {
-    grid-template-columns: 1fr;
-  }
-  .pagination {
-    padding: 8px 0 20px;
-  }
-}
-html.dark .data-table tr {
-  background: #1a1f2e;
-  border-color: #1e293b;
-}
-html.dark .moto-card {
-  background: #1a1f2e;
-  border-color: #1e293b;
-}
-html.dark .header h1 { color: #f1f5f9 !important; }
-html.dark .nav-tabs { background: var(--bg-muted) !important; }
-html.dark .nav-tab { color: var(--text-muted) !important; }
-html.dark .nav-tab.active { background: var(--bg-card) !important; color: var(--color-primary) !important; }
-html.dark .data-table { background: transparent !important; }
-html.dark .data-table th { background: var(--bg-muted) !important; color: var(--text-secondary) !important; border-bottom-color: var(--border-default) !important; }
-html.dark .data-table td { color: var(--text-default) !important; border-bottom-color: var(--border-light) !important; }
-html.dark .btn-view { background: #1e3a5f !important; color: #93c5fd !important; }
-html.dark .btn-chat { background: #064e3b !important; color: #6ee7b7 !important; }
-html.dark .btn-download { background: #78350f !important; color: #fde68a !important; }
-html.dark .btn-history { background: #2e1065 !important; color: #c4b5fd !important; }
-html.dark .btn-qr { background: #78350f !important; color: #fde68a !important; }
-html.dark .cliente-mobile-card { background: var(--bg-card) !important; border-color: var(--border-default) !important; box-shadow: 0 1px 3px rgba(0,0,0,0.3) !important; }
-html.dark .cliente-mobile-val { color: var(--text-default) !important; }
-html.dark .cliente-mobile-actions { border-top-color: var(--border-light) !important; }
-html.dark .moto-card { background: var(--bg-card) !important; border-color: var(--border-default) !important; }
-html.dark .moto-card-header { background: var(--bg-muted) !important; }
-html.dark .moto-marca { color: var(--text-default) !important; }
-html.dark .moto-modelo { color: var(--text-muted) !important; }
-html.dark .moto-detail { color: var(--text-secondary) !important; }
-html.dark .moto-label { color: var(--text-muted) !important; }
-html.dark .moto-card-actions { border-top-color: var(--border-light) !important; }
-html.dark .page-btn { background: var(--bg-card) !important; border-color: var(--border-default) !important; color: var(--text-secondary) !important; }
-html.dark .btn-cancel { background: #334155 !important; color: #cbd5e1 !important; }
 </style>

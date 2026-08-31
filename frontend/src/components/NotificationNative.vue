@@ -55,15 +55,15 @@ export default {
         } catch (e) { void e; }
       }
       try {
-        var notifObj = new Notification("Todomotortaller", {
+        var n = new Notification("Todomotortaller", {
           body: notif.mensaje || "",
           icon: "/img/icons/logo-192.png",
           tag: "notif-" + notif.id,
         });
-        notifObj.onclick = function () {
+        n.onclick = function () {
           window.focus();
           if (url && url !== "/") window.location.href = url;
-          notifObj.close();
+          n.close();
         };
       } catch (e) { void e; }
     },
