@@ -95,7 +95,7 @@ export default {
           console.log(`[Dropdown] Unread changed: ${prev} -> ${data.count}`);
         }
       } catch (e) {
-        console.error("[Dropdown] Failed to fetch unread count:", e.message, e.response?.status);
+        /* silent */
       }
     },
     async markRead(n) {

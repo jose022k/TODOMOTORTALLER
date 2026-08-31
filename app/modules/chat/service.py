@@ -111,34 +111,22 @@ def send_message(db: Session, orden_id: int, contenido: str, current_user):
         if cliente_id and cliente_id != sender_id:
             create_notification(db, "mensaje_recibido", f"Nuevo mensaje en la orden #{orden_id}", orden_servicio_id=orden_id, cliente_id=cliente_id, open_chat=True)
             notif_created += 1
-    except Exception as e:
-        print(f"[CHAT] Notif cliente failed for orden {orden_id}: {e}")
-        try:
-            db.rollback()
-        except Exception:
-            pass
+    except Exception:
+        pass
     try:
         if mecanico_id and mecanico_id != sender_id:
             create_notification(db, "mensaje_recibido", f"Nuevo mensaje en la orden #{orden_id}", orden_servicio_id=orden_id, mecanico_id=mecanico_id, open_chat=True)
             notif_created += 1
-    except Exception as e:
-        print(f"[CHAT] Notif mecanico failed for orden {orden_id}: {e}")
-        try:
-            db.rollback()
-        except Exception:
-            pass
+    except Exception:
+        pass
     try:
         admin_ids = [a.id for a in db.query(Admin.id).all()]
         for aid in admin_ids:
             if aid != sender_id:
                 create_notification(db, "mensaje_recibido", f"Nuevo mensaje en la orden #{orden_id}", orden_servicio_id=orden_id, admin_id=aid, open_chat=True)
                 notif_created += 1
-    except Exception as e:
-        print(f"[CHAT] Notif admins failed for orden {orden_id}: {e}")
-        try:
-            db.rollback()
-        except Exception:
-            pass
+    except Exception:
+        pass
 
     logger.info(f"[CHAT] Total notifications created for orden {orden_id}: {notif_created}")
 
@@ -276,34 +264,22 @@ def create_evidencia(db: Session, orden_id: int, file: UploadFile, mensaje_id, c
         if cliente_id and cliente_id != current_user.id:
             create_notification(db, "evidencia_enviada", f"Nueva evidencia en la orden #{orden_id}", orden_servicio_id=orden_id, cliente_id=cliente_id, open_chat=True)
             notif_created += 1
-    except Exception as e:
-        print(f"[CHAT] Evidencia notif cliente failed for orden {orden_id}: {e}")
-        try:
-            db.rollback()
-        except Exception:
-            pass
+    except Exception:
+        pass
     try:
         if mecanico_id and mecanico_id != current_user.id:
             create_notification(db, "evidencia_enviada", f"Nueva evidencia en la orden #{orden_id}", orden_servicio_id=orden_id, mecanico_id=mecanico_id, open_chat=True)
             notif_created += 1
-    except Exception as e:
-        print(f"[CHAT] Evidencia notif mecanico failed for orden {orden_id}: {e}")
-        try:
-            db.rollback()
-        except Exception:
-            pass
+    except Exception:
+        pass
     try:
         admin_ids = [a.id for a in db.query(Admin.id).all()]
         for aid in admin_ids:
             if aid != current_user.id:
                 create_notification(db, "evidencia_enviada", f"Nueva evidencia en la orden #{orden_id}", orden_servicio_id=orden_id, admin_id=aid, open_chat=True)
                 notif_created += 1
-    except Exception as e:
-        print(f"[CHAT] Evidencia notif admins failed for orden {orden_id}: {e}")
-        try:
-            db.rollback()
-        except Exception:
-            pass
+    except Exception:
+        pass
 
     logger.info(f"[CHAT] Total evidence notifications created for orden {orden_id}: {notif_created}")
 

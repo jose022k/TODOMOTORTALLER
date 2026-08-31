@@ -45,7 +45,7 @@ async function refreshCount() {
       console.log(`[NotifPoll] Count INCREASED: ${lastUnreadCount} -> ${newCount}, fetching list...`);
       try {
         const { data: notifs } = await api.get("/notifications/?limit=5");
-        console.log("[NotifPoll] Got", notifs.length, "notifications:", notifs.map(n => ({id: n.id, tipo: n.tipo, leido: n.leido})));
+        console.log("[NotifPoll] Got", notifs.length, "notifications:", notifs);
         let dispatched = 0;
         for (const notif of notifs) {
           if (!notif.leido && !shownNotifIds.has(notif.id)) {
@@ -60,8 +60,6 @@ async function refreshCount() {
       } catch (e) {
         console.error("[NotifPoll] Failed to fetch notification list:", e.message);
       }
-    } else if (newCount < lastUnreadCount) {
-      console.log(`[NotifPoll] Count DECREASED: ${lastUnreadCount} -> ${newCount}`);
     }
 
     lastUnreadCount = newCount;
@@ -86,7 +84,6 @@ function onNew(notif) {
 export function useNotifications() {
   function init() {
     if (state.initialized) {
-      console.log("[NotifInit] Already initialized, refreshing...");
       refreshCount();
       return;
     }

@@ -37,7 +37,7 @@ def unsubscribe(db: Session, endpoint: str, current_user):
         sub_dao.delete(db, sub)
 
 
-def send_push(subscription, title: str, body: str, icon: str = None, url: str = None):
+def send_push(subscription, title: str, body: str, icon: str = None, url: str = None) -> bool:
     payload = json.dumps({
         "title": title,
         "body": body,
@@ -59,29 +59,24 @@ def send_push(subscription, title: str, body: str, icon: str = None, url: str = 
     except WebPushException as e:
         if e.response and e.response.status_code in (410, 404):
             return False
+    except Exception:
+        pass
     return True
 
 
 def notify_user(db: Session, user_id: int, role: str, title: str, body: str, url: str = None):
     try:
         subs = sub_dao.get_by_user(db, user_id, role)
-    except Exception as e:
-        print(f"[PUSH] Failed to get subs for {role}:{user_id}: {e}")
-        try:
-            db.rollback()
-        except Exception:
-            pass
+    except Exception:
         return
     stale = []
     for sub in subs:
-        ok = send_push(sub, title, body, url=url)
-        if ok is False:
+        if send_push(sub, title, body, url=url) is False:
             stale.append(sub)
     for s in stale:
         try:
             sub_dao.delete(db, s)
-        except Exception as e:
-            print(f"[PUSH] Failed to delete stale sub {s.id}: {e}")
+        except Exception:
             try:
                 db.rollback()
             except Exception:
