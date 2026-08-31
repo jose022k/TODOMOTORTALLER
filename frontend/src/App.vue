@@ -342,7 +342,6 @@ export default {
       const dy = e.touches[0].clientY - this.touchStartY;
       if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 15) {
         this.isSwiping = true;
-        e.preventDefault();
       }
     },
     onTouchEnd(e) {
