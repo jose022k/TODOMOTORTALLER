@@ -210,7 +210,7 @@ def get_evidencias(db: Session, orden_id: int, current_user):
     ]
 
 
-def create_evidencia(db: Session, orden_id: int, file: UploadFile, mensaje_id, current_user):
+async def create_evidencia(db: Session, orden_id: int, file: UploadFile, mensaje_id, current_user):
     order = orden_dao.get_by_id(db, orden_id)
     if not order:
         raise HTTPException(
