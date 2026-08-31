@@ -164,15 +164,21 @@ export default {
         this.open = false;
       }
     },
+    onNotificationNew() {
+      // Real-time badge update via WebSocket event (all roles)
+      this.fetchUnread();
+    },
   },
   mounted() {
     this.fetchUnread();
     this.pollTimer = setInterval(() => this.fetchUnread(), 10000);
     document.addEventListener("click", this.handleClickOutside);
+    window.addEventListener("notification-new", this.onNotificationNew);
   },
   beforeUnmount() {
     if (this.pollTimer) clearInterval(this.pollTimer);
     document.removeEventListener("click", this.handleClickOutside);
+    window.removeEventListener("notification-new", this.onNotificationNew);
   },
   watch: {
     $route() {

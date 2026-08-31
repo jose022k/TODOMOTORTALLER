@@ -46,29 +46,48 @@ registerRoute(
 
 self.addEventListener("push", (event) => {
   if (!event.data) return;
+  let parsed = null;
   try {
-    const data = event.data.json();
-    const options = {
-      body: data.body || "",
-      icon: data.icon || "/img/app-icon-512.png",
-      badge: data.badge || "/img/app-icon-512.png",
-      data: data.data || {},
-      vibrate: [200, 100, 200],
-      sound: data.sound || "/sounds/notification.wav",
-    };
-    
-    // Update app badge if supported and provided
-    if (data.data && typeof data.data.unread_count === "number") {
-      if (typeof navigator.setAppBadge === "function") {
-        navigator.setAppBadge(data.data.unread_count).catch(() => {});
-      }
-    }
-
-    event.waitUntil(self.registration.showNotification(data.title || "Todomotortaller", options));
+    parsed = event.data.json();
   } catch {
-    const text = event.data.text();
-    event.waitUntil(self.registration.showNotification("Todomotortaller", { body: text }));
+    parsed = null;
   }
+
+  const title = (parsed && parsed.title) || "Todomotortaller";
+  const body = (parsed && parsed.body) || event.data.text();
+  const icon = (parsed && parsed.icon) || "/img/icons/logo-192.png";
+  const badge = (parsed && parsed.badge) || "/img/icons/logo-192.png";
+  const pushData = (parsed && parsed.data) || {};
+  const unreadCount = typeof pushData.unread_count === "number" ? pushData.unread_count : null;
+
+  // Update app badge if supported
+  if (unreadCount !== null && typeof navigator.setAppBadge === "function") {
+    navigator.setAppBadge(unreadCount).catch(() => {});
+  }
+
+  const notifOptions = {
+    body,
+    icon,
+    badge,
+    data: pushData,
+    vibrate: [200, 100, 200],
+    silent: false,
+  };
+
+  event.waitUntil(
+    clients.matchAll({ type: "window", includeUncontrolled: true }).then((windowClients) => {
+      // Tell every open window to play the sound
+      for (const client of windowClients) {
+        client.postMessage({ type: "PLAY_NOTIFICATION_SOUND" });
+      }
+
+      // Only show OS notification if no window is currently visible/focused
+      const hasVisibleClient = windowClients.some((c) => c.visibilityState === "visible");
+      if (!hasVisibleClient) {
+        return self.registration.showNotification(title, notifOptions);
+      }
+    })
+  );
 });
 
 self.addEventListener("notificationclick", (event) => {

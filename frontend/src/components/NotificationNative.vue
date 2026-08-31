@@ -127,6 +127,15 @@ export default {
   mounted() {
     this.swRegistration = null;
     navigator.serviceWorker?.ready.then((reg) => { this.swRegistration = reg; }).catch(() => {});
+    // Listen for postMessage from SW to play sound when push arrives while app is open
+    if (navigator.serviceWorker) {
+      this._swMessageHandler = (event) => {
+        if (event.data && event.data.type === "PLAY_NOTIFICATION_SOUND") {
+          playNotifSound();
+        }
+      };
+      navigator.serviceWorker.addEventListener("message", this._swMessageHandler);
+    }
     window.addEventListener("notification-new", this.onNewNotification);
     window.addEventListener("click", unlockAudio, { passive: true });
     window.addEventListener("touchstart", unlockAudio, { passive: true });
@@ -145,6 +154,9 @@ export default {
     window.removeEventListener("touchstart", unlockAudio);
     window.removeEventListener("keydown", unlockAudio);
     if (this.pollTimer) clearInterval(this.pollTimer);
+    if (navigator.serviceWorker && this._swMessageHandler) {
+      navigator.serviceWorker.removeEventListener("message", this._swMessageHandler);
+    }
   },
   methods: {
     checkPermission() {
@@ -224,6 +236,8 @@ export default {
     async showNativeNotification(notif) {
       if (!("Notification" in window)) return;
       if (Notification.permission !== "granted") return;
+      // If the page is currently visible, the in-app toast is already shown — skip OS notification
+      if (document.visibilityState === "visible") return;
       const url = this.buildUrl(notif);
       if (this.swRegistration) {
         try {
@@ -233,15 +247,18 @@ export default {
             badge: "/img/icons/logo-192.png",
             data: { url },
             vibrate: [200, 100, 200],
+            silent: false,
           });
           return;
         } catch (e) { void e; }
       }
+      // Fallback to basic Notification API
       try {
         var n = new Notification("Todomotortaller", {
           body: notif.mensaje || "",
           icon: "/img/icons/logo-192.png",
           tag: "notif-" + notif.id,
+          silent: false,
         });
         n.onclick = function () {
           window.focus();
