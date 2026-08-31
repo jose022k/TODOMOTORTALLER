@@ -20,7 +20,8 @@ import api from "@/services/api";
 const OPEN_CHAT_TYPES = new Set(["mensaje_recibido", "evidencia_enviada"]);
 
 let audioCtx = null;
-let notifAudio = null;
+let audioBuffer = null;
+let audioReady = false;
 
 function ensureAudioCtx() {
   if (audioCtx) return audioCtx;
@@ -40,34 +41,55 @@ function unlockAudio() {
 
 function playNotifSound() {
   unlockAudio();
-  if (notifAudio) {
+  const ctx = ensureAudioCtx();
+  if (ctx && audioBuffer) {
     try {
-      notifAudio.currentTime = 0;
-      const p = notifAudio.play();
-      if (p && p.catch) p.catch(() => {});
+      if (ctx.state === "suspended") ctx.resume();
+      const src = ctx.createBufferSource();
+      src.buffer = audioBuffer;
+      src.connect(ctx.destination);
+      src.start(0);
       return;
     } catch (e) { void e; }
-  }
-  const ctx = ensureAudioCtx();
-  if (ctx && audioCtx.state === "suspended") {
-    try { ctx.resume(); } catch (e) { void e; }
   }
   const audioEl = document.querySelector('audio[src="/sounds/notification.wav"]');
   if (audioEl) {
     try {
       audioEl.currentTime = 0;
+      audioEl.volume = 1;
       const p = audioEl.play();
       if (p && p.catch) p.catch(() => {});
     } catch (e) { void e; }
   }
 }
 
+function loadAudioBuffer() {
+  if (audioReady) return;
+  fetch("/sounds/notification.wav")
+    .then((r) => {
+      if (!r.ok) throw new Error("fetch failed");
+      return r.arrayBuffer();
+    })
+    .then((data) => {
+      const ctx = ensureAudioCtx();
+      if (!ctx) throw new Error("no ctx");
+      return ctx.decodeAudioData(data).then((buf) => {
+        audioBuffer = buf;
+        audioReady = true;
+      });
+    })
+    .catch(() => {
+      const audioEl = document.querySelector('audio[src="/sounds/notification.wav"]');
+      if (audioEl) {
+        audioEl.addEventListener("canplaythrough", () => { audioReady = true; }, { once: true });
+        audioEl.addEventListener("loadeddata", () => { audioReady = true; }, { once: true });
+        audioEl.load();
+      }
+    });
+}
+
 function preloadSound() {
-  try {
-    notifAudio = new Audio("/sounds/notification.wav");
-    notifAudio.preload = "auto";
-    notifAudio.load();
-  } catch (e) { void e; }
+  loadAudioBuffer();
 }
 
 export default {
