@@ -106,12 +106,19 @@ def create_notification(
     except Exception as e:
         logger.error(f"[NOTIF] WS broadcast failed: {e}")
 
-    # También enviar Web Push si hay un destinatario
-    try:
-        if admin_id:
+    # Enviar Web Push — cada destinatario aislado para no contaminar la sesión
+    if admin_id:
+        try:
             url = f"/admin/service-orders?order_id={orden_servicio_id}{extra}" if orden_servicio_id else "/"
             notify_user(db, admin_id, "admin", "Todomotortaller", mensaje, url)
-        if cliente_id:
+        except Exception as e:
+            print(f"[NOTIF] PUSH FAILED for admin {admin_id}: {e}")
+            try:
+                db.rollback()
+            except Exception:
+                pass
+    if cliente_id:
+        try:
             if orden_servicio_id and open_chat:
                 url = f"/cliente/orders?order_id={orden_servicio_id}&open_chat=1"
             elif orden_servicio_id:
@@ -119,10 +126,21 @@ def create_notification(
             else:
                 url = "/cliente/orders"
             notify_user(db, cliente_id, "cliente", "Todomotortaller", mensaje, url)
-        if mecanico_id:
+        except Exception as e:
+            print(f"[NOTIF] PUSH FAILED for cliente {cliente_id}: {e}")
+            try:
+                db.rollback()
+            except Exception:
+                pass
+    if mecanico_id:
+        try:
             url = f"/mecanico/orders?order_id={orden_servicio_id}{extra}" if orden_servicio_id else "/"
             notify_user(db, mecanico_id, "mecanico", "Todomotortaller", mensaje, url)
-    except Exception as e:
-        logger.error(f"[NOTIF] PUSH FAILED: {e}")
+        except Exception as e:
+            print(f"[NOTIF] PUSH FAILED for mecanico {mecanico_id}: {e}")
+            try:
+                db.rollback()
+            except Exception:
+                pass
 
     return result

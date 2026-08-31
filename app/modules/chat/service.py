@@ -105,7 +105,6 @@ def send_message(db: Session, orden_id: int, contenido: str, current_user):
     msg = mensaje_dao.create(db, msg_data)
     logger.info(f"[CHAT] Message {msg.id} created for orden {orden_id} by {current_user.rol} {current_user.id}")
 
-    # Notificar a los participantes de la orden EXCLUYENDO al remitente
     sender_id = current_user.id
     notif_created = 0
     try:
@@ -113,13 +112,21 @@ def send_message(db: Session, orden_id: int, contenido: str, current_user):
             create_notification(db, "mensaje_recibido", f"Nuevo mensaje en la orden #{orden_id}", orden_servicio_id=orden_id, cliente_id=cliente_id, open_chat=True)
             notif_created += 1
     except Exception as e:
-        logger.error(f"Notif cliente failed for orden {orden_id}: {e}", exc_info=True)
+        print(f"[CHAT] Notif cliente failed for orden {orden_id}: {e}")
+        try:
+            db.rollback()
+        except Exception:
+            pass
     try:
         if mecanico_id and mecanico_id != sender_id:
             create_notification(db, "mensaje_recibido", f"Nuevo mensaje en la orden #{orden_id}", orden_servicio_id=orden_id, mecanico_id=mecanico_id, open_chat=True)
             notif_created += 1
     except Exception as e:
-        logger.error(f"Notif mecanico failed for orden {orden_id}: {e}", exc_info=True)
+        print(f"[CHAT] Notif mecanico failed for orden {orden_id}: {e}")
+        try:
+            db.rollback()
+        except Exception:
+            pass
     try:
         admin_ids = [a.id for a in db.query(Admin.id).all()]
         for aid in admin_ids:
@@ -127,7 +134,11 @@ def send_message(db: Session, orden_id: int, contenido: str, current_user):
                 create_notification(db, "mensaje_recibido", f"Nuevo mensaje en la orden #{orden_id}", orden_servicio_id=orden_id, admin_id=aid, open_chat=True)
                 notif_created += 1
     except Exception as e:
-        logger.error(f"Notif admins failed for orden {orden_id}: {e}", exc_info=True)
+        print(f"[CHAT] Notif admins failed for orden {orden_id}: {e}")
+        try:
+            db.rollback()
+        except Exception:
+            pass
 
     logger.info(f"[CHAT] Total notifications created for orden {orden_id}: {notif_created}")
 
@@ -260,20 +271,27 @@ def create_evidencia(db: Session, orden_id: int, file: UploadFile, mensaje_id, c
     db.commit()
     db.refresh(evidencia)
 
-    # Notificar a los participantes de la orden (excluyendo al remitente)
     notif_created = 0
     try:
         if cliente_id and cliente_id != current_user.id:
             create_notification(db, "evidencia_enviada", f"Nueva evidencia en la orden #{orden_id}", orden_servicio_id=orden_id, cliente_id=cliente_id, open_chat=True)
             notif_created += 1
     except Exception as e:
-        logger.error(f"Evidencia notif cliente failed for orden {orden_id}: {e}", exc_info=True)
+        print(f"[CHAT] Evidencia notif cliente failed for orden {orden_id}: {e}")
+        try:
+            db.rollback()
+        except Exception:
+            pass
     try:
         if mecanico_id and mecanico_id != current_user.id:
             create_notification(db, "evidencia_enviada", f"Nueva evidencia en la orden #{orden_id}", orden_servicio_id=orden_id, mecanico_id=mecanico_id, open_chat=True)
             notif_created += 1
     except Exception as e:
-        logger.error(f"Evidencia notif mecanico failed for orden {orden_id}: {e}", exc_info=True)
+        print(f"[CHAT] Evidencia notif mecanico failed for orden {orden_id}: {e}")
+        try:
+            db.rollback()
+        except Exception:
+            pass
     try:
         admin_ids = [a.id for a in db.query(Admin.id).all()]
         for aid in admin_ids:
@@ -281,7 +299,11 @@ def create_evidencia(db: Session, orden_id: int, file: UploadFile, mensaje_id, c
                 create_notification(db, "evidencia_enviada", f"Nueva evidencia en la orden #{orden_id}", orden_servicio_id=orden_id, admin_id=aid, open_chat=True)
                 notif_created += 1
     except Exception as e:
-        logger.error(f"Evidencia notif admins failed for orden {orden_id}: {e}", exc_info=True)
+        print(f"[CHAT] Evidencia notif admins failed for orden {orden_id}: {e}")
+        try:
+            db.rollback()
+        except Exception:
+            pass
 
     logger.info(f"[CHAT] Total evidence notifications created for orden {orden_id}: {notif_created}")
 
