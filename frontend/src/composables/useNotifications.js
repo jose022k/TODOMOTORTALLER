@@ -11,6 +11,7 @@ let lastUnreadCount = -1;
 const shownNotifIds = new Set();
 let baselineLoaded = false;
 let pollCount = 0;
+const RECENT_MS = 60000;
 
 function setBadge(n) {
   try {
@@ -24,22 +25,33 @@ function setBadge(n) {
   }
 }
 
+function isRecent(notif) {
+  if (!notif.fecha_creacion) return true;
+  try {
+    const created = new Date(notif.fecha_creacion).getTime();
+    return Date.now() - created < RECENT_MS;
+  } catch {
+    return false;
+  }
+}
+
 async function refreshCount() {
   try {
     const { data } = await api.get("/notifications/unread-count");
     const newCount = data.count || 0;
     pollCount++;
 
-    console.log(`[NotifPoll #${pollCount}] count=${newCount} last=${lastUnreadCount} baseline=${baselineLoaded} shownIds=${shownNotifIds.size}`);
-
     if (!baselineLoaded) {
       baselineLoaded = true;
       lastUnreadCount = newCount;
       state.unreadCount = newCount;
       setBadge(newCount);
+      console.log(`[NotifPoll #${pollCount}] count=${newCount} last=-1 baseline=false shownIds=0`);
       console.log("[NotifPoll] Baseline set:", newCount);
       return;
     }
+
+    console.log(`[NotifPoll #${pollCount}] count=${newCount} last=${lastUnreadCount} baseline=${baselineLoaded} shownIds=${shownNotifIds.size}`);
 
     if (newCount > lastUnreadCount) {
       console.log(`[NotifPoll] Count INCREASED: ${lastUnreadCount} -> ${newCount}, fetching list...`);
@@ -50,10 +62,12 @@ async function refreshCount() {
         for (const notif of notifs) {
           if (!notif.leido && !shownNotifIds.has(notif.id)) {
             shownNotifIds.add(notif.id);
-            window.dispatchEvent(
-              new CustomEvent("notification-new", { detail: notif })
-            );
-            dispatched++;
+            if (isRecent(notif)) {
+              window.dispatchEvent(
+                new CustomEvent("notification-new", { detail: notif })
+              );
+              dispatched++;
+            }
           }
         }
         console.log(`[NotifPoll] Dispatched ${dispatched} notification-new events`);
@@ -68,17 +82,6 @@ async function refreshCount() {
   } catch (e) {
     console.error("[NotifPoll] Failed to refresh unread count:", e.message, e.response?.status);
   }
-}
-
-function onNew(notif) {
-  if (!notif) return;
-  if (shownNotifIds.has(notif.id)) {
-    console.log("[NotifEvent] Duplicate notification id=" + notif.id + ", skipping");
-    return;
-  }
-  shownNotifIds.add(notif.id);
-  console.log("[NotifEvent] New notification:", notif.id, notif.tipo, notif.mensaje);
-  refreshCount();
 }
 
 export function useNotifications() {
@@ -96,7 +99,9 @@ export function useNotifications() {
       };
       document.addEventListener("click", reqPerm);
     }
-    window.addEventListener("notification-new", (e) => onNew(e.detail));
+    window.addEventListener("notification-new", (e) => {
+      if (e.detail && e.detail.id) shownNotifIds.add(e.detail.id);
+    });
     refreshCount();
     setInterval(refreshCount, 10000);
   }
