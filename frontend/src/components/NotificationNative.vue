@@ -48,7 +48,7 @@ export default {
         if (window.matchMedia?.("(display-mode: standalone)").matches) return true;
         if (window.navigator?.standalone) return true;
         if (window.innerWidth <= 768) return true;
-      } catch {}
+      } catch (e) { void e; }
       return false;
     },
     async requestPerm() {
