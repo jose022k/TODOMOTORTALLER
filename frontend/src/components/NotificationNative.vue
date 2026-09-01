@@ -47,36 +47,51 @@ import { useNotificationsStore } from "@/stores/notifications";
 
 const OPEN_CHAT_TYPES = new Set(["mensaje_recibido", "evidencia_enviada"]);
 
-// ── Audio Engine: synthesized soft chime (no file needed) ───────────────────
+// ── Audio Engine: synthesized crystal glass marimba chime ───────────────────
 function playNotifSound() {
   try {
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
     if (!AudioCtx) return;
     const ctx = new AudioCtx();
 
-    // Soft ascending 3-note chime: C6 → E6 → G6 (major chord)
+    // Premium dual-tone glass marimba chime (A5 + E6 + A6 crystal cascade)
     const notes = [
-      { freq: 1046.50, start: 0.00, dur: 0.38 },
-      { freq: 1318.51, start: 0.11, dur: 0.36 },
-      { freq: 1567.98, start: 0.22, dur: 0.45 },
+      { main: 880.00, harmonic: 1760.00, start: 0.00, dur: 0.25, vol: 0.30 },
+      { main: 1318.51, harmonic: 2637.02, start: 0.07, dur: 0.28, vol: 0.35 },
+      { main: 1760.00, harmonic: 3520.00, start: 0.14, dur: 0.35, vol: 0.40 },
     ];
 
-    notes.forEach(({ freq, start, dur }) => {
-      const osc = ctx.createOscillator();
-      const env = ctx.createGain();
-      osc.connect(env);
-      env.connect(ctx.destination);
-      osc.type = "sine";
-      osc.frequency.value = freq;
+    notes.forEach(({ main, harmonic, start, dur, vol }) => {
       const t = ctx.currentTime + start;
-      env.gain.setValueAtTime(0, t);
-      env.gain.linearRampToValueAtTime(0.28, t + 0.012);
-      env.gain.exponentialRampToValueAtTime(0.001, t + dur);
-      osc.start(t);
-      osc.stop(t + dur);
+
+      // Main sine oscillator
+      const osc1 = ctx.createOscillator();
+      const env1 = ctx.createGain();
+      osc1.type = "sine";
+      osc1.frequency.value = main;
+      osc1.connect(env1);
+      env1.connect(ctx.destination);
+      env1.gain.setValueAtTime(0, t);
+      env1.gain.linearRampToValueAtTime(vol, t + 0.008);
+      env1.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      osc1.start(t);
+      osc1.stop(t + dur);
+
+      // Glass harmonic overtone (triangle wave for warmth)
+      const osc2 = ctx.createOscillator();
+      const env2 = ctx.createGain();
+      osc2.type = "triangle";
+      osc2.frequency.value = harmonic;
+      osc2.connect(env2);
+      env2.connect(ctx.destination);
+      env2.gain.setValueAtTime(0, t);
+      env2.gain.linearRampToValueAtTime(vol * 0.3, t + 0.005);
+      env2.gain.exponentialRampToValueAtTime(0.0001, t + dur * 0.6);
+      osc2.start(t);
+      osc2.stop(t + dur * 0.6);
     });
 
-    setTimeout(() => { try { ctx.close(); } catch { /* */ } }, 900);
+    setTimeout(() => { try { ctx.close(); } catch { /* */ } }, 800);
   } catch { /* AudioContext not supported */ }
 }
 
