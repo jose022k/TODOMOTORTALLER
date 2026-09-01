@@ -186,13 +186,16 @@ export default {
       const isNew = this.notifStore.onNewNotification(notif);
       if (!isNew) return;
 
-      // Play in-app sound
+      // Play sound
       playNotifSound();
 
-      // Show in-app toast
-      this.showInAppToast(notif);
+      // Show in-app toast ONLY on mobile/PWA (on PC, user only receives native browser OS notifications)
+      const isMobile = window.innerWidth <= 768 || (typeof window !== "undefined" && window.navigator && window.navigator.standalone);
+      if (isMobile) {
+        this.showInAppToast(notif);
+      }
 
-      // Show OS native notification (bottom right box on PC, top banner on mobile)
+      // Show native browser OS notification (bottom right box on PC, top banner on mobile)
       await this.showNativeNotification(notif);
     },
 
