@@ -79,7 +79,7 @@ export async function setupPush() {
       await api.post("/notifications/push/subscribe", existing.toJSON());
       return true;
     } catch {
-      // If endpoint was invalid or subscription expired, re-subscribe
+      try { await existing.unsubscribe(); } catch { /* silent */ }
     }
   }
 

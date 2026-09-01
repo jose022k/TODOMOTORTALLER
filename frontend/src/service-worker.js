@@ -71,13 +71,10 @@ self.addEventListener("push", (event) => {
     }
   } catch { /* silent */ }
 
-  const sound = new URL("/sounds/notification.wav", self.location.origin).href;
-
   const notifOptions = {
     body,
     icon,
     badge,
-    sound,
     data: pushData,
     vibrate: [200, 100, 200],
     silent: false,

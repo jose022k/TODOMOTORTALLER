@@ -70,8 +70,10 @@ def send_push(subscription, title: str, body: str, icon: str = None, url: str = 
             vapid_claims=VAPID_CLAIMS,
         )
     except WebPushException as e:
-        if e.response and e.response.status_code in (410, 404):
+        if e.response is not None and e.response.status_code in (400, 401, 403, 404, 410):
             return False
+    except Exception:
+        return False
     return True
 
 
