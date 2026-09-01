@@ -15,7 +15,21 @@
       </div>
     </div>
 
-    <!-- In-App Toasts (shown in all views - PC, mobile, PWA) -->
+    <!-- Floating PWA / Mobile top-right unread badge button -->
+    <div
+      v-if="notifStore.unreadCount > 0 && $route.path !== '/notifications'"
+      class="notif-top-right-badge"
+      @click="$router.push('/notifications')"
+      title="Notificaciones sin leer"
+    >
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+        <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+      </svg>
+      <span class="badge-num">{{ notifStore.unreadCount > 99 ? '99+' : notifStore.unreadCount }}</span>
+    </div>
+
+    <!-- In-App Toasts (shown in mobile/PWA views) -->
     <div class="in-app-toast-container">
       <transition-group name="toast-list" tag="div">
         <div
@@ -359,5 +373,35 @@ export default {
 @keyframes slideDown {
   from { opacity: 0; transform: translateX(-50%) translateY(-12px); }
   to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+/* Floating PWA / Mobile top-right unread badge button */
+.notif-top-right-badge {
+  position: fixed;
+  top: max(14px, env(safe-area-inset-top));
+  right: max(14px, env(safe-area-inset-right));
+  z-index: 99999;
+  background: #dc2626;
+  color: #ffffff;
+  padding: 6px 12px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 800;
+  box-shadow: 0 4px 14px rgba(220, 38, 38, 0.5);
+  cursor: pointer;
+  border: 2px solid #ffffff;
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.notif-top-right-badge:active {
+  transform: scale(0.92);
+}
+.badge-num {
+  line-height: 1;
+}
+html.dark .notif-top-right-badge {
+  border-color: #1a1a1a;
 }
 </style>
