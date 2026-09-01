@@ -1023,5 +1023,4 @@ html.dark .spinner { border-color: #334155; border-top-color: #ffaa00; }
     background-color: #ffffff !important;
   }
 }
-}
 </style>
