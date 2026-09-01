@@ -92,14 +92,13 @@ export default {
       }
     },
     async markRead(n) {
-      if (n.leido) return;
-      try {
-        await api.put(`/notifications/${n.id}/read`);
-        n.leido = true;
-        this.notifStore.markOneRead(n.id);
-      } catch {
-        // silent
+      if (n.leido) {
+        this.navigateTo(n);
+        return;
       }
+      n.leido = true;
+      this.notifStore.markOneRead(n.id);
+      api.put(`/notifications/${n.id}/read`).catch(() => {});
       this.navigateTo(n);
     },
     async navigateTo(n) {
@@ -128,23 +127,15 @@ export default {
       }
       this.$router.push(url);
     },
-    async markAllRead() {
-      try {
-        await api.put("/notifications/read-all");
-        this.notifStore.markAllRead();
-        this.notifications.forEach((n) => (n.leido = true));
-      } catch {
-        // silent
-      }
+    markAllRead() {
+      this.notifStore.markAllRead();
+      this.notifications.forEach((n) => (n.leido = true));
+      api.put("/notifications/read-all").catch(() => {});
     },
-    async clearAll() {
-      try {
-        await api.delete("/notifications/");
-        this.notifications = [];
-        this.notifStore.clearAll();
-      } catch {
-        // silent
-      }
+    clearAll() {
+      this.notifications = [];
+      this.notifStore.clearAll();
+      api.delete("/notifications/").catch(() => {});
     },
     timeAgo(dateStr) {
       const now = new Date();

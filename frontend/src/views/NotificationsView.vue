@@ -47,53 +47,50 @@
 <script>
 import api from "@/services/api";
 import { useAuthStore } from "@/stores/auth";
+import { useNotificationsStore } from "@/stores/notifications";
 
 export default {
   name: "NotificationsView",
   setup() {
     const authStore = useAuthStore();
-    return { authStore };
+    const notifStore = useNotificationsStore();
+    return { authStore, notifStore };
   },
   data() {
     return {
       notifications: [],
-      unread: 0,
       loading: false,
     };
   },
+  computed: {
+    unread() {
+      return this.notifStore.unreadCount;
+    },
+  },
   async mounted() {
     await this.fetchNotifications();
-    await this.fetchUnread();
+    this.notifStore.fetchUnreadCount();
   },
   methods: {
     async fetchNotifications() {
       this.loading = true;
       try {
         const { data } = await api.get("/notifications/", { params: { limit: 50 } });
-        this.notifications = data;
+        this.notifications = Array.isArray(data) ? data : [];
       } catch {
         // silent
       } finally {
         this.loading = false;
       }
     },
-    async fetchUnread() {
-      try {
-        const { data } = await api.get("/notifications/unread-count");
-        this.unread = data.count;
-      } catch {
-        // silent
-      }
-    },
     async markRead(n) {
-      if (n.leido) return;
-      try {
-        await api.put(`/notifications/${n.id}/read`);
-        n.leido = true;
-        this.unread = Math.max(0, this.unread - 1);
-      } catch {
-        // silent
+      if (n.leido) {
+        this.navigateTo(n);
+        return;
       }
+      n.leido = true;
+      this.notifStore.markOneRead(n.id);
+      api.put(`/notifications/${n.id}/read`).catch(() => {});
       this.navigateTo(n);
     },
     async navigateTo(n) {
@@ -119,19 +116,15 @@ export default {
       }
       this.$router.push(url);
     },
-    async markAllRead() {
-      try {
-        await api.put("/notifications/read-all");
-        this.unread = 0;
-        this.notifications.forEach((n) => (n.leido = true));
-      } catch { /* */ }
+    markAllRead() {
+      this.notifStore.markAllRead();
+      this.notifications.forEach((n) => (n.leido = true));
+      api.put("/notifications/read-all").catch(() => {});
     },
-    async clearAll() {
-      try {
-        await api.delete("/notifications/");
-        this.notifications = [];
-        this.unread = 0;
-      } catch { /* */ }
+    clearAll() {
+      this.notifications = [];
+      this.notifStore.clearAll();
+      api.delete("/notifications/").catch(() => {});
     },
     timeAgo(dateStr) {
       const now = new Date();
