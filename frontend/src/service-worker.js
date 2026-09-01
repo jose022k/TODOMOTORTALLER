@@ -57,9 +57,16 @@ self.addEventListener("push", (event) => {
   const pushData = (parsed && parsed.data) || {};
   const unreadCount = (pushData && typeof pushData.unread_count === "number") ? pushData.unread_count : null;
 
-  // Update PWA icon badge
-  if (unreadCount !== null && typeof navigator.setAppBadge === "function") {
-    navigator.setAppBadge(unreadCount).catch(() => {});
+  // Update PWA home screen icon badge
+  if (typeof navigator.setAppBadge === "function") {
+    const count = (unreadCount !== null) ? unreadCount : 1;
+    if (count > 0) {
+      navigator.setAppBadge(count).catch(() => {});
+    } else if (typeof navigator.clearAppBadge === "function") {
+      navigator.clearAppBadge().catch(() => {});
+    } else {
+      navigator.setAppBadge(0).catch(() => {});
+    }
   }
 
   const notifOptions = {
