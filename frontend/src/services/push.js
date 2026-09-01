@@ -73,17 +73,28 @@ export async function setupPush() {
   if (!reg) return false;
   swRegistration = reg;
 
-  const existing = await reg.pushManager.getSubscription();
-  if (existing) {
+  try {
+    let sub = await reg.pushManager.getSubscription();
+    if (!sub) {
+      const vapidKey = await getVapidPublicKey();
+      if (!vapidKey) return false;
+      sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(vapidKey),
+      });
+    }
+
+    await api.post("/notifications/push/subscribe", sub.toJSON());
+    return true;
+  } catch {
     try {
-      await api.post("/notifications/push/subscribe", existing.toJSON());
-      return true;
+      const existing = await reg.pushManager.getSubscription();
+      if (existing) await existing.unsubscribe();
+      return await subscribeUser();
     } catch {
-      try { await existing.unsubscribe(); } catch { /* silent */ }
+      return false;
     }
   }
-
-  return await subscribeUser();
 }
 
 function urlBase64ToUint8Array(base64String) {

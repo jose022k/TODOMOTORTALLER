@@ -69,20 +69,24 @@ def send_push(subscription, title: str, body: str, icon: str = None, url: str = 
             vapid_private_key=VAPID_PRIVATE_KEY,
             vapid_claims=VAPID_CLAIMS,
         )
+        return "ok"
     except WebPushException as e:
-        if e.response is not None and e.response.status_code in (400, 401, 403, 404, 410):
-            return False
+        if e.response is not None and e.response.status_code in (404, 410):
+            return "stale"
+        return "error"
     except Exception:
-        return False
-    return True
+        return "error"
 
 
 def notify_user(db: Session, user_id: int, role: str, title: str, body: str, url: str = None, unread_count: int = 0):
     subs = sub_dao.get_by_user(db, user_id, role)
     stale = []
     for sub in subs:
-        ok = send_push(sub, title, body, url=url, unread_count=unread_count)
-        if ok is False:
+        res = send_push(sub, title, body, url=url, unread_count=unread_count)
+        if res == "stale":
             stale.append(sub)
     for s in stale:
-        sub_dao.delete(db, s)
+        try:
+            sub_dao.delete(db, s)
+        except Exception:
+            pass
