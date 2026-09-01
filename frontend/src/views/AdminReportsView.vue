@@ -13,7 +13,7 @@
           <div class="print-date">{{ todayDate }}</div>
         </div>
         <div class="print-title-text">
-          <div class="print-title">ReporteTallerN#{{ pdfNumber }}</div>
+          <div class="print-title">Reporte N° {{ pdfNumber }}</div>
           <div class="print-company">Todomotortaller 1703, C.A.</div>
         </div>
         <img src="https://res.cloudinary.com/dorj3mvvr/image/upload/v1783609693/logos/logotaller01.png" alt="" class="print-logo" />
@@ -449,32 +449,16 @@ export default {
         img.src = "https://res.cloudinary.com/dorj3mvvr/image/upload/v1783609693/logos/logotaller01.png";
       });
 
-      // Temporarily disable dark mode while printing so PDF renders in 100% light mode
-      const wasDark = document.documentElement.classList.contains("dark");
-      if (wasDark) {
-        document.documentElement.classList.remove("dark");
-      }
-
-      // Set page title so "Save as PDF" uses filename "ReporteTallerN#0000005.pdf"
+      // Set page title so "Save as PDF" suggests filename "ReporteTallerN#0000005.pdf"
       const orig = document.title;
       document.title = "ReporteTallerN#" + num;
       const restore = () => {
         document.title = orig;
-        if (wasDark) {
-          document.documentElement.classList.add("dark");
-        }
         window.removeEventListener("afterprint", restore);
       };
       window.addEventListener("afterprint", restore);
 
-      setTimeout(() => {
-        window.print();
-        setTimeout(() => {
-          if (wasDark && !document.documentElement.classList.contains("dark")) {
-            document.documentElement.classList.add("dark");
-          }
-        }, 1500);
-      }, 200);
+      setTimeout(() => window.print(), 200);
     },
     capitalize(s) {
       if (!s) return "";
