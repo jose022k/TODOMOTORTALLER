@@ -14,11 +14,20 @@ def subscribe(db: Session, subscription: dict, current_user):
     if not endpoint or not keys.get("p256dh") or not keys.get("auth"):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Suscripción inválida")
 
+    field = {"admin": "admin_id", "cliente": "cliente_id", "mecanico": "mecanico_id"}.get(current_user.rol)
+
     existing = sub_dao.get_by_endpoint(db, endpoint)
     if existing:
+        setattr(existing, "admin_id", None)
+        setattr(existing, "cliente_id", None)
+        setattr(existing, "mecanico_id", None)
+        setattr(existing, field, current_user.id)
+        existing.p256dh = keys["p256dh"]
+        existing.auth = keys["auth"]
+        db.commit()
+        db.refresh(existing)
         return existing
 
-    field = {"admin": "admin_id", "cliente": "cliente_id", "mecanico": "mecanico_id"}.get(current_user.rol)
     data = {
         "endpoint": endpoint,
         "p256dh": keys["p256dh"],

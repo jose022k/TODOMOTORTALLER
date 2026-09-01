@@ -189,9 +189,11 @@ export default {
       // Play in-app sound
       playNotifSound();
 
-      // Show in-app toast (visible in all views: PC, mobile, PWA when app is open)
+      // Show in-app toast
       this.showInAppToast(notif);
-      // Note: OS notification is handled by the Service Worker push event (background/mobile)
+
+      // Show OS native notification (bottom right box on PC, top banner on mobile)
+      await this.showNativeNotification(notif);
     },
 
     showInAppToast(notif) {
@@ -207,6 +209,35 @@ export default {
       if (url && url !== "/") {
         this.$router.push(url).catch(() => { window.location.href = url; });
       }
+    },
+
+    async showNativeNotification(notif) {
+      if (!("Notification" in window) || Notification.permission !== "granted") return;
+      const url = this.buildUrl(notif);
+      const opts = {
+        body: notif.mensaje || "",
+        icon: "/img/icons/logo-192.png",
+        badge: "/img/icons/logo-192.png",
+        data: { url },
+        vibrate: [200, 100, 200],
+        silent: false,
+        tag: "notif-" + notif.id,
+        renotify: true,
+      };
+      if (this.swRegistration && this.swRegistration.showNotification) {
+        try {
+          await this.swRegistration.showNotification("Todomotortaller", opts);
+          return;
+        } catch { /* fall through */ }
+      }
+      try {
+        const n = new Notification("Todomotortaller", opts);
+        n.onclick = () => {
+          window.focus();
+          if (url && url !== "/") window.location.href = url;
+          n.close();
+        };
+      } catch { /* ignored */ }
     },
 
 

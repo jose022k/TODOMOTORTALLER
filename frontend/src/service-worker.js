@@ -70,6 +70,8 @@ self.addEventListener("push", (event) => {
     vibrate: [200, 100, 200],
     silent: false,
     requireInteraction: false,
+    tag: pushData.id ? "notif-" + pushData.id : "notif-" + Date.now(),
+    renotify: true,
   };
 
   event.waitUntil(
