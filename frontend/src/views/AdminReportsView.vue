@@ -845,6 +845,13 @@ html.dark .spinner { border-color: #334155; border-top-color: #ffaa00; }
 }
 
 @media print {
+  html, body, #app, .app-layout, .app-main, .reports-page {
+    background: #ffffff !important;
+    color: #000000 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
   .app-header,
   .app-nav,
   .logo,
@@ -858,10 +865,7 @@ html.dark .spinner { border-color: #334155; border-top-color: #ffaa00; }
   .pwa-bottom-nav,
   .admin-panel .welcome-section,
   .admin-panel .dashboard-grid,
-  .chat-overlay {
-    display: none !important;
-  }
-
+  .chat-overlay,
   .no-print,
   .screen-only,
   .highlight-card,
@@ -872,6 +876,7 @@ html.dark .spinner { border-color: #334155; border-top-color: #ffaa00; }
   .reports-page {
     padding: 0 !important;
     max-width: 100% !important;
+    background: #ffffff !important;
   }
 
   .reports-header {
@@ -888,6 +893,9 @@ html.dark .spinner { border-color: #334155; border-top-color: #ffaa00; }
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
+    border-bottom: 2px solid #000000 !important;
+    padding-bottom: 8px !important;
+    margin-bottom: 12px !important;
   }
 
   .print-header-left {
@@ -895,9 +903,9 @@ html.dark .spinner { border-color: #334155; border-top-color: #ffaa00; }
   }
 
   .print-date {
-    font-size: 0.7rem !important;
-    font-weight: 600;
-    color: #64748b;
+    font-size: 0.75rem !important;
+    font-weight: 700 !important;
+    color: #000000 !important;
   }
 
   .print-title-text {
@@ -905,15 +913,15 @@ html.dark .spinner { border-color: #334155; border-top-color: #ffaa00; }
   }
 
   .print-title {
-    font-size: 1.1rem !important;
-    font-weight: 800 !important;
-    color: #1a1a1a !important;
+    font-size: 1.2rem !important;
+    font-weight: 900 !important;
+    color: #000000 !important;
   }
 
   .print-company {
-    font-size: 0.75rem !important;
-    font-weight: 600 !important;
-    color: #64748b !important;
+    font-size: 0.8rem !important;
+    font-weight: 700 !important;
+    color: #000000 !important;
     margin-top: 2px !important;
   }
 
@@ -930,13 +938,16 @@ html.dark .spinner { border-color: #334155; border-top-color: #ffaa00; }
     break-inside: avoid !important;
     border: none !important;
     box-shadow: none !important;
-    padding: 4px 0 !important;
-    margin-bottom: 6px !important;
+    padding: 6px 0 !important;
+    margin-bottom: 10px !important;
     border-radius: 0 !important;
+    background: transparent !important;
   }
 
   .report-card-header {
-    margin-bottom: 4px !important;
+    margin-bottom: 6px !important;
+    border-bottom: 1px solid #000000 !important;
+    padding-bottom: 3px !important;
   }
 
   .report-card-header svg {
@@ -944,7 +955,17 @@ html.dark .spinner { border-color: #334155; border-top-color: #ffaa00; }
   }
 
   .report-card-header h3 {
+    font-size: 0.95rem !important;
+    font-weight: 900 !important;
+    color: #000000 !important;
+  }
+
+  .card-subtitle {
     font-size: 0.8rem !important;
+    font-weight: 700 !important;
+    color: #000000 !important;
+    background: transparent !important;
+    padding: 0 !important;
   }
 
   .print-table-wrapper {
@@ -958,29 +979,33 @@ html.dark .spinner { border-color: #334155; border-top-color: #ffaa00; }
   .print-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 10px;
+    font-size: 10.5px;
+    color: #000000 !important;
   }
 
   .print-table th {
     text-align: left;
-    padding: 3px 6px;
-    background: #f1f5f9;
-    font-weight: 700;
-    color: #1a1a1a;
-    border-bottom: 2px solid #d1d5db;
-    font-size: 9px;
+    padding: 4px 6px;
+    background: #f1f5f9 !important;
+    font-weight: 900 !important;
+    color: #000000 !important;
+    border-bottom: 2px solid #000000 !important;
+    border-top: 1px solid #000000 !important;
+    font-size: 10px;
     text-transform: uppercase;
     letter-spacing: 0.3px;
   }
 
   .print-table td {
-    padding: 2px 6px;
-    border-bottom: 1px solid #e2e8f0;
-    color: #1a1a1a;
+    padding: 4px 6px;
+    border-bottom: 1px solid #cbd5e1 !important;
+    color: #000000 !important;
+    font-weight: 600 !important;
   }
 
   .app-main {
     padding: 0 !important;
+    background: #ffffff !important;
   }
 }
 </style>
