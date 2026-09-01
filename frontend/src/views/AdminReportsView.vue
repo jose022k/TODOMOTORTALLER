@@ -904,7 +904,7 @@ html.dark .spinner { border-color: #334155; border-top-color: #ffaa00; }
 
   .print-date {
     font-size: 0.75rem !important;
-    font-weight: 700 !important;
+    font-weight: 800 !important;
     color: #000000 !important;
   }
 
@@ -919,8 +919,8 @@ html.dark .spinner { border-color: #334155; border-top-color: #ffaa00; }
   }
 
   .print-company {
-    font-size: 0.8rem !important;
-    font-weight: 700 !important;
+    font-size: 0.85rem !important;
+    font-weight: 800 !important;
     color: #000000 !important;
     margin-top: 2px !important;
   }
@@ -939,30 +939,31 @@ html.dark .spinner { border-color: #334155; border-top-color: #ffaa00; }
     border: none !important;
     box-shadow: none !important;
     padding: 6px 0 !important;
-    margin-bottom: 10px !important;
+    margin-bottom: 12px !important;
     border-radius: 0 !important;
     background: transparent !important;
   }
 
   .report-card-header {
     margin-bottom: 6px !important;
-    border-bottom: 1px solid #000000 !important;
-    padding-bottom: 3px !important;
+    border-bottom: 1.5px solid #000000 !important;
+    padding-bottom: 4px !important;
   }
 
   .report-card-header svg {
     display: none !important;
   }
 
+  /* Section titles: Ingresos, Top Mecánicos, Top Motos Atendidas, Top Servicios Realizados, etc. */
   .report-card-header h3 {
-    font-size: 0.95rem !important;
+    font-size: 1rem !important;
     font-weight: 900 !important;
     color: #000000 !important;
   }
 
   .card-subtitle {
     font-size: 0.8rem !important;
-    font-weight: 700 !important;
+    font-weight: 800 !important;
     color: #000000 !important;
     background: transparent !important;
     padding: 0 !important;
@@ -990,7 +991,6 @@ html.dark .spinner { border-color: #334155; border-top-color: #ffaa00; }
     font-weight: 900 !important;
     color: #000000 !important;
     border-bottom: 2px solid #000000 !important;
-    border-top: 1px solid #000000 !important;
     font-size: 10px;
     text-transform: uppercase;
     letter-spacing: 0.3px;
@@ -1000,7 +1000,7 @@ html.dark .spinner { border-color: #334155; border-top-color: #ffaa00; }
     padding: 4px 6px;
     border-bottom: 1px solid #cbd5e1 !important;
     color: #000000 !important;
-    font-weight: 600 !important;
+    font-weight: 700 !important;
   }
 
   .app-main {
