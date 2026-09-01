@@ -633,7 +633,7 @@ html.dark .theme-toggle:hover { color: #ffaa00; }
 }
 .pwa-nav-item.is-active,
 .pwa-nav-item.is-active svg,
-.pwa-nav-item.is-active span {
+.pwa-nav-item.is-active > span {
   color: #ffaa00 !important;
 }
 @media (hover: hover) {
@@ -660,21 +660,22 @@ html.dark .theme-toggle:hover { color: #ffaa00; }
 }
 .notif-badge {
   position: absolute;
-  top: -4px;
-  right: -6px;
-  min-width: 16px;
-  height: 16px;
+  top: -5px;
+  right: -7px;
+  min-width: 17px;
+  height: 17px;
   padding: 0 4px;
-  border-radius: 8px;
-  background: #ffaa00;
-  color: #1a1a1a;
-  font-size: 9px;
+  border-radius: 9px;
+  background: #dc2626 !important;
+  color: #ffffff !important;
+  font-size: 10px;
   font-weight: 800;
   display: flex;
   align-items: center;
   justify-content: center;
   line-height: 1;
   box-shadow: 0 0 0 2px #1a1a1a;
+  z-index: 10;
 }
 html.dark .pwa-bottom-nav {
   background: #0d1117;
