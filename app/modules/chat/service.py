@@ -65,6 +65,25 @@ def _validar_acceso_orden(order, current_user):
         )
 
 
+def _notificar_participantes_chat(db: Session, order, tipo: str, titulo_mensaje: str, current_user):
+    orden_id = order.id
+    sender_role = current_user.rol
+    sender_id = current_user.id
+
+    # Notificar al cliente de la orden (si no es el remitente)
+    if order.cliente_id and not (sender_role == "cliente" and order.cliente_id == sender_id):
+        create_notification(db, tipo, f"{titulo_mensaje} en la orden #{orden_id}", orden_servicio_id=orden_id, cliente_id=order.cliente_id, open_chat=True)
+
+    # Notificar al mecánico de la orden (si no es el remitente)
+    if order.mecanico_id and not (sender_role == "mecanico" and order.mecanico_id == sender_id):
+        create_notification(db, tipo, f"{titulo_mensaje} en la orden #{orden_id}", orden_servicio_id=orden_id, mecanico_id=order.mecanico_id, open_chat=True)
+
+    # Notificar a los administradores (excluyendo al remitente si es un admin)
+    for aid in [a.id for a in db.query(Admin.id).all()]:
+        if not (sender_role == "admin" and aid == sender_id):
+            create_notification(db, tipo, f"{titulo_mensaje} en la orden #{orden_id}", orden_servicio_id=orden_id, admin_id=aid, open_chat=True)
+
+
 def send_message(db: Session, orden_id: int, contenido: str, current_user):
     order = orden_dao.get_by_id(db, orden_id)
     if not order:
@@ -97,26 +116,8 @@ def send_message(db: Session, orden_id: int, contenido: str, current_user):
 
     msg = mensaje_dao.create(db, msg_data)
 
-    # Notificar a los otros participantes de la orden (excluyendo al remitente)
-    sender_role = current_user.rol
-    if sender_role == "admin":
-        if order.cliente_id:
-            create_notification(db, "mensaje_recibido", f"Nuevo mensaje en la orden #{orden_id}", orden_servicio_id=orden_id, cliente_id=order.cliente_id, open_chat=True)
-        if order.mecanico_id:
-            create_notification(db, "mensaje_recibido", f"Nuevo mensaje en la orden #{orden_id}", orden_servicio_id=orden_id, mecanico_id=order.mecanico_id, open_chat=True)
-        for aid in [a.id for a in db.query(Admin.id).all()]:
-            if aid != user_id:
-                create_notification(db, "mensaje_recibido", f"Nuevo mensaje en la orden #{orden_id}", orden_servicio_id=orden_id, admin_id=aid, open_chat=True)
-    elif sender_role == "mecanico":
-        if order.cliente_id:
-            create_notification(db, "mensaje_recibido", f"Nuevo mensaje en la orden #{orden_id}", orden_servicio_id=orden_id, cliente_id=order.cliente_id, open_chat=True)
-        for aid in [a.id for a in db.query(Admin.id).all()]:
-            create_notification(db, "mensaje_recibido", f"Nuevo mensaje en la orden #{orden_id}", orden_servicio_id=orden_id, admin_id=aid, open_chat=True)
-    elif sender_role == "cliente":
-        if order.mecanico_id:
-            create_notification(db, "mensaje_recibido", f"Nuevo mensaje en la orden #{orden_id}", orden_servicio_id=orden_id, mecanico_id=order.mecanico_id, open_chat=True)
-        for aid in [a.id for a in db.query(Admin.id).all()]:
-            create_notification(db, "mensaje_recibido", f"Nuevo mensaje en la orden #{orden_id}", orden_servicio_id=orden_id, admin_id=aid, open_chat=True)
+    # Notificar a los destinatarios (excluyendo siempre al remitente)
+    _notificar_participantes_chat(db, order, "mensaje_recibido", "Nuevo mensaje", current_user)
 
     return _build_mensaje_response(msg)
 
@@ -243,26 +244,8 @@ async def create_evidencia(db: Session, orden_id: int, file: UploadFile, mensaje
     db.commit()
     db.refresh(evidencia)
 
-    # Notificar a los participantes de la orden (excluyendo al remitente)
-    sender_role = current_user.rol
-    if sender_role == "admin":
-        if order.cliente_id:
-            create_notification(db, "evidencia_enviada", f"Nueva evidencia en la orden #{orden_id}", orden_servicio_id=orden_id, cliente_id=order.cliente_id, open_chat=True)
-        if order.mecanico_id:
-            create_notification(db, "evidencia_enviada", f"Nueva evidencia en la orden #{orden_id}", orden_servicio_id=orden_id, mecanico_id=order.mecanico_id, open_chat=True)
-        for aid in [a.id for a in db.query(Admin.id).all()]:
-            if aid != current_user.id:
-                create_notification(db, "evidencia_enviada", f"Nueva evidencia en la orden #{orden_id}", orden_servicio_id=orden_id, admin_id=aid, open_chat=True)
-    elif sender_role == "mecanico":
-        if order.cliente_id:
-            create_notification(db, "evidencia_enviada", f"Nueva evidencia en la orden #{orden_id}", orden_servicio_id=orden_id, cliente_id=order.cliente_id, open_chat=True)
-        for aid in [a.id for a in db.query(Admin.id).all()]:
-            create_notification(db, "evidencia_enviada", f"Nueva evidencia en la orden #{orden_id}", orden_servicio_id=orden_id, admin_id=aid, open_chat=True)
-    elif sender_role == "cliente":
-        if order.mecanico_id:
-            create_notification(db, "evidencia_enviada", f"Nueva evidencia en la orden #{orden_id}", orden_servicio_id=orden_id, mecanico_id=order.mecanico_id, open_chat=True)
-        for aid in [a.id for a in db.query(Admin.id).all()]:
-            create_notification(db, "evidencia_enviada", f"Nueva evidencia en la orden #{orden_id}", orden_servicio_id=orden_id, admin_id=aid, open_chat=True)
+    # Notificar a los destinatarios (excluyendo siempre al remitente)
+    _notificar_participantes_chat(db, order, "evidencia_enviada", "Nueva evidencia", current_user)
 
     return evidencia
 
