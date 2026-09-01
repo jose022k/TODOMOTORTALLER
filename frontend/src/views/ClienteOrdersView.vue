@@ -48,7 +48,7 @@
             <td data-label="Descripción" class="desc-cell">{{ o.descripcion }}</td>
             <td data-label="Estado"><span :class="['badge', 'badge-' + o.estado]">{{ statusLabel(o.estado) }}</span></td>
             <td data-label="Fecha">{{ formatDate(o.fecha_creacion) }}</td>
-            <td>
+            <td class="actions-cell">
               <button class="btn-sm btn-view" @click="openDetail(o)">Ver</button>
               <button v-if="o.estado === 'en_proceso'" class="btn-sm btn-chat" @click="openChat(o)">Chat</button>
             </td>
@@ -521,6 +521,8 @@ export default {
   font-size: 14px;
 }
 .desc-cell { max-width: 250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.actions-cell { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.cliente-mobile-actions { display: flex; align-items: center; gap: 8px; margin-top: 8px; border-top: 1px solid #f1f5f9; padding-top: 8px; }
 .badge {
   display: inline-block; padding: 3px 10px; border-radius: 12px;
   font-size: 12px; font-weight: 600; text-transform: uppercase;
@@ -533,6 +535,7 @@ export default {
   padding: 5px 12px; border: none; border-radius: 5px;
   cursor: pointer; font-size: 12px; font-weight: 600;
 }
+.btn-sm + .btn-sm { margin-left: 8px; }
 .btn-view { background: #eff6ff; color: #2563eb; }
 .btn-view:hover { background: #dbeafe; }
 .btn-chat { background: #075e54; color: #fff; }
