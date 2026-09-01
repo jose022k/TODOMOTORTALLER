@@ -273,6 +273,15 @@ export default {
         alert("Error al editar: " + (err.response?.data?.detail || err.message));
       }
     },
+    onOrderUpdated(event) {
+      if (event && event.detail) {
+        const orderId = event.detail.orden_servicio_id;
+        const newStatus = event.detail.estado;
+        if (orderId === this.ordenId && newStatus && newStatus !== "en_proceso") {
+          this.$emit("close");
+        }
+      }
+    },
     onVisible() {
       if (document.visibilityState === "visible") this.fetchAll();
     },
@@ -297,10 +306,12 @@ export default {
     });
     this.polling = setInterval(() => this.fetchAll(), 2000);
     document.addEventListener("visibilitychange", this.onVisible);
+    window.addEventListener("order-updated", this.onOrderUpdated);
   },
   beforeUnmount() {
     if (this.polling) clearInterval(this.polling);
     document.removeEventListener("visibilitychange", this.onVisible);
+    window.removeEventListener("order-updated", this.onOrderUpdated);
   },
 };
 </script>

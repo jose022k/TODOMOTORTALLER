@@ -16,7 +16,6 @@ export async function requestPermission() {
 }
 
 export async function registerSw() {
-  if (process.env.NODE_ENV !== "production") return null;
   if (!("serviceWorker" in navigator)) return null;
   try {
     const reg = await navigator.serviceWorker.register(
@@ -75,6 +74,9 @@ export async function setupPush() {
 
   const existing = await reg.pushManager.getSubscription();
   if (existing) {
+    try {
+      await api.post("/notifications/push/subscribe", existing.toJSON());
+    } catch { /* silent */ }
     return true;
   }
 

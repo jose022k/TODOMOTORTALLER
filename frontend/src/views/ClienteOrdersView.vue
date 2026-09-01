@@ -436,9 +436,20 @@ export default {
         this.$router.replace({ path: this.$route.path, query: {} });
       }
     },
-    onOrderUpdated() {
+    onOrderUpdated(event) {
       this.fetchOrders();
       this.fetchCount();
+      if (event && event.detail) {
+        const orderId = event.detail.orden_servicio_id;
+        const newStatus = event.detail.estado;
+        if (this.showChatModal && this.chatOrdenId === orderId && newStatus && newStatus !== "en_proceso") {
+          this.showChatModal = false;
+          this.showAlert(`El chat se ha cerrado porque la orden ha sido ${newStatus === "completada" ? "completada" : "cancelada"}.`, "info");
+        }
+        if (this.detail && this.detail.id === orderId && newStatus) {
+          this.detail.estado = newStatus;
+        }
+      }
     },
     colorHex(colorName) {
       const map = {

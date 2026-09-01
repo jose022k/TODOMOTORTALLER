@@ -63,12 +63,25 @@ export const useNotificationsStore = defineStore('notifications', {
     startPolling() {
       if (this.pollTimer) return
       this.fetchUnreadCount()
-      this.pollTimer = setInterval(() => this.fetchUnreadCount(), 10000)
+      this.pollTimer = setInterval(() => this.fetchUnreadCount(), 5000)
+
+      this._syncFn = () => {
+        if (document.visibilityState === 'visible') {
+          this.fetchUnreadCount()
+        }
+      }
+      window.addEventListener('focus', this._syncFn)
+      document.addEventListener('visibilitychange', this._syncFn)
     },
     stopPolling() {
       if (this.pollTimer) {
         clearInterval(this.pollTimer)
         this.pollTimer = null
+      }
+      if (this._syncFn) {
+        window.removeEventListener('focus', this._syncFn)
+        document.removeEventListener('visibilitychange', this._syncFn)
+        this._syncFn = null
       }
     },
   },
