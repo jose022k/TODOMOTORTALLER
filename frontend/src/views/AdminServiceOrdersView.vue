@@ -227,9 +227,33 @@
               <option v-for="m in mechanics" :key="m.id" :value="m.id">{{ m.nombre }}</option>
             </select>
           </div>
-          <div class="form-group">
+          <div class="form-group desc-group">
             <label>Descripción del servicio</label>
-            <textarea v-model="form.descripcion" class="form-control" rows="4" placeholder="Describe el trabajo a realizar..."></textarea>
+            <div class="desc-input-wrapper">
+              <input
+                v-model="form.descripcion"
+                type="text"
+                class="form-control"
+                placeholder="Ej: Mantenimiento general, cambio de aceite..."
+                autocapitalize="sentences"
+                @input="onDescripcionInput"
+                @focus="descSuggestionsOpen = true"
+                @blur="closeDescSuggestions"
+              />
+              <div v-if="descSuggestionsOpen && filteredDescSuggestions.length" class="desc-suggestions-dropdown">
+                <div class="desc-suggestions-header">Sugerencias frecuentes</div>
+                <button
+                  v-for="(sug, idx) in filteredDescSuggestions"
+                  :key="idx"
+                  type="button"
+                  class="desc-suggestion-item"
+                  @mousedown.prevent="selectDescSuggestion(sug)"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/></svg>
+                  <span>{{ sug }}</span>
+                </button>
+              </div>
+            </div>
           </div>
 
           <div class="form-group">
@@ -459,9 +483,27 @@ export default {
       totalItems: 0,
       totalPages: 0,
       pollTimer: null,
+      pastDescriptions: [
+        "Mantenimiento general",
+        "Cambio de aceite y filtro",
+        "Revisión y ajuste de frenos",
+        "Limpieza y entonación de carburador",
+        "Ajuste y lubricación de cadena",
+        "Cambio de cauchos / llantas",
+        "Revisión de sistema eléctrico",
+        "Reparación de motor",
+        "Cambio de pastillas de freno",
+        "Cambio de guaya de cloche / acelerador"
+      ],
+      descSuggestionsOpen: false,
     };
   },
   computed: {
+    filteredDescSuggestions() {
+      const q = (this.form.descripcion || "").trim().toLowerCase();
+      if (!q) return this.pastDescriptions.slice(0, 8);
+      return this.pastDescriptions.filter(d => d.toLowerCase().includes(q) && d.toLowerCase() !== q).slice(0, 8);
+    },
     clientsFiltrados() {
       const q = this.clienteBusqueda.trim().toLowerCase();
       if (!q) return this.clients;
@@ -698,6 +740,29 @@ export default {
       };
       return map[colorName] || "#e2e8f0";
     },
+    async fetchPastDescriptions() {
+      try {
+        const { data } = await api.get("/reports/servicios/top-descripciones", { params: { limite: 50 } });
+        if (Array.isArray(data)) {
+          const fetched = data.map(item => item.descripcion).filter(Boolean);
+          const set = new Set([...this.pastDescriptions, ...fetched]);
+          this.pastDescriptions = Array.from(set);
+        }
+      } catch { /* silent */ }
+    },
+    onDescripcionInput() {
+      if (this.form.descripcion && this.form.descripcion.length > 0) {
+        this.form.descripcion = this.form.descripcion.charAt(0).toUpperCase() + this.form.descripcion.slice(1);
+      }
+      this.descSuggestionsOpen = true;
+    },
+    selectDescSuggestion(desc) {
+      this.form.descripcion = desc.charAt(0).toUpperCase() + desc.slice(1);
+      this.descSuggestionsOpen = false;
+    },
+    closeDescSuggestions() {
+      setTimeout(() => { this.descSuggestionsOpen = false; }, 150);
+    },
     openCreateModal() {
       this.form = {
         cliente_id: "", moto_cliente_id: "", catalogoMarca: "", catalogoModelo: "",
@@ -707,6 +772,7 @@ export default {
       this.clientMotos = [];
       this.motoMode = "existente";
       this.fetchTasa();
+      this.fetchPastDescriptions();
       this.showCreateModal = true;
     },
     async handleCreate() {
@@ -1739,4 +1805,68 @@ html.dark .reassign-inline {
   border-color: var(--border-input, #334155);
 }
 html.dark .reassign-label { color: var(--text-muted, #94a3b8); }
+
+/* Description Autocomplete Dropdown */
+.desc-input-wrapper {
+  position: relative;
+}
+.desc-suggestions-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 4px;
+  background: #ffffff;
+  border: 1.5px solid #ffaa00;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  z-index: 1050;
+  max-height: 220px;
+  overflow-y: auto;
+  padding: 6px;
+}
+.desc-suggestions-header {
+  font-size: 11px;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 4px 8px;
+  margin-bottom: 2px;
+}
+.desc-suggestion-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border: none;
+  background: transparent;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1a1a1a;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.desc-suggestion-item:hover {
+  background: #fff7e6;
+  color: #b45309;
+}
+.desc-suggestion-item svg {
+  flex-shrink: 0;
+  color: #ffaa00;
+}
+html.dark .desc-suggestions-dropdown {
+  background: #1a1f2e;
+  border-color: #ffaa00;
+}
+html.dark .desc-suggestion-item {
+  color: #f1f5f9;
+}
+html.dark .desc-suggestion-item:hover {
+  background: #334155;
+  color: #ffaa00;
+}
 </style>
