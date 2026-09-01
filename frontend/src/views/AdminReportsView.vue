@@ -845,8 +845,9 @@ html.dark .spinner { border-color: #334155; border-top-color: #ffaa00; }
 }
 
 @media print {
-  html, body, #app, .app-layout, .app-main, .reports-page {
+  html, html.dark, body, html.dark body, #app, html.dark #app, .app-layout, html.dark .app-layout, .app-main, html.dark .app-main, .reports-page, html.dark .reports-page {
     background: #ffffff !important;
+    background-color: #ffffff !important;
     color: #000000 !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
@@ -873,13 +874,14 @@ html.dark .spinner { border-color: #334155; border-top-color: #ffaa00; }
     display: none !important;
   }
 
-  .reports-page {
+  .reports-page, html.dark .reports-page {
     padding: 0 !important;
     max-width: 100% !important;
     background: #ffffff !important;
+    background-color: #ffffff !important;
   }
 
-  .reports-header {
+  .reports-header, html.dark .reports-header {
     display: block !important;
     margin-bottom: 12px !important;
   }
@@ -889,20 +891,21 @@ html.dark .spinner { border-color: #334155; border-top-color: #ffaa00; }
     display: none !important;
   }
 
-  .print-header {
+  .print-header, html.dark .print-header {
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
     border-bottom: 2px solid #000000 !important;
     padding-bottom: 8px !important;
     margin-bottom: 12px !important;
+    background: transparent !important;
   }
 
   .print-header-left {
     width: 110px;
   }
 
-  .print-date {
+  .print-date, html.dark .print-date {
     font-size: 0.75rem !important;
     font-weight: 800 !important;
     color: #000000 !important;
@@ -912,13 +915,13 @@ html.dark .spinner { border-color: #334155; border-top-color: #ffaa00; }
     text-align: center !important;
   }
 
-  .print-title {
+  .print-title, html.dark .print-title {
     font-size: 1.2rem !important;
     font-weight: 900 !important;
     color: #000000 !important;
   }
 
-  .print-company {
+  .print-company, html.dark .print-company {
     font-size: 0.85rem !important;
     font-weight: 800 !important;
     color: #000000 !important;
@@ -930,11 +933,12 @@ html.dark .spinner { border-color: #334155; border-top-color: #ffaa00; }
     height: auto !important;
   }
 
-  .reports-grid {
+  .reports-grid, html.dark .reports-grid {
     display: block !important;
+    background: transparent !important;
   }
 
-  .report-card {
+  .report-card, html.dark .report-card {
     break-inside: avoid !important;
     border: none !important;
     box-shadow: none !important;
@@ -942,12 +946,15 @@ html.dark .spinner { border-color: #334155; border-top-color: #ffaa00; }
     margin-bottom: 12px !important;
     border-radius: 0 !important;
     background: transparent !important;
+    background-color: transparent !important;
   }
 
-  .report-card-header {
+  .report-card-header, html.dark .report-card-header {
     margin-bottom: 6px !important;
     border-bottom: 1.5px solid #000000 !important;
     padding-bottom: 4px !important;
+    background: transparent !important;
+    background-color: transparent !important;
   }
 
   .report-card-header svg {
@@ -955,39 +962,44 @@ html.dark .spinner { border-color: #334155; border-top-color: #ffaa00; }
   }
 
   /* Section titles: Ingresos, Top Mecánicos, Top Motos Atendidas, Top Servicios Realizados, etc. */
-  .report-card-header h3 {
+  .report-card-header h3, html.dark .report-card-header h3 {
     font-size: 1rem !important;
     font-weight: 900 !important;
     color: #000000 !important;
   }
 
-  .card-subtitle {
+  .card-subtitle, html.dark .card-subtitle {
     font-size: 0.8rem !important;
     font-weight: 800 !important;
     color: #000000 !important;
     background: transparent !important;
+    background-color: transparent !important;
     padding: 0 !important;
   }
 
-  .print-table-wrapper {
+  .print-table-wrapper, html.dark .print-table-wrapper {
     display: block !important;
+    background: transparent !important;
   }
 
   .print-hidden {
     display: none !important;
   }
 
-  .print-table {
+  .print-table, html.dark .print-table {
     width: 100%;
     border-collapse: collapse;
     font-size: 10.5px;
     color: #000000 !important;
+    background: #ffffff !important;
+    background-color: #ffffff !important;
   }
 
-  .print-table th {
+  .print-table th, html.dark .print-table th {
     text-align: left;
     padding: 4px 6px;
     background: #f1f5f9 !important;
+    background-color: #f1f5f9 !important;
     font-weight: 900 !important;
     color: #000000 !important;
     border-bottom: 2px solid #000000 !important;
@@ -996,16 +1008,20 @@ html.dark .spinner { border-color: #334155; border-top-color: #ffaa00; }
     letter-spacing: 0.3px;
   }
 
-  .print-table td {
+  .print-table td, html.dark .print-table td {
     padding: 4px 6px;
+    background: #ffffff !important;
+    background-color: #ffffff !important;
     border-bottom: 1px solid #cbd5e1 !important;
     color: #000000 !important;
     font-weight: 700 !important;
   }
 
-  .app-main {
+  .app-main, html.dark .app-main {
     padding: 0 !important;
     background: #ffffff !important;
+    background-color: #ffffff !important;
   }
+}
 }
 </style>
