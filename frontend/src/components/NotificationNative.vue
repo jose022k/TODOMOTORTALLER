@@ -219,8 +219,8 @@ export default {
       const url = this.buildUrl(notif);
       const opts = {
         body: notif.mensaje || "",
-        icon: "/img/icons/logo-192.png",
-        badge: "/img/icons/logo-192.png",
+        icon: "/img/app-icon-192.png",
+        badge: "/img/app-icon-192.png",
         data: { url },
         vibrate: [200, 100, 200],
         silent: false,
