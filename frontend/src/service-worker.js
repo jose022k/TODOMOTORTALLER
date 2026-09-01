@@ -46,21 +46,18 @@ registerRoute(
 
 self.addEventListener("push", (event) => {
   if (!event.data) return;
+
   let parsed = null;
-  try {
-    parsed = event.data.json();
-  } catch {
-    parsed = null;
-  }
+  try { parsed = event.data.json(); } catch { parsed = null; }
 
   const title = (parsed && parsed.title) || "Todomotortaller";
-  const body = (parsed && parsed.body) || event.data.text();
+  const body = (parsed && parsed.body) || "";
   const icon = (parsed && parsed.icon) || "/img/icons/logo-192.png";
   const badge = (parsed && parsed.badge) || "/img/icons/logo-192.png";
   const pushData = (parsed && parsed.data) || {};
-  const unreadCount = typeof pushData.unread_count === "number" ? pushData.unread_count : null;
+  const unreadCount = (pushData && typeof pushData.unread_count === "number") ? pushData.unread_count : null;
 
-  // Update app badge if supported
+  // Update PWA icon badge
   if (unreadCount !== null && typeof navigator.setAppBadge === "function") {
     navigator.setAppBadge(unreadCount).catch(() => {});
   }
@@ -72,20 +69,18 @@ self.addEventListener("push", (event) => {
     data: pushData,
     vibrate: [200, 100, 200],
     silent: false,
+    requireInteraction: false,
   };
 
   event.waitUntil(
     clients.matchAll({ type: "window", includeUncontrolled: true }).then((windowClients) => {
-      // Tell every open window to play the sound
+      // Tell every open window to play the in-app sound and show toast
       for (const client of windowClients) {
-        client.postMessage({ type: "PLAY_NOTIFICATION_SOUND" });
+        client.postMessage({ type: "PLAY_NOTIFICATION_SOUND", data: pushData });
       }
-
-      // Only show OS notification if no window is currently visible/focused
-      const hasVisibleClient = windowClients.some((c) => c.visibilityState === "visible");
-      if (!hasVisibleClient) {
-        return self.registration.showNotification(title, notifOptions);
-      }
+      // ALWAYS show OS notification — this guarantees sound on mobile (background or foreground)
+      // and on desktop when browser is minimized/in another tab
+      return self.registration.showNotification(title, notifOptions);
     })
   );
 });
@@ -96,9 +91,11 @@ self.addEventListener("notificationclick", (event) => {
   event.waitUntil(
     clients.matchAll({ type: "window", includeUncontrolled: true }).then((windowClients) => {
       const matching = windowClients.find((c) => {
-        const cUrl = new URL(c.url);
-        const nUrl = new URL(url, self.location.origin);
-        return cUrl.pathname === nUrl.pathname;
+        try {
+          const cUrl = new URL(c.url);
+          const nUrl = new URL(url, self.location.origin);
+          return cUrl.pathname === nUrl.pathname;
+        } catch { return false; }
       });
       if (matching) {
         matching.navigate(url);
@@ -110,11 +107,5 @@ self.addEventListener("notificationclick", (event) => {
   );
 });
 
-self.addEventListener("notificationclose", (event) => {
-  const data = event.notification.data || {};
-  fetch("/notifications/push/close", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ url: data.url || "/" }),
-  }).catch(() => {});
-});
+self.addEventListener("notificationclose", () => {});
+

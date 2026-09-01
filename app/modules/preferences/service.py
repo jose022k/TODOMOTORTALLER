@@ -55,27 +55,29 @@ def should_notify(db: Session, user_role: str, user_id: int, tipo: str) -> bool:
     ).first()
 
     if not pref:
-        return True
+        return True  # Default: notify everything
 
-    if tipo in ("mensaje_recibido", "evidencia_enviada"):
-        return True
-    if tipo in ("orden_creada", "orden_en_proceso", "orden_completada", "orden_cancelada", "datos_actualizados"):
-        return pref.notify_orders
+    if tipo in MESSAGE_TIPOS:
+        return bool(pref.notify_messages)
+    if tipo in ORDER_TIPOS:
+        return bool(pref.notify_orders)
 
     return True
 
 
 def allowed_tipos(db: Session, user_role: str, user_id: int) -> set:
-    """Devuelve el set de tipos de notificación permitidos. None si todos están permitidos."""
+    """Devuelve el set de tipos de notificación permitidos según las preferencias del usuario."""
     pref = db.query(UserPreference).filter(
         UserPreference.user_role == user_role,
         UserPreference.user_id == user_id,
     ).first()
 
     if not pref:
-        return None
+        return None  # No preference row = allow all
 
-    allowed = set(MESSAGE_TIPOS)
+    allowed = set()
+    if pref.notify_messages:
+        allowed.update(MESSAGE_TIPOS)
     if pref.notify_orders:
         allowed.update(ORDER_TIPOS)
     return allowed

@@ -47,63 +47,42 @@ import { useNotificationsStore } from "@/stores/notifications";
 
 const OPEN_CHAT_TYPES = new Set(["mensaje_recibido", "evidencia_enviada"]);
 
-// ── Audio Engine ────────────────────────────────────────────────────────────
-let audioCtx = null;
-let audioBuffer = null;
+// ── Audio Engine: synthesized soft chime (no file needed) ───────────────────
+function playNotifSound() {
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+    const ctx = new AudioCtx();
 
-function getAudioCtx() {
-  if (!audioCtx) {
-    try {
-      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    } catch { /* not supported */ }
-  }
-  return audioCtx;
+    // Soft ascending 3-note chime: C6 → E6 → G6 (major chord)
+    const notes = [
+      { freq: 1046.50, start: 0.00, dur: 0.38 },
+      { freq: 1318.51, start: 0.11, dur: 0.36 },
+      { freq: 1567.98, start: 0.22, dur: 0.45 },
+    ];
+
+    notes.forEach(({ freq, start, dur }) => {
+      const osc = ctx.createOscillator();
+      const env = ctx.createGain();
+      osc.connect(env);
+      env.connect(ctx.destination);
+      osc.type = "sine";
+      osc.frequency.value = freq;
+      const t = ctx.currentTime + start;
+      env.gain.setValueAtTime(0, t);
+      env.gain.linearRampToValueAtTime(0.28, t + 0.012);
+      env.gain.exponentialRampToValueAtTime(0.001, t + dur);
+      osc.start(t);
+      osc.stop(t + dur);
+    });
+
+    setTimeout(() => { try { ctx.close(); } catch { /* */ } }, 900);
+  } catch { /* AudioContext not supported */ }
 }
 
 function unlockAudio() {
-  const ctx = getAudioCtx();
-  if (ctx && ctx.state === "suspended") {
-    ctx.resume().catch(() => {});
-  }
-}
-
-async function preloadAudio() {
-  try {
-    const res = await fetch("/sounds/notification.wav");
-    if (!res.ok) return;
-    const buf = await res.arrayBuffer();
-    const ctx = getAudioCtx();
-    if (!ctx) return;
-    audioBuffer = await ctx.decodeAudioData(buf);
-  } catch { /* fallback to <audio> element */ }
-}
-
-function playNotifSound() {
-  // Try Web Audio API first (works on mobile after user interaction)
-  const ctx = getAudioCtx();
-  if (ctx && audioBuffer) {
-    const resume = ctx.state === "suspended" ? ctx.resume() : Promise.resolve();
-    resume.then(() => {
-      try {
-        const src = ctx.createBufferSource();
-        src.buffer = audioBuffer;
-        src.connect(ctx.destination);
-        src.start(0);
-      } catch { playFallback(); }
-    }).catch(() => playFallback());
-    return;
-  }
-  playFallback();
-}
-
-function playFallback() {
-  // Fallback: HTML audio element
-  const el = document.querySelector('audio[data-notif-sound]');
-  if (el) {
-    el.currentTime = 0;
-    el.volume = 1;
-    el.play().catch(() => {});
-  }
+  // No-op: each call to playNotifSound() creates its own fresh context
+  // which avoids the suspended state issue on mobile.
 }
 // ── End Audio Engine ────────────────────────────────────────────────────────
 
@@ -143,18 +122,6 @@ export default {
     this._onNotif = this.onNewNotification.bind(this);
     window.addEventListener("notification-new", this._onNotif);
 
-    // Unlock audio on first user interaction (required by browsers)
-    this._unlockFns = [
-      () => unlockAudio(),
-    ];
-    window.addEventListener("click", this._unlockFns[0], { passive: true });
-    window.addEventListener("touchstart", this._unlockFns[0], { passive: true });
-    window.addEventListener("touchend", this._unlockFns[0], { passive: true });
-    window.addEventListener("keydown", this._unlockFns[0], { passive: true });
-
-    // Preload audio
-    preloadAudio();
-
     // Show permission prompt
     this.checkPermission();
 
@@ -165,10 +132,6 @@ export default {
   },
   beforeUnmount() {
     window.removeEventListener("notification-new", this._onNotif);
-    window.removeEventListener("click", this._unlockFns[0]);
-    window.removeEventListener("touchstart", this._unlockFns[0]);
-    window.removeEventListener("touchend", this._unlockFns[0]);
-    window.removeEventListener("keydown", this._unlockFns[0]);
     if ("serviceWorker" in navigator && this._swMsg) {
       navigator.serviceWorker.removeEventListener("message", this._swMsg);
     }
@@ -208,16 +171,12 @@ export default {
       const isNew = this.notifStore.onNewNotification(notif);
       if (!isNew) return;
 
-      // Play sound
+      // Play in-app sound
       playNotifSound();
 
-      // Show in-app toast (visible in all views: PC, mobile, PWA)
+      // Show in-app toast (visible in all views: PC, mobile, PWA when app is open)
       this.showInAppToast(notif);
-
-      // Show OS notification only when tab is NOT visible (user is elsewhere)
-      if (document.visibilityState !== "visible") {
-        await this.showNativeNotification(notif);
-      }
+      // Note: OS notification is handled by the Service Worker push event (background/mobile)
     },
 
     showInAppToast(notif) {
@@ -235,37 +194,6 @@ export default {
       }
     },
 
-    async showNativeNotification(notif) {
-      if (!("Notification" in window) || Notification.permission !== "granted") return;
-      const url = this.buildUrl(notif);
-      const opts = {
-        body: notif.mensaje || "",
-        icon: "/img/icons/logo-192.png",
-        badge: "/img/icons/logo-192.png",
-        data: { url },
-        vibrate: [200, 100, 200],
-        silent: false,
-      };
-      if (this.swRegistration) {
-        try {
-          await this.swRegistration.showNotification("Todomotortaller", opts);
-          return;
-        } catch { /* fall through to basic Notification */ }
-      }
-      try {
-        const n = new Notification("Todomotortaller", {
-          body: notif.mensaje || "",
-          icon: "/img/icons/logo-192.png",
-          tag: `notif-${notif.id}`,
-          silent: false,
-        });
-        n.onclick = () => {
-          window.focus();
-          if (url && url !== "/") window.location.href = url;
-          n.close();
-        };
-      } catch { /* not supported */ }
-    },
 
     buildUrl(n) {
       const orderId = n.orden_servicio_id;
