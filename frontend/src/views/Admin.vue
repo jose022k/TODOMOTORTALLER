@@ -105,11 +105,14 @@
         <span class="daily-stat">Clientes nuevos hoy: <strong>{{ dailyStats.clientes_nuevos_hoy }}</strong></span>
         <span class="daily-stat">Servicio más realizado: <strong>{{ dailyStats.servicio_mas_realizado_hoy }}</strong></span>
         <span class="daily-stat">Marca más atendida: <strong>{{ dailyStats.marca_mas_atendida_hoy }}</strong></span>
+        <span class="daily-stat">Top 3 Modelos más atendidos: <strong>{{ dailyStats.top_3_modelos || 'Sin datos' }}</strong></span>
+
         <span class="daily-stat">Clientes registrados hoy: <strong>{{ dailyStats.clientes_registrados_hoy }}</strong></span>
         <span class="daily-stat">Motos atendidas hoy: <strong>{{ dailyStats.motos_atendidas_hoy }}</strong></span>
         <span class="daily-stat">Clientes nuevos hoy: <strong>{{ dailyStats.clientes_nuevos_hoy }}</strong></span>
         <span class="daily-stat">Servicio más realizado: <strong>{{ dailyStats.servicio_mas_realizado_hoy }}</strong></span>
         <span class="daily-stat">Marca más atendida: <strong>{{ dailyStats.marca_mas_atendida_hoy }}</strong></span>
+        <span class="daily-stat">Top 3 Modelos más atendidos: <strong>{{ dailyStats.top_3_modelos || 'Sin datos' }}</strong></span>
       </div>
     </div>
   </div>

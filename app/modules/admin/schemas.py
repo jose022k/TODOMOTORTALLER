@@ -18,3 +18,4 @@ class DailyStatsResponse(BaseModel):
     clientes_nuevos_hoy: int
     servicio_mas_realizado_hoy: str
     marca_mas_atendida_hoy: str
+    top_3_modelos: str = ""

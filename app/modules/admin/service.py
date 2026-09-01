@@ -84,10 +84,34 @@ def get_daily_stats(db: Session) -> dict:
         conteo = Counter(marcas)
         marca_mas = conteo.most_common(1)[0][0]
 
+    top_modelos_raw = (
+        db.query(
+            CatalogoMoto.marca,
+            CatalogoMoto.modelo,
+            func.count(OrdenServicio.id).label("total")
+        )
+        .join(MotoCliente, MotoCliente.catalogo_moto_id == CatalogoMoto.id)
+        .join(OrdenServicio, OrdenServicio.moto_cliente_id == MotoCliente.id)
+        .group_by(CatalogoMoto.id, CatalogoMoto.marca, CatalogoMoto.modelo)
+        .order_by(func.count(OrdenServicio.id).desc())
+        .limit(3)
+        .all()
+    )
+
+    top_3_list = []
+    for idx, item in enumerate(top_modelos_raw, 1):
+        marca_nom = item.marca or ""
+        modelo_nom = item.modelo or ""
+        nombre_completo = f"{marca_nom} {modelo_nom}".strip()
+        top_3_list.append(f"{idx}: {nombre_completo}")
+
+    top_3_str = ", ".join(top_3_list) if top_3_list else "Sin datos"
+
     return {
         "clientes_registrados_hoy": len(cliente_ids_hoy),
         "motos_atendidas_hoy": len(moto_ids_hoy),
         "clientes_nuevos_hoy": clientes_nuevos_hoy,
         "servicio_mas_realizado_hoy": servicio_mas or "Sin datos",
         "marca_mas_atendida_hoy": marca_mas or "Sin datos",
+        "top_3_modelos": top_3_str,
     }
