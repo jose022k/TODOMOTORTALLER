@@ -50,8 +50,8 @@ def send_push(subscription, title: str, body: str, icon: str = None, url: str = 
     payload = json.dumps({
         "title": title,
         "body": body,
-        "icon": icon or "/img/icons/logo-192.png",
-        "badge": "/img/icons/logo-192.png",
+        "icon": icon or "/img/app-icon-192.png",
+        "badge": "/img/app-icon-192.png",
         "sound": "/sounds/notification.wav",
         "data": {
             "url": url or "/",

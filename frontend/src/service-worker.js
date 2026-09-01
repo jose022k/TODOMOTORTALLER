@@ -52,22 +52,24 @@ self.addEventListener("push", (event) => {
 
   const title = (parsed && parsed.title) || "Todomotortaller";
   const body = (parsed && parsed.body) || "";
-  const icon = (parsed && parsed.icon) || "/img/icons/logo-192.png";
-  const badge = (parsed && parsed.badge) || "/img/icons/logo-192.png";
+  const iconPath = (parsed && parsed.icon) || "/img/app-icon-192.png";
+  const badgePath = (parsed && parsed.badge) || "/img/app-icon-192.png";
+  const icon = new URL(iconPath, self.location.origin).href;
+  const badge = new URL(badgePath, self.location.origin).href;
   const pushData = (parsed && parsed.data) || {};
   const unreadCount = (pushData && typeof pushData.unread_count === "number") ? pushData.unread_count : null;
 
-  // Update PWA home screen icon badge
-  if (typeof navigator.setAppBadge === "function") {
-    const count = (unreadCount !== null) ? unreadCount : 1;
-    if (count > 0) {
-      navigator.setAppBadge(count).catch(() => {});
-    } else if (typeof navigator.clearAppBadge === "function") {
-      navigator.clearAppBadge().catch(() => {});
-    } else {
-      navigator.setAppBadge(0).catch(() => {});
+  // Update PWA home screen icon badge safely
+  try {
+    if (typeof self.navigator !== "undefined" && typeof self.navigator.setAppBadge === "function") {
+      const count = (unreadCount !== null) ? unreadCount : 1;
+      if (count > 0) {
+        self.navigator.setAppBadge(count).catch(() => {});
+      } else if (typeof self.navigator.clearAppBadge === "function") {
+        self.navigator.clearAppBadge().catch(() => {});
+      }
     }
-  }
+  } catch { /* silent */ }
 
   const notifOptions = {
     body,
@@ -82,15 +84,14 @@ self.addEventListener("push", (event) => {
   };
 
   event.waitUntil(
-    clients.matchAll({ type: "window", includeUncontrolled: true }).then((windowClients) => {
-      // Tell every open window to play the in-app sound and show toast
-      for (const client of windowClients) {
-        client.postMessage({ type: "PLAY_NOTIFICATION_SOUND", data: pushData });
-      }
-      // ALWAYS show OS notification — this guarantees sound on mobile (background or foreground)
-      // and on desktop when browser is minimized/in another tab
-      return self.registration.showNotification(title, notifOptions);
-    })
+    Promise.all([
+      clients.matchAll({ type: "window", includeUncontrolled: true }).then((windowClients) => {
+        for (const client of windowClients) {
+          client.postMessage({ type: "PLAY_NOTIFICATION_SOUND", data: pushData });
+        }
+      }),
+      self.registration.showNotification(title, notifOptions)
+    ])
   );
 });
 

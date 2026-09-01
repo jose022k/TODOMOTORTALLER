@@ -21,6 +21,7 @@ export async function registerSw() {
     const reg = await navigator.serviceWorker.register(
       `${process.env.BASE_URL}service-worker.js`
     );
+    await navigator.serviceWorker.ready;
     swRegistration = reg;
     return reg;
   } catch {
@@ -76,8 +77,10 @@ export async function setupPush() {
   if (existing) {
     try {
       await api.post("/notifications/push/subscribe", existing.toJSON());
-    } catch { /* silent */ }
-    return true;
+      return true;
+    } catch {
+      // If endpoint was invalid or subscription expired, re-subscribe
+    }
   }
 
   return await subscribeUser();

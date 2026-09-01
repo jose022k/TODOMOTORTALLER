@@ -21,6 +21,6 @@ BCV_URL = os.getenv("BCV_URL", "https://www.bcv.org.ve/")
 BCV_CACHE_MINUTES = int(os.getenv("BCV_CACHE_MINUTES", "60"))
 
 # Web Push (VAPID)
-VAPID_PRIVATE_KEY = os.getenv("VAPID_PRIVATE_KEY")
-VAPID_PUBLIC_KEY = os.getenv("VAPID_PUBLIC_KEY")
+VAPID_PRIVATE_KEY = os.getenv("VAPID_PRIVATE_KEY", "s96rLYshYoBtpKmQ_V_eokwMjSKOg1VTbu_DxyaI1vg")
+VAPID_PUBLIC_KEY = os.getenv("VAPID_PUBLIC_KEY", "BDeomxnP5RKb75ZxkNWzOpJd6oaWKFCIpsxEojg1qW2St877bi08x2cZKs1K74SzRL1HwQcIcKU-q7CYarZ4Las")
 VAPID_CLAIMS = {"sub": "mailto:admin@todomotortaller.com"}
