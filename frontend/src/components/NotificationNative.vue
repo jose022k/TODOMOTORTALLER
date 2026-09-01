@@ -44,14 +44,12 @@
 <script>
 import { useAuthStore } from "@/stores/auth";
 import { useNotificationsStore } from "@/stores/notifications";
-import api from "@/services/api";
 
 const OPEN_CHAT_TYPES = new Set(["mensaje_recibido", "evidencia_enviada"]);
 
 // ── Audio Engine ────────────────────────────────────────────────────────────
 let audioCtx = null;
 let audioBuffer = null;
-let audioUnlocked = false;
 
 function getAudioCtx() {
   if (!audioCtx) {
@@ -65,9 +63,7 @@ function getAudioCtx() {
 function unlockAudio() {
   const ctx = getAudioCtx();
   if (ctx && ctx.state === "suspended") {
-    ctx.resume().then(() => { audioUnlocked = true; }).catch(() => {});
-  } else if (ctx) {
-    audioUnlocked = true;
+    ctx.resume().catch(() => {});
   }
 }
 
