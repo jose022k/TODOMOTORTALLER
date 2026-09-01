@@ -1,6 +1,20 @@
 import { defineStore } from 'pinia'
 import api from '../services/api'
 
+function updateNativeAppBadge(count) {
+  try {
+    if ('setAppBadge' in navigator) {
+      if (count > 0) {
+        navigator.setAppBadge(count).catch(() => {})
+      } else if ('clearAppBadge' in navigator) {
+        navigator.clearAppBadge().catch(() => {})
+      } else {
+        navigator.setAppBadge(0).catch(() => {})
+      }
+    }
+  } catch { /* unsupported */ }
+}
+
 export const useNotificationsStore = defineStore('notifications', {
   state: () => ({
     unreadCount: 0,
@@ -13,9 +27,7 @@ export const useNotificationsStore = defineStore('notifications', {
       try {
         const { data } = await api.get('/notifications/unread-count')
         this.unreadCount = data.count || 0
-        if (typeof navigator.setAppBadge === 'function') {
-          navigator.setAppBadge(this.unreadCount).catch(() => {})
-        }
+        updateNativeAppBadge(this.unreadCount)
       } catch { /* silent */ }
     },
     async fetchNotifications(limit = 20) {
@@ -29,32 +41,24 @@ export const useNotificationsStore = defineStore('notifications', {
       if (!notif || this.knownIds.has(notif.id)) return false
       this.knownIds.add(notif.id)
       this.unreadCount++
-      if (typeof navigator.setAppBadge === 'function') {
-        navigator.setAppBadge(this.unreadCount).catch(() => {})
-      }
+      updateNativeAppBadge(this.unreadCount)
       return true // was new
     },
     markOneRead(notifId) {
       this.unreadCount = Math.max(0, this.unreadCount - 1)
       const n = this.notifications.find(n => n.id === notifId)
       if (n) n.leido = true
-      if (typeof navigator.setAppBadge === 'function') {
-        navigator.setAppBadge(this.unreadCount).catch(() => {})
-      }
+      updateNativeAppBadge(this.unreadCount)
     },
     markAllRead() {
       this.unreadCount = 0
       this.notifications.forEach(n => (n.leido = true))
-      if (typeof navigator.setAppBadge === 'function') {
-        navigator.setAppBadge(0).catch(() => {})
-      }
+      updateNativeAppBadge(0)
     },
     clearAll() {
       this.notifications = []
       this.unreadCount = 0
-      if (typeof navigator.setAppBadge === 'function') {
-        navigator.setAppBadge(0).catch(() => {})
-      }
+      updateNativeAppBadge(0)
     },
     startPolling() {
       if (this.pollTimer) return
