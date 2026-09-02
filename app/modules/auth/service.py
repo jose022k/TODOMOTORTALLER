@@ -33,7 +33,7 @@ def check_and_create_active_session(db: Session, user_id: int, role: str) -> str
     if active:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Este usuario ya tiene una sesión activa en otro dispositivo. Debes cerrar sesión en ese dispositivo o esperar a que expire la sesión (5 horas).",
+            detail="Este usuario ya tiene una sesión activa en otro dispositivo. Debes cerrar sesión en ese dispositivo o esperar a que expire la sesión.",
         )
     
     # 3. Registrar nueva sesión activa de 5 horas
