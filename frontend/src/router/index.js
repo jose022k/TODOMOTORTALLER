@@ -122,30 +122,24 @@ const router = createRouter({
 });
 
 router.beforeEach((to, from, next) => {
-  const publicPages = ["/login", "/register/cliente"];
   const authStore = useAuthStore();
 
   // Tracker público (sin auth)
   if (to.name === "tracker" || to.name === "tracker-moto") return next();
 
-  // Home page: redirigir según rol si está autenticado
-  if (to.path === "/" && authStore.isAuthenticated) {
-    if (authStore.isAdmin) return next("/admin");
-    if (authStore.isMecanico) return next("/mecanico/orders");
-    if (authStore.isCliente) return next("/cliente/orders");
-  }
-
-  // Page requires auth
-  if (to.meta.requiresAuth && !authStore.isAuthenticated) {
+  // Home page: redirigir según rol si está autenticado, sino al login
+  if (to.path === "/") {
+    if (authStore.isAuthenticated) {
+      if (authStore.isAdmin) return next("/admin");
+      if (authStore.isMecanico) return next("/mecanico/orders");
+      if (authStore.isCliente) return next("/cliente/orders");
+    }
     return next("/login");
   }
 
-  // Public pages only for non-authenticated
-  if (publicPages.includes(to.path) && authStore.isAuthenticated) {
-    if (authStore.isAdmin) return next("/admin");
-    if (authStore.isMecanico) return next("/mecanico/orders");
-    if (authStore.isCliente) return next("/cliente/orders");
-    return next("/");
+  // Rutas que requieren autenticación
+  if (to.meta.requiresAuth && !authStore.isAuthenticated) {
+    return next("/login");
   }
 
   next();

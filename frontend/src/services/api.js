@@ -52,14 +52,6 @@ api.interceptors.response.use(
           localStorage.setItem('access_token', data.access_token)
           localStorage.setItem('refresh_token', data.refresh_token)
 
-          // Sincronizar store de Pinia si está inicializado
-          try {
-            const { useAuthStore } = await import('@/stores/auth')
-            const authStore = useAuthStore()
-            authStore.accessToken = data.access_token
-            authStore.refreshToken = data.refresh_token
-          } catch { /* ignore */ }
-
           processQueue(null, data.access_token)
           originalRequest.headers.Authorization = `Bearer ${data.access_token}`
           return api(originalRequest)
@@ -68,9 +60,18 @@ api.interceptors.response.use(
           localStorage.removeItem('access_token')
           localStorage.removeItem('refresh_token')
           localStorage.removeItem('user_data')
-          window.location.href = '/login'
+          if (window.location.pathname !== '/login') {
+            window.location.replace('/login')
+          }
         } finally {
           isRefreshing = false
+        }
+      } else {
+        localStorage.removeItem('access_token')
+        localStorage.removeItem('refresh_token')
+        localStorage.removeItem('user_data')
+        if (window.location.pathname !== '/login') {
+          window.location.replace('/login')
         }
       }
       isRefreshing = false
