@@ -92,6 +92,11 @@ if os.path.isdir(SOUNDS_DIR):
 @app.get("/{full_path:path}")
 async def serve_spa(full_path: str):
     file_path = os.path.join(DIST_DIR, full_path)
+    if full_path == "service-worker.js" and os.path.isfile(file_path):
+        response = FileResponse(file_path, media_type="application/javascript")
+        response.headers["Service-Worker-Allowed"] = "/"
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        return response
     if full_path and os.path.isfile(file_path):
         return FileResponse(file_path)
     index_path = os.path.join(DIST_DIR, "index.html")

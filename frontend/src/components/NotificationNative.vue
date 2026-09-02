@@ -48,23 +48,46 @@ import { useNotificationsStore } from "@/stores/notifications";
 const OPEN_CHAT_TYPES = new Set(["mensaje_recibido", "evidencia_enviada"]);
 
 // ── Audio Engine: synthesized crystal glass marimba chime ───────────────────
+function unlockAudio() {
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+    if (!window._sharedAudioCtx) {
+      window._sharedAudioCtx = new AudioCtx();
+    }
+    if (window._sharedAudioCtx.state === "suspended") {
+      window._sharedAudioCtx.resume().catch(() => {});
+    }
+  } catch (e) {}
+}
+
+if (typeof window !== "undefined") {
+  window.addEventListener("touchstart", unlockAudio, { passive: true });
+  window.addEventListener("click", unlockAudio, { passive: true });
+}
+
 function playNotifSound() {
   try {
     const AudioCtx = window.AudioContext || window.webkitAudioContext;
     if (!AudioCtx) return;
-    const ctx = new AudioCtx();
+    let ctx = window._sharedAudioCtx;
+    if (!ctx || ctx.state === "closed") {
+      ctx = new AudioCtx();
+      window._sharedAudioCtx = ctx;
+    }
+    if (ctx.state === "suspended") {
+      ctx.resume().catch(() => {});
+    }
 
-    // Premium dual-tone glass marimba chime (A5 + E6 + A6 crystal cascade)
     const notes = [
-      { main: 880.00, harmonic: 1760.00, start: 0.00, dur: 0.25, vol: 0.30 },
-      { main: 1318.51, harmonic: 2637.02, start: 0.07, dur: 0.28, vol: 0.35 },
-      { main: 1760.00, harmonic: 3520.00, start: 0.14, dur: 0.35, vol: 0.40 },
+      { main: 880.00, harmonic: 1760.00, start: 0.00, dur: 0.25, vol: 0.50 },
+      { main: 1318.51, harmonic: 2637.02, start: 0.07, dur: 0.28, vol: 0.55 },
+      { main: 1760.00, harmonic: 3520.00, start: 0.14, dur: 0.35, vol: 0.60 },
     ];
 
     notes.forEach(({ main, harmonic, start, dur, vol }) => {
       const t = ctx.currentTime + start;
 
-      // Main sine oscillator
       const osc1 = ctx.createOscillator();
       const env1 = ctx.createGain();
       osc1.type = "sine";
@@ -77,7 +100,6 @@ function playNotifSound() {
       osc1.start(t);
       osc1.stop(t + dur);
 
-      // Glass harmonic overtone (triangle wave for warmth)
       const osc2 = ctx.createOscillator();
       const env2 = ctx.createGain();
       osc2.type = "triangle";
@@ -90,14 +112,7 @@ function playNotifSound() {
       osc2.start(t);
       osc2.stop(t + dur * 0.6);
     });
-
-    setTimeout(() => { try { ctx.close(); } catch { /* */ } }, 800);
   } catch { /* AudioContext not supported */ }
-}
-
-function unlockAudio() {
-  // No-op: each call to playNotifSound() creates its own fresh context
-  // which avoids the suspended state issue on mobile.
 }
 // ── End Audio Engine ────────────────────────────────────────────────────────
 
