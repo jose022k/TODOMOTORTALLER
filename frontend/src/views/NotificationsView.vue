@@ -96,14 +96,6 @@ export default {
     async navigateTo(n) {
       const orderId = n.orden_servicio_id;
       if (!orderId) return;
-      if (n.tipo === "mensaje_recibido" || n.tipo === "evidencia_enviada") {
-        try {
-          const { data } = await api.get(`/service-orders/${orderId}`);
-          if (data.estado === "completada" || data.estado === "cancelada") {
-            return;
-          }
-        } catch { /* */ }
-      }
       const role = this.authStore.user?.rol;
       const openChat = n.tipo === "mensaje_recibido" || n.tipo === "evidencia_enviada";
       let url;

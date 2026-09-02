@@ -348,10 +348,13 @@ export default {
     window.removeEventListener("notification-new", this.onOrderUpdated);
   },
   watch: {
-    $route() {
-      if (this.$route.query.order_id) {
-        this.openOrderFromRoute();
-      }
+    "$route.query": {
+      immediate: true,
+      handler(query) {
+        if (query && query.order_id) {
+          this.openOrderFromRoute();
+        }
+      },
     },
   },
 };
