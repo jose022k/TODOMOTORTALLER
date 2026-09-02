@@ -31,7 +31,12 @@ def get_current_user(
             detail="Invalid token payload",
         )
     user = get_user_by_id(db, user_id, role)
-    if jti and not validate_active_session(db, user.id, role, jti):
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User not found",
+        )
+    if not validate_active_session(db, user.id, role):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Sesión cerrada o iniciada en otro dispositivo",

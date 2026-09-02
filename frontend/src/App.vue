@@ -273,11 +273,6 @@ export default {
       }
     };
     document.addEventListener("visibilitychange", this._onVisibility);
-
-    // Eventos de actividad del usuario para reiniciar el contador de 10 minutos
-    this._activityEvents = ["mousedown", "mousemove", "keypress", "scroll", "touchstart", "click"];
-    this._onActivity = () => this.onUserActivity();
-    this._activityEvents.forEach((evt) => window.addEventListener(evt, this._onActivity, { passive: true }));
   },
   beforeUnmount() {
     orderSocket.disable();
