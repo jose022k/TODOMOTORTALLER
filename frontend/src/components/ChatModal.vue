@@ -195,7 +195,7 @@ export default {
         this.text = "";
       }
       if (file) {
-        tempEv = { _key: tempId, id: tempId, url: this.previewUrl, mensaje_id: tempId, fecha: new Date().toISOString() };
+        tempEv = { _key: tempId, id: tempId, url: this.previewUrl, mensaje_id: textContent ? tempId : null, fecha: new Date().toISOString() };
         this.evidencias.push(tempEv);
         this.clearPreview();
       }

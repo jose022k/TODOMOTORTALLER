@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, File, UploadFile
+from typing import Optional
+from fastapi import APIRouter, Depends, File, Form, UploadFile
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.modules.auth.dependencies import get_current_user, AnyUser
@@ -40,7 +41,7 @@ def list_evidencias(
 async def create_evidencia(
     orden_id: int,
     file: UploadFile = File(...),
-    mensaje_id: int = None,
+    mensaje_id: Optional[int] = Form(None),
     db: Session = Depends(get_db),
     current_user: AnyUser = Depends(get_current_user),
 ):
