@@ -58,7 +58,9 @@ function unlockAudio() {
     if (window._sharedAudioCtx.state === "suspended") {
       window._sharedAudioCtx.resume().catch(() => {});
     }
-  } catch (e) {}
+  } catch {
+    /* ignore audio unlock error */
+  }
 }
 
 if (typeof window !== "undefined") {
