@@ -329,9 +329,14 @@ export default {
       }
       const elapsed = Date.now() - startTime;
       const remaining = Math.max(0, 2500 - elapsed);
-      setTimeout(() => {
-        this.loggingOut = false;
-        window.location.href = "/login";
+      setTimeout(async () => {
+        try {
+          await this.$router.push("/login");
+        } catch (e) {
+          /* silent */
+        } finally {
+          this.loggingOut = false;
+        }
       }, remaining);
     },
     onTouchStart(e) {
