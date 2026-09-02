@@ -68,6 +68,7 @@ def send_push(subscription, title: str, body: str, icon: str = None, url: str = 
             data=payload,
             vapid_private_key=VAPID_PRIVATE_KEY,
             vapid_claims=VAPID_CLAIMS,
+            headers={"Urgency": "high", "TTL": "86400"},
         )
         return "ok"
     except WebPushException as e:

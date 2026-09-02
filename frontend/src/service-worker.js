@@ -58,18 +58,19 @@ self.addEventListener("push", (event) => {
   const badge = new URL(badgePath, self.location.origin).href;
   const pushData = (parsed && parsed.data) || {};
   const unreadCount = (pushData && typeof pushData.unread_count === "number") ? pushData.unread_count : null;
+  const count = (unreadCount !== null && unreadCount !== undefined) ? unreadCount : 1;
 
-  // Update PWA home screen icon badge safely
+  // Update PWA home screen icon badge in top-right corner
   try {
-    if (typeof self.navigator !== "undefined" && typeof self.navigator.setAppBadge === "function") {
-      const count = (unreadCount !== null) ? unreadCount : 1;
-      if (count > 0) {
-        self.navigator.setAppBadge(count).catch(() => {});
-      } else if (typeof self.navigator.clearAppBadge === "function") {
-        self.navigator.clearAppBadge().catch(() => {});
-      }
+    if (typeof navigator !== "undefined" && "setAppBadge" in navigator) {
+      if (count > 0) navigator.setAppBadge(count).catch(() => {});
+      else if ("clearAppBadge" in navigator) navigator.clearAppBadge().catch(() => {});
     }
-  } catch { /* silent */ }
+    if ("setAppBadge" in self) {
+      if (count > 0) self.setAppBadge(count).catch(() => {});
+      else if ("clearAppBadge" in self) self.clearAppBadge().catch(() => {});
+    }
+  } catch (e) { /* silent */ }
 
   const notifOptions = {
     body,
@@ -78,21 +79,21 @@ self.addEventListener("push", (event) => {
     data: pushData,
     vibrate: [200, 100, 200],
     silent: false,
-    requireInteraction: false,
+    requireInteraction: true,
     tag: pushData.id ? "notif-" + pushData.id : "notif-" + Date.now(),
     renotify: true,
+    actions: pushData.url ? [{ action: "open", title: "Ver" }] : [],
   };
 
-  event.waitUntil(
-    Promise.all([
-      clients.matchAll({ type: "window", includeUncontrolled: true }).then((windowClients) => {
-        for (const client of windowClients) {
-          client.postMessage({ type: "PLAY_NOTIFICATION_SOUND", data: pushData });
-        }
-      }),
-      self.registration.showNotification(title, notifOptions)
-    ])
-  );
+  const showNotifPromise = self.registration.showNotification(title, notifOptions);
+
+  const notifyClientsPromise = clients.matchAll({ type: "window", includeUncontrolled: true }).then((windowClients) => {
+    for (const client of windowClients) {
+      client.postMessage({ type: "PLAY_NOTIFICATION_SOUND", data: pushData, unreadCount: count });
+    }
+  }).catch(() => {});
+
+  event.waitUntil(Promise.all([showNotifPromise, notifyClientsPromise]));
 });
 
 self.addEventListener("notificationclick", (event) => {

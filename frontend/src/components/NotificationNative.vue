@@ -124,10 +124,16 @@ export default {
         .then((reg) => { this.swRegistration = reg; })
         .catch(() => {});
 
-      // Listen for SW postMessage (plays sound when push arrives and app is open)
       this._swMsg = (event) => {
         if (event.data && event.data.type === "PLAY_NOTIFICATION_SOUND") {
           playNotifSound();
+          if (typeof event.data.unreadCount === "number") {
+            this.notifStore.unreadCount = event.data.unreadCount;
+            if (typeof navigator !== "undefined" && "setAppBadge" in navigator) {
+              if (event.data.unreadCount > 0) navigator.setAppBadge(event.data.unreadCount).catch(() => {});
+              else if ("clearAppBadge" in navigator) navigator.clearAppBadge().catch(() => {});
+            }
+          }
         }
       };
       navigator.serviceWorker.addEventListener("message", this._swMsg);
