@@ -86,7 +86,13 @@ export default {
     },
     formatDate(dt) {
       if (!dt) return "-";
-      return new Date(dt).toLocaleDateString("es-VE", { year: "numeric", month: "long", day: "numeric" });
+      let str = String(dt);
+      if (!str.endsWith("Z") && !str.includes("+") && !str.includes("-", 10)) {
+        str += "Z";
+      }
+      const d = new Date(str);
+      if (isNaN(d.getTime())) return String(dt);
+      return d.toLocaleDateString("es-VE", { year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit", hour12: true });
     },
   },
 };

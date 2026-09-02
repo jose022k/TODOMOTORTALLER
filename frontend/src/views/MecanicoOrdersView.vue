@@ -218,7 +218,13 @@ export default {
     },
     formatDate(d) {
       if (!d) return "—";
-      return new Date(d).toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
+      let str = String(d);
+      if (!str.endsWith("Z") && !str.includes("+") && !str.includes("-", 10)) {
+        str += "Z";
+      }
+      const dt = new Date(str);
+      if (isNaN(dt.getTime())) return String(d);
+      return dt.toLocaleString("es-VE", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: true });
     },
     showAlert(message, type = "success") {
       this.alert = { message, type };

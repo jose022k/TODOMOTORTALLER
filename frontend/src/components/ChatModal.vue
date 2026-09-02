@@ -294,7 +294,13 @@ export default {
     },
     formatTime(d) {
       if (!d) return "";
-      return new Date(d).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" });
+      let str = String(d);
+      if (!str.endsWith("Z") && !str.includes("+") && !str.includes("-", 10)) {
+        str += "Z";
+      }
+      const dt = new Date(str);
+      if (isNaN(dt.getTime())) return "";
+      return dt.toLocaleTimeString("es-VE", { hour: "2-digit", minute: "2-digit", hour12: true });
     },
   },
   mounted() {

@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, field_serializer
 
 
 class OrdenServicioBase(BaseModel):
@@ -44,6 +44,12 @@ class OrdenServicioResponse(BaseModel):
 
     model_config = {"from_attributes": True}
 
+    @field_serializer("fecha_creacion", "fecha_cierre", check_fields=False)
+    def serialize_dt(self, dt: Optional[datetime], _info) -> Optional[str]:
+        if dt is None:
+            return None
+        return dt.isoformat() + "Z" if dt.tzinfo is None else dt.isoformat()
+
 
 class OrdenServicioListResponse(BaseModel):
     """Respuesta para listado de órdenes con nombres de relaciones."""
@@ -67,6 +73,12 @@ class OrdenServicioListResponse(BaseModel):
     moto_marca: str
     moto_modelo: str
     moto_color: str
+
+    @field_serializer("fecha_creacion", "fecha_cierre", check_fields=False)
+    def serialize_dt(self, dt: Optional[datetime], _info) -> Optional[str]:
+        if dt is None:
+            return None
+        return dt.isoformat() + "Z" if dt.tzinfo is None else dt.isoformat()
 
 
 class OrdenServicioDetailResponse(BaseModel):
@@ -92,6 +104,12 @@ class OrdenServicioDetailResponse(BaseModel):
     moto_marca: str
     moto_modelo: str
     moto_color: str
+
+    @field_serializer("fecha_creacion", "fecha_cierre", check_fields=False)
+    def serialize_dt(self, dt: Optional[datetime], _info) -> Optional[str]:
+        if dt is None:
+            return None
+        return dt.isoformat() + "Z" if dt.tzinfo is None else dt.isoformat()
 
 
 class MechanicAssign(BaseModel):
