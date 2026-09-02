@@ -321,12 +321,18 @@ export default {
     async confirmLogout() {
       this.showLogoutModal = false;
       this.loggingOut = true;
+      const startTime = Date.now();
       try {
         await this.authStore.logout();
-      } finally {
+      } catch (e) {
+        /* silent */
+      }
+      const elapsed = Date.now() - startTime;
+      const remaining = Math.max(0, 2500 - elapsed);
+      setTimeout(() => {
         this.loggingOut = false;
         window.location.href = "/login";
-      }
+      }, remaining);
     },
     onTouchStart(e) {
       if (!this.showMobileNav || this.swipePages.length < 2) return;
