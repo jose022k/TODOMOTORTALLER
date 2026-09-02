@@ -51,6 +51,15 @@ api.interceptors.response.use(
           )
           localStorage.setItem('access_token', data.access_token)
           localStorage.setItem('refresh_token', data.refresh_token)
+
+          // Sincronizar store de Pinia si está inicializado
+          try {
+            const { useAuthStore } = await import('@/stores/auth')
+            const authStore = useAuthStore()
+            authStore.accessToken = data.access_token
+            authStore.refreshToken = data.refresh_token
+          } catch { /* ignore */ }
+
           processQueue(null, data.access_token)
           originalRequest.headers.Authorization = `Bearer ${data.access_token}`
           return api(originalRequest)

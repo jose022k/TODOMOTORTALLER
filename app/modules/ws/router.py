@@ -24,12 +24,17 @@ async def websocket_orders(
 
         user_id = payload.get("sub")
         role = payload.get("role")
+        jti = payload.get("jti")
 
         from app.core.database import SessionLocal
+        from app.modules.auth.service import validate_active_session
         db = SessionLocal()
         try:
             user = get_user_by_id(db, user_id, role)
             if not user:
+                await websocket.close(code=4001)
+                return
+            if jti and not validate_active_session(db, user.id, role, jti):
                 await websocket.close(code=4001)
                 return
         finally:

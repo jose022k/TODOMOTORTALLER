@@ -20,24 +20,14 @@ mecanico_dao = MecanicoDAO()
 
 def check_and_create_active_session(db: Session, user_id: int, role: str) -> str:
     now = datetime.utcnow()
-    # 1. Limpiar sesiones expiradas
-    db.query(ActiveSession).filter(ActiveSession.expires_at <= now).delete()
-    db.commit()
-    
-    # 2. Verificar si ya existe una sesión activa no expirada para este usuario
-    active = db.query(ActiveSession).filter(
+    # 1. Limpiar sesiones anteriores de este usuario (cierra sesión en cualquier otro dispositivo)
+    db.query(ActiveSession).filter(
         ActiveSession.user_id == user_id,
         ActiveSession.user_role == role,
-        ActiveSession.expires_at > now
-    ).first()
+    ).delete()
+    db.commit()
     
-    if active:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Este usuario ya tiene una sesión activa en otro dispositivo. Debes cerrar sesión en ese dispositivo o esperar a que expire la sesión.",
-        )
-    
-    # 3. Registrar nueva sesión activa de 30 minutos
+    # 2. Registrar nueva sesión activa de 30 minutos
     jti = str(uuid.uuid4())
     expires_at = now + timedelta(minutes=30)
     new_session = ActiveSession(
