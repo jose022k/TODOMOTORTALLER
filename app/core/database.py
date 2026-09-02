@@ -114,6 +114,10 @@ def ensure_schema_updates():
                 expires_at TIMESTAMP NOT NULL
             )"""))
             conn.commit()
+        else:
+            # Limpiar sesiones antiguas al iniciar el servidor
+            conn.execute(text("DELETE FROM active_session"))
+            conn.commit()
 
         for table, col_def in _MIGRATIONS:
             if table not in tables:
