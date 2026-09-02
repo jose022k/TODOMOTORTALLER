@@ -897,6 +897,9 @@ export default {
     $route() {
       if (this.$route.query.order_id) {
         this.openOrderFromRoute();
+      }
+    },
+  },
   mounted() {
     this.fetchOrders();
     this.fetchCount();
