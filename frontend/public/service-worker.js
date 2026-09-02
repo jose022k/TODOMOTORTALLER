@@ -1,5 +1,5 @@
-/* Todomotortaller Production Service Worker v2 */
-const CACHE_NAME = 'todomotortaller-v2';
+/* Todomotortaller Production Service Worker v3 */
+const CACHE_NAME = 'todomotortaller-v3';
 
 self.addEventListener('install', () => {
   self.skipWaiting();
@@ -17,38 +17,25 @@ self.addEventListener('push', (event) => {
     catch { try { parsed = { title: "Todomotortaller", body: event.data.text() }; } catch { parsed = null; } }
   }
 
-  const title   = (parsed && parsed.title) || 'Todomotortaller';
-  const body    = (parsed && parsed.body)  || 'Tienes una nueva notificación';
-  const icon    = new URL((parsed && parsed.icon)  || '/img/app-icon-192.png', self.location.origin).href;
-  const badge   = new URL((parsed && parsed.badge) || '/img/app-icon-192.png', self.location.origin).href;
+  const title    = (parsed && parsed.title) || 'Todomotortaller';
+  const body     = (parsed && parsed.body)  || 'Tienes una nueva notificación';
+  const icon     = new URL((parsed && parsed.icon)  || '/img/app-icon-192.png', self.location.origin).href;
+  const badge    = new URL((parsed && parsed.badge) || '/img/app-icon-192.png', self.location.origin).href;
   const pushData = (parsed && parsed.data) || {};
-  const count   = (typeof pushData.unread_count === 'number') ? pushData.unread_count : 1;
+  const count    = (typeof pushData.unread_count === 'number') ? pushData.unread_count : 1;
 
-  // 1. Badge on home screen icon
-  const badgeP = (async () => {
+  const pushTask = (async () => {
+    // 1. Update app icon badge on PWA home screen
     try {
       if ('setAppBadge' in self)      { count > 0 ? await self.setAppBadge(count) : await self.clearAppBadge(); }
       if ('setAppBadge' in navigator) { count > 0 ? await navigator.setAppBadge(count) : await navigator.clearAppBadge(); }
     } catch { /* ignore */ }
-  })();
 
-  // 2. System notification in status bar (sound + vibration handled by OS)
-  const notifOpts = {
-    body,
-    icon,
-    badge,
-    data: pushData,
-    vibrate: [400, 150, 400, 150, 400],
-    silent: false,
-    requireInteraction: false,
-    tag: pushData.id ? 'notif-' + pushData.id : 'notif-' + Date.now(),
-    renotify: true,
-    timestamp: Date.now(),
-  };
-  const showP = self.registration.showNotification(title, notifOpts);
+    // 2. Check if user currently has an active, visible tab open
+    const wins = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    const isVisible = wins.some((w) => w.visibilityState === 'visible');
 
-  // 3. Post to ALL open windows so in-app toasts + order list refresh fires immediately
-  const clientsP = self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((wins) => {
+    // Notify open windows so live lists refresh
     for (const w of wins) {
       w.postMessage({
         type: 'PUSH_RECEIVED',
@@ -56,9 +43,27 @@ self.addEventListener('push', (event) => {
         unreadCount: count,
       });
     }
-  }).catch(() => {});
 
-  event.waitUntil(Promise.all([showP, badgeP, clientsP]));
+    // 3. Only trigger OS status bar notification if app is in BACKGROUND or SCREEN OFF
+    // (If foreground, NotificationNative.vue handles single display to avoid duplicates)
+    if (!isVisible) {
+      const notifOpts = {
+        body,
+        icon,
+        badge,
+        data: pushData,
+        vibrate: [400, 150, 400, 150, 400],
+        silent: false,
+        requireInteraction: false,
+        tag: pushData.id ? 'notif-' + pushData.id : 'notif-' + Date.now(),
+        renotify: true,
+        timestamp: Date.now(),
+      };
+      await self.registration.showNotification(title, notifOpts);
+    }
+  })();
+
+  event.waitUntil(pushTask);
 });
 
 // Notification tap → open / focus the app

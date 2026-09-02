@@ -3,7 +3,17 @@ from app.modules.preferences.models import UserPreference
 from app.modules.preferences.schemas import PreferencesResponse, PreferencesUpdate
 
 MESSAGE_TIPOS = ("mensaje_recibido", "evidencia_enviada")
-ORDER_TIPOS = ("orden_creada", "orden_en_proceso", "orden_completada", "orden_cancelada", "datos_actualizados")
+ORDER_TIPOS = (
+    "orden_creada",
+    "orden_en_proceso",
+    "orden_completada",
+    "orden_cancelada",
+    "orden_actualizada",
+    "datos_actualizados",
+    "mecanico_registrado",
+    "catalogo_actualizado",
+    "mecanico_reasignado",
+)
 
 
 def _defaults():

@@ -38,8 +38,10 @@ export const useNotificationsStore = defineStore('notifications', {
     },
     // Called when a new notification arrives via WebSocket
     onNewNotification(notif) {
-      if (!notif || this.knownIds.has(notif.id)) return false
-      this.knownIds.add(notif.id)
+      if (!notif) return false
+      const idKey = notif.id ? String(notif.id) : ('notif-temp-' + Date.now() + '-' + Math.random())
+      if (this.knownIds.has(idKey)) return false
+      this.knownIds.add(idKey)
       this.unreadCount++
       updateNativeAppBadge(this.unreadCount)
       return true // was new

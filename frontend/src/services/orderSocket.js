@@ -34,9 +34,12 @@ function onMessage(event) {
   if (event.data === 'pong') return
   try {
     const data = JSON.parse(event.data)
-    const payload = (data && data.notificacion) ? data.notificacion : data
-    window.dispatchEvent(new CustomEvent('notification-new', { detail: payload }))
-    window.dispatchEvent(new CustomEvent('order-updated', { detail: payload }))
+    if (data && data.tipo === 'notificacion_creada' && data.notificacion) {
+      window.dispatchEvent(new CustomEvent('notification-new', { detail: data.notificacion }))
+      window.dispatchEvent(new CustomEvent('order-updated', { detail: data.notificacion }))
+    } else if (data) {
+      window.dispatchEvent(new CustomEvent('order-updated', { detail: data }))
+    }
   } catch (e) {
     console.error('[WS] Parse error', e)
   }
