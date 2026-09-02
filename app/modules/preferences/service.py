@@ -58,9 +58,9 @@ def should_notify(db: Session, user_role: str, user_id: int, tipo: str) -> bool:
         return True  # Default: notify everything
 
     if tipo in MESSAGE_TIPOS:
-        return bool(pref.notify_messages)
+        return True if pref.notify_messages is None else bool(pref.notify_messages)
     if tipo in ORDER_TIPOS:
-        return bool(pref.notify_orders)
+        return True if pref.notify_orders is None else bool(pref.notify_orders)
 
     return True
 
@@ -76,8 +76,8 @@ def allowed_tipos(db: Session, user_role: str, user_id: int) -> set:
         return None  # No preference row = allow all
 
     allowed = set()
-    if pref.notify_messages:
+    if pref.notify_messages is not False:
         allowed.update(MESSAGE_TIPOS)
-    if pref.notify_orders:
+    if pref.notify_orders is not False:
         allowed.update(ORDER_TIPOS)
     return allowed
