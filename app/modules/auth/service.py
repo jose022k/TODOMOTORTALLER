@@ -188,12 +188,14 @@ def refresh_token(db: Session, token: str) -> dict:
             detail="User not found",
         )
 
-    # Verificar que la sesión no haya sido cerrada o reemplazada
-    if not validate_active_session(db, user.id, role, jti):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="La sesión ha expirado o fue cerrada en otro dispositivo.",
-        )
+    # Extender la expiración de la sesión activa en DB por 10 minutos más
+    now = datetime.utcnow()
+    expires_at = now + timedelta(minutes=10)
+    db.query(ActiveSession).filter(
+        ActiveSession.user_id == user.id,
+        ActiveSession.user_role == role
+    ).update({"expires_at": expires_at}, synchronize_session="fetch")
+    db.commit()
 
     access_token = create_access_token({"sub": str(user.id), "role": role, "jti": jti})
     new_refresh_token = create_refresh_token({"sub": str(user.id), "role": role, "jti": jti})

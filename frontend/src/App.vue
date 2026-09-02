@@ -238,8 +238,11 @@ export default {
       },
     },
     "authStore.accessToken"() {
-      this.sessionWarned60 = false;
-      this.sessionWarned30 = false;
+      this.lastActivityTime = Date.now();
+      this.sessionWarned3Min = false;
+    },
+    "$route.path"() {
+      this.onUserActivity();
     },
   },
   async created() {
@@ -253,14 +256,25 @@ export default {
       setupPush();
     }
     this._focusPushSync = () => {
-      if (this.authStore.isAuthenticated) setupPush();
+      if (this.authStore.isAuthenticated) {
+        setupPush();
+        this.onUserActivity();
+      }
     };
     window.addEventListener("focus", this._focusPushSync);
+
+    // Eventos de actividad del usuario para reiniciar el contador de 10 minutos
+    this._activityEvents = ["mousedown", "mousemove", "keypress", "scroll", "touchstart", "click"];
+    this._onActivity = () => this.onUserActivity();
+    this._activityEvents.forEach((evt) => window.addEventListener(evt, this._onActivity, { passive: true }));
   },
   beforeUnmount() {
     this.stopSessionTimer();
     if (this._focusPushSync) {
       window.removeEventListener("focus", this._focusPushSync);
+    }
+    if (this._activityEvents && this._onActivity) {
+      this._activityEvents.forEach((evt) => window.removeEventListener(evt, this._onActivity));
     }
   },
   computed: {
@@ -316,8 +330,8 @@ export default {
     return {
       showLogoutModal: false,
       loggingOut: false,
-      sessionWarned60: false,
-      sessionWarned30: false,
+      lastActivityTime: Date.now(),
+      sessionWarned3Min: false,
       sessionTimer: null,
       isDark: document.documentElement.classList.contains("dark"),
       sunIcon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>',
@@ -330,8 +344,23 @@ export default {
     };
   },
   methods: {
+    onUserActivity() {
+      if (!this.authStore.isAuthenticated) return;
+      this.lastActivityTime = Date.now();
+      this.sessionWarned3Min = false;
+
+      // Si el token tiene menos de 5 minutos de validez, renovarlo para extender ActiveSession en DB
+      const exp = getTokenExp(this.authStore.accessToken);
+      if (exp) {
+        const remaining = exp - Math.floor(Date.now() / 1000);
+        if (remaining < 300) {
+          this.authStore.refreshAccessToken().catch(() => {});
+        }
+      }
+    },
     startSessionTimer() {
       if (this.sessionTimer) return;
+      this.lastActivityTime = Date.now();
       this.sessionTimer = setInterval(() => this.checkSessionExpiration(), 2000);
     },
     stopSessionTimer() {
@@ -342,23 +371,18 @@ export default {
     },
     checkSessionExpiration() {
       if (!this.authStore.isAuthenticated || !this.authStore.accessToken) return;
-      const exp = getTokenExp(this.authStore.accessToken);
-      if (!exp) return;
 
-      const nowSec = Math.floor(Date.now() / 1000);
-      const remaining = exp - nowSec;
+      const nowMs = Date.now();
+      const inactiveSec = Math.floor((nowMs - this.lastActivityTime) / 1000);
 
-      if (remaining <= 60 && remaining > 30 && !this.sessionWarned60) {
-        this.sessionWarned60 = true;
-        this.notifySessionWarning("Tu sesión expirará en 1 minuto");
+      // Notificar inactividad a los 3 minutos (180s)
+      if (inactiveSec >= 180 && inactiveSec < 600 && !this.sessionWarned3Min) {
+        this.sessionWarned3Min = true;
+        this.notifySessionWarning("⚠️ Inactividad detectada: Tu sesión se cerrará en breve si no realizas ninguna acción");
       }
 
-      if (remaining <= 30 && remaining > 0 && !this.sessionWarned30) {
-        this.sessionWarned30 = true;
-        this.notifySessionWarning("Tu sesión expirará en 30 segundos");
-      }
-
-      if (remaining <= 0) {
+      // Cerrar sesión tras 10 minutos (600s) de inactividad total
+      if (inactiveSec >= 600) {
         this.stopSessionTimer();
         this.authStore.logout();
         window.location.href = "/login";
