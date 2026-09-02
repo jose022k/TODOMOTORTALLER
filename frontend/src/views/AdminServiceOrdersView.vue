@@ -886,27 +886,10 @@ export default {
     this.fetchClients();
     this.fetchMechanics();
     this.fetchCatalog();
+    this.fetchTasa();
     this.openOrderFromRoute();
     orderSocket.enable();
     window.addEventListener("order-updated", this.onOrderUpdated);
-  },
-  beforeUnmount() {
-    window.removeEventListener("order-updated", this.onOrderUpdated);
-  },
-  watch: {
-    $route() {
-      if (this.$route.query.order_id) {
-        this.openOrderFromRoute();
-      }
-    },
-  },
-  mounted() {
-    this.fetchOrders();
-    this.fetchCount();
-    this.fetchCatalog();
-    this.fetchClients();
-    this.fetchMechanics();
-    this.fetchTasa();
 
     this._onNotifRefresh = (e) => {
       const detail = (e && e.detail) || {};
@@ -922,9 +905,17 @@ export default {
     window.addEventListener("notification-new", this._onNotifRefresh);
   },
   beforeUnmount() {
+    window.removeEventListener("order-updated", this.onOrderUpdated);
     if (this._onNotifRefresh) {
       window.removeEventListener("notification-new", this._onNotifRefresh);
     }
+  },
+  watch: {
+    $route() {
+      if (this.$route.query.order_id) {
+        this.openOrderFromRoute();
+      }
+    },
   },
 };
 </script>
