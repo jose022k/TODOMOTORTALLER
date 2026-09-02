@@ -1,6 +1,21 @@
 import { defineStore } from 'pinia'
 import api from '../services/api'
 
+function isTokenExpired(token) {
+  if (!token) return true
+  try {
+    const parts = token.split('.')
+    if (parts.length < 2) return true
+    const payloadBase64 = parts[1].replace(/-/g, '+').replace(/_/g, '/')
+    const decodedJson = atob(payloadBase64)
+    const decoded = JSON.parse(decodedJson)
+    if (!decoded.exp) return false
+    return Date.now() >= decoded.exp * 1000 - 3000
+  } catch {
+    return true
+  }
+}
+
 export const useAuthStore = defineStore('auth', {
   state: () => ({
     user: JSON.parse(localStorage.getItem('user_data') || 'null'),
@@ -8,7 +23,15 @@ export const useAuthStore = defineStore('auth', {
     refreshToken: localStorage.getItem('refresh_token') || null,
   }),
   getters: {
-    isAuthenticated: (state) => !!state.accessToken,
+    isAuthenticated: (state) => {
+      if (!state.accessToken) return false
+      if (isTokenExpired(state.accessToken)) {
+        if (!state.refreshToken || isTokenExpired(state.refreshToken)) {
+          return false
+        }
+      }
+      return true
+    },
     isAdmin: (state) => state.user?.rol === 'admin',
     isMecanico: (state) => state.user?.rol === 'mecanico',
     isCliente: (state) => state.user?.rol === 'cliente',
@@ -55,7 +78,10 @@ export const useAuthStore = defineStore('auth', {
       localStorage.removeItem('user_data')
     },
     async refreshAccessToken() {
-      if (!this.refreshToken) return
+      if (!this.refreshToken || isTokenExpired(this.refreshToken)) {
+        await this.logout()
+        return
+      }
       try {
         const { data } = await api.post('/auth/refresh', {
           refresh_token: this.refreshToken,
@@ -65,7 +91,7 @@ export const useAuthStore = defineStore('auth', {
         localStorage.setItem('access_token', data.access_token)
         localStorage.setItem('refresh_token', data.refresh_token)
       } catch {
-        this.logout()
+        await this.logout()
       }
     },
   },

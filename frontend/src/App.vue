@@ -318,14 +318,15 @@ export default {
     handleLogout() {
       this.showLogoutModal = true;
     },
-    confirmLogout() {
+    async confirmLogout() {
       this.showLogoutModal = false;
       this.loggingOut = true;
-      setTimeout(() => {
-        this.authStore.logout();
+      try {
+        await this.authStore.logout();
+      } finally {
         this.loggingOut = false;
-        this.$router.push("/login");
-      }, 3000);
+        window.location.href = "/login";
+      }
     },
     onTouchStart(e) {
       if (!this.showMobileNav || this.swipePages.length < 2) return;

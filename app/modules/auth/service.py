@@ -36,9 +36,9 @@ def check_and_create_active_session(db: Session, user_id: int, role: str) -> str
             detail="Este usuario ya tiene una sesión activa en otro dispositivo. Debes cerrar sesión en ese dispositivo o esperar a que expire la sesión.",
         )
     
-    # 3. Registrar nueva sesión activa de 5 horas
+    # 3. Registrar nueva sesión activa de 10 minutos
     jti = str(uuid.uuid4())
-    expires_at = now + timedelta(hours=5)
+    expires_at = now + timedelta(minutes=10)
     new_session = ActiveSession(
         user_id=user_id,
         user_role=role,
