@@ -854,6 +854,8 @@ html.dark .spinner { border-color: #334155; border-top-color: #ffaa00; }
   }
 
   .app-header,
+  .pwa-header,
+  .pwa-header-title,
   .app-nav,
   .logo,
   .nav-icon-btn,
@@ -864,6 +866,10 @@ html.dark .spinner { border-color: #334155; border-top-color: #ffaa00; }
   .notif-badge,
   .notif-dropdown,
   .pwa-bottom-nav,
+  .pwa-nav-item,
+  .notif-perm-banner,
+  .in-app-toast-container,
+  .native-notifier,
   .admin-panel .welcome-section,
   .admin-panel .dashboard-grid,
   .chat-overlay,
@@ -872,6 +878,12 @@ html.dark .spinner { border-color: #334155; border-top-color: #ffaa00; }
   .highlight-card,
   .loading-state {
     display: none !important;
+  }
+
+  .pwa-mode, .pwa-main {
+    padding: 0 !important;
+    margin: 0 !important;
+    background: #ffffff !important;
   }
 
   .reports-page, html.dark .reports-page {
