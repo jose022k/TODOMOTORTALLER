@@ -202,20 +202,6 @@ import SplashScreen from "@/components/SplashScreen.vue";
 import { setupPush } from "@/services/push";
 import orderSocket from "@/services/orderSocket";
 
-function getTokenExp(token) {
-  if (!token) return 0;
-  try {
-    const parts = token.split('.');
-    if (parts.length < 2) return 0;
-    const payloadBase64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
-    const decodedJson = atob(payloadBase64);
-    const decoded = JSON.parse(decodedJson);
-    return decoded.exp || 0;
-  } catch {
-    return 0;
-  }
-}
-
 export default {
   name: "App",
   components: { NotificationsDropdown, SettingsDropdown, ConfirmModal, LoadingOverlay, NotificationNative, SplashScreen },
