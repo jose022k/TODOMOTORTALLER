@@ -55,14 +55,12 @@ def validate_active_session(db: Session, user_id: int, role: str, jti: str = Non
     db.query(ActiveSession).filter(ActiveSession.expires_at <= now).delete()
     db.commit()
 
-    query = db.query(ActiveSession).filter(
+    active = db.query(ActiveSession).filter(
         ActiveSession.user_id == user_id,
         ActiveSession.user_role == role,
         ActiveSession.expires_at > now
-    )
-    if jti:
-        query = query.filter(ActiveSession.token_jti == jti)
-    return query.first() is not None
+    ).first()
+    return active is not None
 
 
 def find_user_by_email(db: Session, email: str):

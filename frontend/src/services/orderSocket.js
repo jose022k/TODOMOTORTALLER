@@ -1,10 +1,11 @@
-const RECONNECT_DELAY = 3000
-const PING_INTERVAL = 25000
+const RECONNECT_DELAY = 5000
+const MAX_RECONNECT_ATTEMPTS = 5
 
 let ws = null
 let reconnectTimer = null
 let pingTimer = null
 let enabled = false
+let reconnectAttempts = 0
 
 function getWebSocketUrl() {
   const token = localStorage.getItem('access_token')
@@ -15,17 +16,25 @@ function getWebSocketUrl() {
 }
 
 function onOpen() {
+  reconnectAttempts = 0
   clearInterval(pingTimer)
   pingTimer = setInterval(() => {
     if (ws && ws.readyState === WebSocket.OPEN) {
       ws.send('ping')
     }
-  }, PING_INTERVAL)
+  }, 25000)
 }
 
-function onClose() {
+function onClose(event) {
   clearInterval(pingTimer)
-  if (enabled) {
+  // Code 4001 means auth rejected by backend → do NOT attempt infinite reconnect loop with same stale token!
+  if (event && event.code === 4001) {
+    enabled = false
+    return
+  }
+  if (enabled && reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+    reconnectAttempts++
+    clearTimeout(reconnectTimer)
     reconnectTimer = setTimeout(doConnect, RECONNECT_DELAY)
   }
 }
@@ -41,12 +50,15 @@ function onMessage(event) {
       window.dispatchEvent(new CustomEvent('order-updated', { detail: data }))
     }
   } catch (e) {
-    console.error('[WS] Parse error', e)
+    /* ignore parse error */
   }
 }
 
 function doConnect() {
   if (!enabled) return
+  if (ws && (ws.readyState === WebSocket.CONNECTING || ws.readyState === WebSocket.OPEN)) {
+    return
+  }
   const url = getWebSocketUrl()
   if (!url) return
   try {
@@ -56,18 +68,24 @@ function doConnect() {
     ws.onmessage = onMessage
     ws.onerror = () => {}
   } catch (e) {
-    reconnectTimer = setTimeout(doConnect, RECONNECT_DELAY)
+    if (enabled && reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+      reconnectAttempts++
+      clearTimeout(reconnectTimer)
+      reconnectTimer = setTimeout(doConnect, RECONNECT_DELAY)
+    }
   }
 }
 
 function enable() {
-  if (enabled) return
+  if (enabled && ws && (ws.readyState === WebSocket.CONNECTING || ws.readyState === WebSocket.OPEN)) return
   enabled = true
+  reconnectAttempts = 0
   doConnect()
 }
 
 function disable() {
   enabled = false
+  reconnectAttempts = 0
   clearTimeout(reconnectTimer)
   clearInterval(pingTimer)
   if (ws) {
@@ -78,16 +96,10 @@ function disable() {
 }
 
 function reconnect() {
-  if (ws) {
-    ws.onclose = null
-    ws.close()
-    ws = null
-  }
-  clearTimeout(reconnectTimer)
-  clearInterval(pingTimer)
-  if (enabled) {
-    doConnect()
-  }
+  disable()
+  enabled = true
+  reconnectAttempts = 0
+  doConnect()
 }
 
 export default { enable, disable, reconnect }
