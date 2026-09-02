@@ -211,7 +211,7 @@ export default {
       const notif = event.detail;
       if (!notif) return;
 
-      // Session warnings bypass deduplication: always show toast + sound
+      // Session warnings: always show toast on ALL screens + sound, skip deduplication
       const isSessionAlert = notif.tipo === "sistema" || (notif.id && String(notif.id).startsWith("session-warn"));
       if (isSessionAlert) {
         playNotifSound();
@@ -223,13 +223,18 @@ export default {
       const isNew = this.notifStore.onNewNotification(notif);
       if (!isNew) return;
 
-      // Play sound
+      // Play sound always (mobile + desktop)
       playNotifSound();
 
-      // Show in-app toast on ALL screens (mobile, PWA, desktop)
-      this.showInAppToast(notif);
+      // In-app toast ONLY on mobile/PWA — on desktop the native OS notification is enough
+      const isMobileOrPwa = window.innerWidth <= 900
+        || window.matchMedia("(display-mode: standalone)").matches
+        || (window.navigator && window.navigator.standalone === true);
+      if (isMobileOrPwa) {
+        this.showInAppToast(notif);
+      }
 
-      // Show native browser OS notification (bottom right box on PC, top banner on mobile)
+      // Native OS notification: bottom-right popup on desktop, top status bar on Android
       await this.showNativeNotification(notif);
     },
 

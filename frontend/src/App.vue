@@ -245,9 +245,12 @@ export default {
         this.sessionWarned7Min = false;
         this.sessionWarned9Min = false;
         if (!this.sessionTimer) this.startSessionTimer();
+        orderSocket.enable();
+        setupPush();
       } else {
-        // Token gone → stop the timer (logout already happened)
+        // Token gone → stop the timer and disconnect (logout already happened)
         this.stopSessionTimer();
+        orderSocket.disable();
       }
     },
     "$route.path"() {
@@ -263,14 +266,32 @@ export default {
     if (this.authStore.isAuthenticated) {
       this.startSessionTimer();
       setupPush();
+      // Enable global WebSocket so ALL views get real-time updates
+      orderSocket.enable();
     }
     this._focusPushSync = () => {
       if (this.authStore.isAuthenticated) {
         setupPush();
+        orderSocket.reconnect();
         this.onUserActivity();
       }
     };
     window.addEventListener("focus", this._focusPushSync);
+
+    // Listen for Service Worker → client messages (push received while page visible)
+    if ("serviceWorker" in navigator) {
+      this._swMsgHandler = (msgEvent) => {
+        if (!msgEvent.data) return;
+        const msgType = msgEvent.data.type;
+        if (msgType === "PUSH_RECEIVED" || msgType === "PLAY_NOTIFICATION_SOUND" || msgType === "PUSH_NOTIFICATION") {
+          const payload = msgEvent.data.data || {};
+          // Dispatch both events so views refresh and sound plays
+          window.dispatchEvent(new CustomEvent("notification-new", { detail: payload }));
+          window.dispatchEvent(new CustomEvent("order-updated", { detail: payload }));
+        }
+      };
+      navigator.serviceWorker.addEventListener("message", this._swMsgHandler);
+    }
 
     // Eventos de actividad del usuario para reiniciar el contador de 10 minutos
     this._activityEvents = ["mousedown", "mousemove", "keypress", "scroll", "touchstart", "click"];
@@ -279,11 +300,15 @@ export default {
   },
   beforeUnmount() {
     this.stopSessionTimer();
+    orderSocket.disable();
     if (this._focusPushSync) {
       window.removeEventListener("focus", this._focusPushSync);
     }
     if (this._activityEvents && this._onActivity) {
       this._activityEvents.forEach((evt) => window.removeEventListener(evt, this._onActivity));
+    }
+    if (this._swMsgHandler && "serviceWorker" in navigator) {
+      navigator.serviceWorker.removeEventListener("message", this._swMsgHandler);
     }
   },
   computed: {

@@ -65,10 +65,15 @@ self.addEventListener('push', (event) => {
 
   const showNotifPromise = self.registration.showNotification(title, notifOptions);
 
-  // 3. Post message to any open window tabs for in-app sound & store sync
+  // 3. Post message to any open window tabs for in-app sound, store sync & instant list refresh
   const notifyClientsPromise = self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
     for (const client of windowClients) {
-      client.postMessage({ type: 'PLAY_NOTIFICATION_SOUND', data: pushData, unreadCount: count });
+      // PUSH_RECEIVED triggers notification-new and order-updated in App.vue
+      client.postMessage({
+        type: 'PUSH_RECEIVED',
+        data: { ...(parsed || {}), ...pushData },
+        unreadCount: count,
+      });
     }
   }).catch(() => {});
 
