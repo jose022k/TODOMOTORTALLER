@@ -47,6 +47,13 @@ export default {
   },
   mounted() {
     this.fetchData();
+    this._onNotif = () => this.fetchData();
+    window.addEventListener("notification-new", this._onNotif);
+  },
+  beforeUnmount() {
+    if (this._onNotif) {
+      window.removeEventListener("notification-new", this._onNotif);
+    }
   },
   methods: {
     async fetchData() {

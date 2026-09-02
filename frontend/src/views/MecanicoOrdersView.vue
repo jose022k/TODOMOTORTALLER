@@ -341,9 +341,11 @@ export default {
     this.openOrderFromRoute();
     orderSocket.enable();
     window.addEventListener("order-updated", this.onOrderUpdated);
+    window.addEventListener("notification-new", this.onOrderUpdated);
   },
   beforeUnmount() {
     window.removeEventListener("order-updated", this.onOrderUpdated);
+    window.removeEventListener("notification-new", this.onOrderUpdated);
   },
   watch: {
     $route() {

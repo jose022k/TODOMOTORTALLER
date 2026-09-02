@@ -897,8 +897,31 @@ export default {
     $route() {
       if (this.$route.query.order_id) {
         this.openOrderFromRoute();
+  mounted() {
+    this.fetchOrders();
+    this.fetchCount();
+    this.fetchCatalog();
+    this.fetchClients();
+    this.fetchMechanics();
+    this.fetchTasa();
+
+    this._onNotifRefresh = (e) => {
+      const detail = (e && e.detail) || {};
+      const orderTypes = ["orden_creada", "orden_en_proceso", "orden_completada", "orden_cancelada", "orden_actualizada"];
+      if (!detail.tipo || orderTypes.includes(detail.tipo) || detail.orden_servicio_id) {
+        this.fetchOrders();
+        this.fetchCount();
+        if (this.showChatModal && this.chatOrdenId) {
+          this.loadChatMessages(this.chatOrdenId);
+        }
       }
-    },
+    };
+    window.addEventListener("notification-new", this._onNotifRefresh);
+  },
+  beforeUnmount() {
+    if (this._onNotifRefresh) {
+      window.removeEventListener("notification-new", this._onNotifRefresh);
+    }
   },
 };
 </script>
