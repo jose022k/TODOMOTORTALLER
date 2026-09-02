@@ -5,6 +5,7 @@ from app.modules.auth.schemas import UserUpdate
 from app.modules.auth.utils import hash_password
 from app.modules.users.schemas import ClienteDetailResponse, ClienteResponse, ClienteSummary, MotoAsociada
 from app.modules.notifications.service import create_notification
+from app.modules.auth.models import Admin
 
 cliente_dao = ClienteDAO()
 mecanico_dao = MecanicoDAO()
@@ -85,6 +86,9 @@ def update_client(db: Session, client_id: int, data: dict):
     updated = cliente_dao.update(db, cliente, data)
     setattr(updated, "rol", "cliente")
     create_notification(db, "datos_actualizados", "Tus datos han sido actualizados por el administrador", cliente_id=client_id)
+    admin_ids = [a.id for a in db.query(Admin.id).all()]
+    for aid in admin_ids:
+        create_notification(db, "datos_actualizados", f"Se actualizaron los datos del cliente '{updated.nombre}'", admin_id=aid)
     return updated
 
 
@@ -134,6 +138,9 @@ def update_mechanic(db: Session, mechanic_id: int, data: dict):
     updated = mecanico_dao.update(db, mecanico, data)
     setattr(updated, "rol", "mecanico")
     create_notification(db, "datos_actualizados", "Tus datos han sido actualizados por el administrador", mecanico_id=mechanic_id)
+    admin_ids = [a.id for a in db.query(Admin.id).all()]
+    for aid in admin_ids:
+        create_notification(db, "datos_actualizados", f"Se actualizaron los datos del mecánico '{updated.nombre}'", admin_id=aid)
     return updated
 
 
@@ -171,4 +178,7 @@ def register_mecanico(db: Session, nombre: str, email: str, password: str):
     }
     user = mecanico_dao.create(db, user_data)
     setattr(user, "rol", "mecanico")
+    admin_ids = [a.id for a in db.query(Admin.id).all()]
+    for aid in admin_ids:
+        create_notification(db, "mecanico_registrado", f"Nuevo mecánico registrado: {nombre}", admin_id=aid)
     return user

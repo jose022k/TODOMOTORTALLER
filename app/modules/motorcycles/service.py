@@ -4,6 +4,8 @@ from sqlalchemy.exc import IntegrityError
 from app.core.cloudinary import upload_image
 from app.modules.motorcycles.dao import CatalogoMotoDAO, MarcaDAO
 from app.modules.motorcycles.schemas import CatalogoMotoCreate, CatalogoMotoUpdate
+from app.modules.notifications.service import create_notification
+from app.modules.auth.models import Admin
 
 catalogo_dao = CatalogoMotoDAO()
 marca_dao = MarcaDAO()
@@ -31,7 +33,11 @@ def create_brand(db: Session, nombre: str, logo_file):
             detail="Ya existe una marca con ese nombre"
         )
     logo_url = upload_image(logo_file, folder="logos_marcas")
-    return marca_dao.create(db, {"nombre": nombre, "logo_url": logo_url})
+    brand = marca_dao.create(db, {"nombre": nombre, "logo_url": logo_url})
+    admin_ids = [a.id for a in db.query(Admin.id).all()]
+    for aid in admin_ids:
+        create_notification(db, "catalogo_actualizado", f"Nueva marca agregada al catálogo: {nombre}", admin_id=aid)
+    return brand
 
 
 def get_catalog_item_by_id(db: Session, item_id: int):
@@ -53,7 +59,11 @@ def create_catalog_item(db: Session, data: CatalogoMotoCreate):
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Ya existe un modelo de moto en el catálogo con la misma marca, modelo y gama de color"
         )
-    return catalogo_dao.create(db, data)
+    item = catalogo_dao.create(db, data)
+    admin_ids = [a.id for a in db.query(Admin.id).all()]
+    for aid in admin_ids:
+        create_notification(db, "catalogo_actualizado", f"Nuevo modelo agregado al catálogo: {data.marca} {data.modelo}", admin_id=aid)
+    return item
 
 
 def update_catalog_item(db: Session, item_id: int, data: CatalogoMotoUpdate):

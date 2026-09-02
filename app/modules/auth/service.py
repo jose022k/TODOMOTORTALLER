@@ -37,9 +37,9 @@ def check_and_create_active_session(db: Session, user_id: int, role: str) -> str
             detail="Este usuario ya tiene una sesión activa en otro dispositivo. Debes cerrar sesión en ese dispositivo o esperar a que expire la sesión.",
         )
     
-    # 3. Registrar nueva sesión activa de 10 minutos
+    # 3. Registrar nueva sesión activa de 30 minutos
     jti = str(uuid.uuid4())
-    expires_at = now + timedelta(minutes=10)
+    expires_at = now + timedelta(minutes=30)
     new_session = ActiveSession(
         user_id=user_id,
         user_role=role,
@@ -188,9 +188,9 @@ def refresh_token(db: Session, token: str) -> dict:
             detail="User not found",
         )
 
-    # Extender la expiración de la sesión activa en DB por 10 minutos más
+    # Extender la expiración de la sesión activa en DB por 30 minutos más
     now = datetime.utcnow()
-    expires_at = now + timedelta(minutes=10)
+    expires_at = now + timedelta(minutes=30)
     db.query(ActiveSession).filter(
         ActiveSession.user_id == user.id,
         ActiveSession.user_role == role

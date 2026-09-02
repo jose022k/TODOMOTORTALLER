@@ -402,11 +402,11 @@ export default {
       this.sessionWarned7Min = false;
       this.sessionWarned9Min = false;
 
-      // Si el token tiene menos de 5 minutos de validez, renovarlo para extender ActiveSession en DB
+      // Si el token tiene menos de 10 minutos de validez, renovarlo para extender ActiveSession en DB
       const exp = getTokenExp(this.authStore.accessToken);
       if (exp) {
         const remaining = exp - Math.floor(Date.now() / 1000);
-        if (remaining < 300) {
+        if (remaining < 600) {
           this.authStore.refreshAccessToken().catch(() => {});
         }
       }
@@ -428,29 +428,29 @@ export default {
       const nowMs = Date.now();
       const inactiveSec = Math.floor((nowMs - this.lastActivityTime) / 1000);
 
-      // Primer aviso: 3 minutos de inactividad
-      if (inactiveSec >= 180 && inactiveSec < 420 && !this.sessionWarned3Min) {
+      // Primer aviso: 15 minutos de inactividad
+      if (inactiveSec >= 900 && inactiveSec < 1500 && !this.sessionWarned3Min) {
         this.sessionWarned3Min = true;
-        this.notifySessionWarning("⚠️ Inactividad detectada: Tu sesión se cerrará automáticamente si no realizas ninguna acción en los próximos 7 minutos");
+        this.notifySessionWarning("⚠️ Inactividad detectada: Tu sesión se cerrará automáticamente en 15 minutos si no realizas ninguna acción");
       }
 
-      // Segundo aviso: 7 minutos de inactividad (3 minutos antes del cierre)
-      if (inactiveSec >= 420 && inactiveSec < 540 && !this.sessionWarned7Min) {
+      // Segundo aviso: 25 minutos de inactividad (5 minutos antes del cierre)
+      if (inactiveSec >= 1500 && inactiveSec < 1740 && !this.sessionWarned7Min) {
         this.sessionWarned7Min = true;
-        this.notifySessionWarning("🔴 ¡Atención! Tu sesión se cerrará en menos de 3 minutos por inactividad. Muévete en la app para mantenerla activa");
+        this.notifySessionWarning("🔴 ¡Atención! Tu sesión se cerrará en 5 minutos por inactividad. Muévete en la app para mantenerla activa");
       }
 
-      // Tercer aviso: 9 minutos (1 minuto antes del cierre)
-      if (inactiveSec >= 540 && inactiveSec < 600 && !this.sessionWarned9Min) {
+      // Tercer aviso: 29 minutos de inactividad (1 minuto antes del cierre)
+      if (inactiveSec >= 1740 && inactiveSec < 1800 && !this.sessionWarned9Min) {
         this.sessionWarned9Min = true;
         this.notifySessionWarning("🚨 Tu sesión se cerrará en 1 MINUTO por inactividad");
       }
 
-      // Cerrar sesión tras 10 minutos (600s) de inactividad total
-      if (inactiveSec >= 600) {
+      // Cerrar sesión tras 30 minutos (1800s) de inactividad total
+      if (inactiveSec >= 1800) {
         this.stopSessionTimer();
         // Notify user of forced logout
-        this.notifySessionWarning("🔒 Tu sesión fue cerrada por inactividad. Vuelve a iniciar sesión.");
+        this.notifySessionWarning("🔒 Tu sesión fue cerrada por inactividad (30 minutos). Vuelve a iniciar sesión.");
         // Give toast a moment to render, then logout & redirect
         setTimeout(async () => {
           await this.authStore.logout();
