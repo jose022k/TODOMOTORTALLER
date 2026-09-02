@@ -237,9 +237,18 @@ export default {
         }
       },
     },
-    "authStore.accessToken"() {
-      this.lastActivityTime = Date.now();
-      this.sessionWarned3Min = false;
+    "authStore.accessToken"(newToken) {
+      if (newToken) {
+        // Only reset timer when a NEW token arrives (login / token refresh)
+        this.lastActivityTime = Date.now();
+        this.sessionWarned3Min = false;
+        this.sessionWarned7Min = false;
+        this.sessionWarned9Min = false;
+        if (!this.sessionTimer) this.startSessionTimer();
+      } else {
+        // Token gone → stop the timer (logout already happened)
+        this.stopSessionTimer();
+      }
     },
     "$route.path"() {
       this.onUserActivity();
@@ -400,8 +409,13 @@ export default {
       // Cerrar sesión tras 10 minutos (600s) de inactividad total
       if (inactiveSec >= 600) {
         this.stopSessionTimer();
-        this.authStore.logout();
-        window.location.href = "/login";
+        // Notify user of forced logout
+        this.notifySessionWarning("🔒 Tu sesión fue cerrada por inactividad. Vuelve a iniciar sesión.");
+        // Give toast a moment to render, then logout & redirect
+        setTimeout(async () => {
+          await this.authStore.logout();
+          window.location.replace("/login");
+        }, 1200);
       }
     },
     notifySessionWarning(mensaje) {

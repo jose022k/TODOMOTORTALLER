@@ -15,26 +15,32 @@
       </div>
     </div>
 
-    <!-- In-App Toasts (shown in mobile/PWA views) -->
+    <!-- In-App Toasts (shown on all screens: mobile, PWA and desktop) -->
     <div class="in-app-toast-container">
       <transition-group name="toast-list" tag="div">
         <div
           v-for="toast in activeToasts"
-          :key="toast.id"
+          :key="toast._toastId"
           class="in-app-toast"
+          :class="{ 'toast--session': toast.tipo === 'sistema' }"
           @click="handleToastClick(toast)"
         >
           <div class="toast-icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg v-if="toast.tipo !== 'sistema'" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
               <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
             </svg>
+            <svg v-else width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="12"/>
+              <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
           </div>
           <div class="toast-content">
-            <div class="toast-title">Todomotortaller</div>
+            <div class="toast-title">{{ toast.tipo === 'sistema' ? 'Sesión' : 'Todomotortaller' }}</div>
             <div class="toast-body">{{ toast.mensaje }}</div>
           </div>
-          <button class="toast-close" @click.stop="removeToast(toast.id)">&times;</button>
+          <button class="toast-close" @click.stop="removeToast(toast._toastId)">&times;</button>
         </div>
       </transition-group>
     </div>
@@ -220,11 +226,8 @@ export default {
       // Play sound
       playNotifSound();
 
-      // Show in-app toast on mobile/PWA
-      const isMobile = window.innerWidth <= 768 || (typeof window !== "undefined" && window.navigator && window.navigator.standalone);
-      if (isMobile) {
-        this.showInAppToast(notif);
-      }
+      // Show in-app toast on ALL screens (mobile, PWA, desktop)
+      this.showInAppToast(notif);
 
       // Show native browser OS notification (bottom right box on PC, top banner on mobile)
       await this.showNativeNotification(notif);
@@ -382,6 +385,16 @@ export default {
 }
 .toast-close:hover { color: #fff; }
 
+.toast--session {
+  border-left-color: #ef4444;
+  background: #1f1010;
+}
+.toast--session .toast-icon {
+  color: #ef4444;
+}
+.toast--session .toast-title {
+  color: #fca5a5;
+}
 /* Transitions */
 .toast-list-enter-active { transition: all 0.35s cubic-bezier(.25,.8,.25,1); }
 .toast-list-leave-active { transition: all 0.25s ease; }
