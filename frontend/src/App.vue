@@ -202,6 +202,20 @@ import SplashScreen from "@/components/SplashScreen.vue";
 import { setupPush } from "@/services/push";
 import orderSocket from "@/services/orderSocket";
 
+function getTokenExp(token) {
+  if (!token) return 0;
+  try {
+    const parts = token.split('.');
+    if (parts.length < 2) return 0;
+    const payloadBase64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    const decodedJson = atob(payloadBase64);
+    const decoded = JSON.parse(decodedJson);
+    return decoded.exp || 0;
+  } catch {
+    return 0;
+  }
+}
+
 export default {
   name: "App",
   components: { NotificationsDropdown, SettingsDropdown, ConfirmModal, LoadingOverlay, NotificationNative, SplashScreen },
@@ -217,8 +231,15 @@ export default {
         if (val) {
           orderSocket.enable();
           setTimeout(() => setupPush(), 1000);
+          this.startSessionTimer();
+        } else {
+          this.stopSessionTimer();
         }
       },
+    },
+    "authStore.accessToken"() {
+      this.sessionWarned60 = false;
+      this.sessionWarned30 = false;
     },
   },
   async created() {
@@ -227,8 +248,12 @@ export default {
     }
   },
   mounted() {
+    if (this.authStore.isAuthenticated) {
+      this.startSessionTimer();
+    }
   },
   beforeUnmount() {
+    this.stopSessionTimer();
   },
   computed: {
     homeRoute() {
@@ -283,6 +308,9 @@ export default {
     return {
       showLogoutModal: false,
       loggingOut: false,
+      sessionWarned60: false,
+      sessionWarned30: false,
+      sessionTimer: null,
       isDark: document.documentElement.classList.contains("dark"),
       sunIcon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>',
       moonIcon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>',
@@ -294,6 +322,51 @@ export default {
     };
   },
   methods: {
+    startSessionTimer() {
+      if (this.sessionTimer) return;
+      this.sessionTimer = setInterval(() => this.checkSessionExpiration(), 2000);
+    },
+    stopSessionTimer() {
+      if (this.sessionTimer) {
+        clearInterval(this.sessionTimer);
+        this.sessionTimer = null;
+      }
+    },
+    checkSessionExpiration() {
+      if (!this.authStore.isAuthenticated || !this.authStore.accessToken) return;
+      const exp = getTokenExp(this.authStore.accessToken);
+      if (!exp) return;
+
+      const nowSec = Math.floor(Date.now() / 1000);
+      const remaining = exp - nowSec;
+
+      if (remaining <= 60 && remaining > 30 && !this.sessionWarned60) {
+        this.sessionWarned60 = true;
+        this.notifySessionWarning("Tu sesión expirará en 1 minuto");
+      }
+
+      if (remaining <= 30 && remaining > 0 && !this.sessionWarned30) {
+        this.sessionWarned30 = true;
+        this.notifySessionWarning("Tu sesión expirará en 30 segundos");
+      }
+
+      if (remaining <= 0) {
+        this.stopSessionTimer();
+        this.authStore.logout();
+        window.location.href = "/login";
+      }
+    },
+    notifySessionWarning(mensaje) {
+      window.dispatchEvent(
+        new CustomEvent("notification-new", {
+          detail: {
+            id: "session-warn-" + Date.now(),
+            mensaje,
+            tipo: "sistema",
+          },
+        })
+      );
+    },
     isRouteActive(targetPath) {
       const current = this.$route.path;
       if (targetPath === '/admin') return current === '/admin';
