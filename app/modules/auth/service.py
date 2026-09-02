@@ -83,15 +83,20 @@ def find_user_by_nombre(db: Session, nombre: str):
     return None
 
 
-def get_user_by_id_and_role(db: Session, user_id: str, role: str):
+def get_user_by_id_and_role(db: Session, user_id, role: str):
+    try:
+        uid = int(user_id)
+    except (ValueError, TypeError):
+        return None, None
+
     if role == "admin":
-        user = admin_dao.get_by_id(db, user_id)
+        user = admin_dao.get_by_id(db, uid)
         dao = admin_dao
     elif role == "mecanico":
-        user = mecanico_dao.get_by_id(db, user_id)
+        user = mecanico_dao.get_by_id(db, uid)
         dao = mecanico_dao
     elif role == "cliente":
-        user = cliente_dao.get_by_id(db, user_id)
+        user = cliente_dao.get_by_id(db, uid)
         dao = cliente_dao
     else:
         return None, None
@@ -194,13 +199,8 @@ def refresh_token(db: Session, token: str) -> dict:
     }
 
 
-def get_user_by_id(db: Session, user_id: str, role: str):
+def get_user_by_id(db: Session, user_id, role: str):
     user, _ = get_user_by_id_and_role(db, user_id, role)
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found",
-        )
     return user
 
 
