@@ -60,40 +60,44 @@ self.addEventListener("push", (event) => {
   const unreadCount = (pushData && typeof pushData.unread_count === "number") ? pushData.unread_count : null;
   const count = (unreadCount !== null && unreadCount !== undefined) ? unreadCount : 1;
 
-  // Update PWA home screen icon badge in top-right corner
-  try {
-    if (typeof navigator !== "undefined" && "setAppBadge" in navigator) {
-      if (count > 0) navigator.setAppBadge(count).catch(() => {});
-      else if ("clearAppBadge" in navigator) navigator.clearAppBadge().catch(() => {});
-    }
-    if ("setAppBadge" in self) {
-      if (count > 0) self.setAppBadge(count).catch(() => {});
-      else if ("clearAppBadge" in self) self.clearAppBadge().catch(() => {});
-    }
-  } catch (e) { /* silent */ }
+  // 1. Update PWA home screen icon badge in top-right corner
+  const badgePromise = (async () => {
+    try {
+      if (typeof navigator !== "undefined" && "setAppBadge" in navigator) {
+        if (count > 0) await navigator.setAppBadge(count);
+        else if ("clearAppBadge" in navigator) await navigator.clearAppBadge();
+      } else if ("setAppBadge" in self) {
+        if (count > 0) await self.setAppBadge(count);
+        else if ("clearAppBadge" in self) await self.clearAppBadge();
+      }
+    } catch (e) { /* silent */ }
+  })();
 
+  // 2. System notification in Android top status bar
   const notifOptions = {
     body,
     icon,
     badge,
     data: pushData,
-    vibrate: [200, 100, 200],
+    vibrate: [300, 100, 300, 100, 300],
     silent: false,
     requireInteraction: true,
     tag: pushData.id ? "notif-" + pushData.id : "notif-" + Date.now(),
     renotify: true,
+    timestamp: Date.now(),
     actions: pushData.url ? [{ action: "open", title: "Ver" }] : [],
   };
 
   const showNotifPromise = self.registration.showNotification(title, notifOptions);
 
+  // 3. Notify open window clients for in-app sound
   const notifyClientsPromise = clients.matchAll({ type: "window", includeUncontrolled: true }).then((windowClients) => {
     for (const client of windowClients) {
       client.postMessage({ type: "PLAY_NOTIFICATION_SOUND", data: pushData, unreadCount: count });
     }
   }).catch(() => {});
 
-  event.waitUntil(Promise.all([showNotifPromise, notifyClientsPromise]));
+  event.waitUntil(Promise.all([showNotifPromise, badgePromise, notifyClientsPromise]));
 });
 
 self.addEventListener("notificationclick", (event) => {

@@ -11,6 +11,7 @@
   "categories": ["business", "utilities"],
   "background_color": "#000000",
   "theme_color": "#ffaa00",
+  "gcm_sender_id": "103953800507",
   "icons": [
     {
       "src": "img/app-icon-512.png",
