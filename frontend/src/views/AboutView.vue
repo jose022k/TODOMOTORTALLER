@@ -36,23 +36,7 @@
 
     <!-- Mobile FAB — appears BELOW the map, hidden on desktop -->
     <div class="mobile-contact-fab mobile-only">
-      <button
-        class="fab-btn"
-        @click="contactOpen = !contactOpen"
-        :aria-expanded="contactOpen"
-        aria-label="Contacto"
-      >
-        <!-- Phone icon (closed state) -->
-        <svg v-if="!contactOpen" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/>
-        </svg>
-        <!-- X icon (open state) -->
-        <svg v-else width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="18" y1="6" x2="6" y2="18"/>
-          <line x1="6" y1="6" x2="18" y2="18"/>
-        </svg>
-      </button>
-
+      <!-- Panel renders FIRST in DOM so it appears above the button -->
       <transition name="fab-panel">
         <div v-if="contactOpen" class="fab-contact-card">
           <div class="contact-header">
@@ -71,6 +55,22 @@
           </a>
         </div>
       </transition>
+
+      <!-- Button always at bottom -->
+      <button
+        class="fab-btn"
+        @click="contactOpen = !contactOpen"
+        :aria-expanded="contactOpen"
+        aria-label="Contacto"
+      >
+        <svg v-if="!contactOpen" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/>
+        </svg>
+        <svg v-else width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
     </div>
   </div>
 </template>
@@ -205,7 +205,7 @@ export default {
 .fab-btn:active { transform: scale(0.93); }
 
 .fab-contact-card {
-  margin-top: 10px;
+  margin-bottom: 10px;
   width: 100%;
   background: rgba(255,255,255,0.97);
   backdrop-filter: blur(10px);
@@ -223,7 +223,7 @@ export default {
 .fab-panel-enter-from,
 .fab-panel-leave-to {
   opacity: 0;
-  transform: translateY(-8px) scale(0.97);
+  transform: translateY(8px) scale(0.97);
 }
 
 /* ---- Mobile breakpoint ---- */
