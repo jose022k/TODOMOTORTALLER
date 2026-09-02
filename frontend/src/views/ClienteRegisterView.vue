@@ -21,7 +21,7 @@
             <label for="cedula">Cédula</label>
             <div class="input-wrapper">
               <svg class="input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-              <input id="cedula" v-model="form.cedula" type="text" placeholder="123456789" required />
+              <input id="cedula" v-model="form.cedula" type="text" maxlength="8" placeholder="12345678" required @input="onCedulaInput" />
             </div>
           </div>
         </div>
@@ -37,7 +37,7 @@
             <label for="email">Email</label>
             <div class="input-wrapper">
               <svg class="input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-              <input id="email" v-model="form.email" type="email" placeholder="tu@email.com" required />
+              <input id="email" v-model="form.email" type="email" placeholder="ejemplo@gmail.com" required />
             </div>
           </div>
         </div>
@@ -58,6 +58,20 @@
                 <svg v-if="showPassword" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffaa00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
                 <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffaa00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
               </button>
+            </div>
+            <!-- Password strength indicator -->
+            <div v-if="form.password" class="strength-meter">
+              <div class="strength-bars">
+                <div class="bar" :class="{ 'active weak': passwordStrength.level === 'weak' || passwordStrength.level === 'medium' || passwordStrength.level === 'strong' }"></div>
+                <div class="bar" :class="{ 'active medium': passwordStrength.level === 'medium' || passwordStrength.level === 'strong' }"></div>
+                <div class="bar" :class="{ 'active strong': passwordStrength.level === 'strong' }"></div>
+              </div>
+              <div class="strength-label" :class="passwordStrength.class">
+                Contraseña {{ passwordStrength.label }}
+                <span v-if="passwordStrength.level !== 'strong'" class="strength-hint">
+                  (Fuerte: 8+ caracteres, mayúscula, número y símbolo)
+                </span>
+              </div>
             </div>
           </div>
           <div class="input-group">
@@ -107,42 +121,74 @@ export default {
       loading: false,
     };
   },
+  computed: {
+    passwordStrength() {
+      const pw = this.form.password || "";
+      if (!pw) return { label: "", level: "", class: "" };
+      const hasMinLen = pw.length >= 8;
+      const hasUpper = /[A-ZÁÉÍÓÚÑ]/.test(pw);
+      const hasNumber = /[0-9]/.test(pw);
+      const hasSymbol = /[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑüÜ\s]/.test(pw);
+
+      if (hasMinLen && hasUpper && hasNumber && hasSymbol) {
+        return { label: "Fuerte", level: "strong", class: "text-strong" };
+      }
+      if (pw.length >= 6 && ((hasUpper && hasNumber) || (hasNumber && hasSymbol) || (hasUpper && hasSymbol))) {
+        return { label: "Media", level: "medium", class: "text-medium" };
+      }
+      return { label: "Débil", level: "weak", class: "text-weak" };
+    },
+  },
   methods: {
     onNombreInput(e) {
-      const cleaned = e.target.value
-        .replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ ]/g, "")
-        .replace(/\s+/g, " ")
-        .trimStart();
-      this.form.nombre = cleaned
-        .split(" ")
-        .filter(Boolean)
-        .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
-        .join(" ");
+      let val = e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]/g, "");
+      this.form.nombre = val.replace(/\b[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ]/g, (char) => char.toUpperCase());
+    },
+    onCedulaInput(e) {
+      this.form.cedula = e.target.value.replace(/\D/g, "").slice(0, 8);
     },
     onTelefonoInput(e) {
       this.form.telefono = e.target.value.replace(/\D/g, "").slice(0, 10);
     },
     async handleRegister() {
       this.error = "";
+
+      // 1. Validar Nombre
+      if (!this.form.nombre.trim()) {
+        this.error = "El nombre y apellido es obligatorio";
+        return;
+      }
+
+      // 2. Validar Cédula (máximo 8 dígitos, solo números)
+      if (!/^\d{5,8}$/.test(this.form.cedula)) {
+        this.error = "La cédula debe contener solo números (máximo 8 dígitos)";
+        return;
+      }
+
+      // 3. Validar Correo (@gmail.com, @outlook.com, @icloud.com)
+      const emailOk = /^[^\s@]+@(gmail\.com|outlook\.com|icloud\.com)$/i.test(this.form.email.trim());
+      if (!emailOk) {
+        this.error = "El correo debe terminar en @gmail.com, @outlook.com o @icloud.com";
+        return;
+      }
+
+      // 4. Validar Contraseña coincidente
       if (this.form.password !== this.confirmPassword) {
         this.error = "Las contraseñas no coinciden";
         return;
       }
-      const emailOk = /^[^\s@]+@(gmail|outlook|hotmail)\.(com|com\.ve|ve)$/i.test(this.form.email);
-      if (!emailOk) {
-        this.error = "El correo debe ser @gmail.com, @outlook.com o @hotmail.com";
-        return;
-      }
+
       if (this.form.telefono.length < 10) {
         this.error = "El teléfono debe tener al menos 10 dígitos";
         return;
       }
+
       this.loading = true;
       try {
         const authStore = useAuthStore();
         await authStore.registerCliente({
-          email: this.form.email,
-          nombre: this.form.nombre,
+          email: this.form.email.trim().toLowerCase(),
+          nombre: this.form.nombre.trim(),
           cedula: this.form.cedula,
           telefono: this.form.telefono,
           direccion: this.form.direccion,
@@ -416,4 +462,43 @@ html.dark .error-msg {
   background: #2d1215;
   color: #fca5a5;
 }
+
+/* Password strength meter */
+.strength-meter {
+  margin-top: 6px;
+}
+.strength-bars {
+  display: flex;
+  gap: 4px;
+  height: 4px;
+  width: 100%;
+}
+.bar {
+  flex: 1;
+  height: 100%;
+  background: #e2e8f0;
+  border-radius: 2px;
+  transition: background 0.3s;
+}
+.bar.active.weak { background: #ef4444; }
+.bar.active.medium { background: #f59e0b; }
+.bar.active.strong { background: #10b981; }
+.strength-label {
+  font-size: 11.5px;
+  font-weight: 700;
+  margin-top: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.text-weak { color: #ef4444; }
+.text-medium { color: #f59e0b; }
+.text-strong { color: #10b981; }
+.strength-hint {
+  font-size: 10.5px;
+  font-weight: 500;
+  color: #64748b;
+}
+html.dark .bar { background: #334155; }
+html.dark .strength-hint { color: #94a3b8; }
 </style>
