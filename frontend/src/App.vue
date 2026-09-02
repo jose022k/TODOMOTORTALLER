@@ -332,6 +332,8 @@ export default {
       loggingOut: false,
       lastActivityTime: Date.now(),
       sessionWarned3Min: false,
+      sessionWarned7Min: false,
+      sessionWarned9Min: false,
       sessionTimer: null,
       isDark: document.documentElement.classList.contains("dark"),
       sunIcon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>',
@@ -348,6 +350,8 @@ export default {
       if (!this.authStore.isAuthenticated) return;
       this.lastActivityTime = Date.now();
       this.sessionWarned3Min = false;
+      this.sessionWarned7Min = false;
+      this.sessionWarned9Min = false;
 
       // Si el token tiene menos de 5 minutos de validez, renovarlo para extender ActiveSession en DB
       const exp = getTokenExp(this.authStore.accessToken);
@@ -375,10 +379,22 @@ export default {
       const nowMs = Date.now();
       const inactiveSec = Math.floor((nowMs - this.lastActivityTime) / 1000);
 
-      // Notificar inactividad a los 3 minutos (180s)
-      if (inactiveSec >= 180 && inactiveSec < 600 && !this.sessionWarned3Min) {
+      // Primer aviso: 3 minutos de inactividad
+      if (inactiveSec >= 180 && inactiveSec < 420 && !this.sessionWarned3Min) {
         this.sessionWarned3Min = true;
-        this.notifySessionWarning("⚠️ Inactividad detectada: Tu sesión se cerrará en breve si no realizas ninguna acción");
+        this.notifySessionWarning("⚠️ Inactividad detectada: Tu sesión se cerrará automáticamente si no realizas ninguna acción en los próximos 7 minutos");
+      }
+
+      // Segundo aviso: 7 minutos de inactividad (3 minutos antes del cierre)
+      if (inactiveSec >= 420 && inactiveSec < 540 && !this.sessionWarned7Min) {
+        this.sessionWarned7Min = true;
+        this.notifySessionWarning("🔴 ¡Atención! Tu sesión se cerrará en menos de 3 minutos por inactividad. Muévete en la app para mantenerla activa");
+      }
+
+      // Tercer aviso: 9 minutos (1 minuto antes del cierre)
+      if (inactiveSec >= 540 && inactiveSec < 600 && !this.sessionWarned9Min) {
+        this.sessionWarned9Min = true;
+        this.notifySessionWarning("🚨 Tu sesión se cerrará en 1 MINUTO por inactividad");
       }
 
       // Cerrar sesión tras 10 minutos (600s) de inactividad total

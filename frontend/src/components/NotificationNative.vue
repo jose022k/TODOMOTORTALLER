@@ -205,6 +205,14 @@ export default {
       const notif = event.detail;
       if (!notif) return;
 
+      // Session warnings bypass deduplication: always show toast + sound
+      const isSessionAlert = notif.tipo === "sistema" || (notif.id && String(notif.id).startsWith("session-warn"));
+      if (isSessionAlert) {
+        playNotifSound();
+        this.showInAppToast(notif);
+        return;
+      }
+
       // Register in shared store (deduplication + badge update)
       const isNew = this.notifStore.onNewNotification(notif);
       if (!isNew) return;
@@ -212,7 +220,7 @@ export default {
       // Play sound
       playNotifSound();
 
-      // Show in-app toast ONLY on mobile/PWA (on PC, user only receives native browser OS notifications)
+      // Show in-app toast on mobile/PWA
       const isMobile = window.innerWidth <= 768 || (typeof window !== "undefined" && window.navigator && window.navigator.standalone);
       if (isMobile) {
         this.showInAppToast(notif);
@@ -223,11 +231,12 @@ export default {
     },
 
     showInAppToast(notif) {
-      this.activeToasts.push(notif);
-      setTimeout(() => this.removeToast(notif.id), 6000);
+      const toastItem = { ...notif, _toastId: notif.id || ("toast-" + Date.now()) };
+      this.activeToasts.push(toastItem);
+      setTimeout(() => this.removeToast(toastItem._toastId), 8000);
     },
     removeToast(id) {
-      this.activeToasts = this.activeToasts.filter((t) => t.id !== id);
+      this.activeToasts = this.activeToasts.filter((t) => t._toastId !== id && t.id !== id);
     },
     handleToastClick(notif) {
       const url = this.buildUrl(notif);
