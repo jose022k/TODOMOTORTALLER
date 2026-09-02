@@ -66,6 +66,13 @@ export default {
   min-height: calc(100vh - 80px);
   background: #ffffff;
 }
+
+/* On desktop align carousel top with the map card (margin-top: 48px) */
+@media (min-width: 769px) {
+  .home {
+    padding-top: 48px;
+  }
+}
 .carousel-container {
   position: relative;
   width: 90%;
