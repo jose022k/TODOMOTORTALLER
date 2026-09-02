@@ -30,7 +30,15 @@ api.interceptors.response.use(
     if (!error.response) {
       return Promise.reject(error)
     }
-    const originalRequest = error.config
+    if (error.response.status === 403) {
+      localStorage.removeItem('access_token')
+      localStorage.removeItem('refresh_token')
+      localStorage.removeItem('user_data')
+      if (window.location.pathname !== '/login') {
+        window.location.replace('/login')
+      }
+      return Promise.reject(error)
+    }
     if (error.response.status === 401 && !originalRequest._retry) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {

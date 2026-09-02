@@ -27,8 +27,8 @@ function onOpen() {
 
 function onClose(event) {
   clearInterval(pingTimer)
-  // Code 4001 means auth rejected by backend → do NOT attempt infinite reconnect loop with same stale token!
-  if (event && event.code === 4001) {
+  // Code 4001 or 4003 means auth rejected by backend → stop reconnecting
+  if (event && (event.code === 4001 || event.code === 4003)) {
     enabled = false
     return
   }
@@ -96,6 +96,7 @@ function disable() {
 }
 
 function reconnect() {
+  if (ws && ws.readyState === WebSocket.OPEN) return
   disable()
   enabled = true
   reconnectAttempts = 0

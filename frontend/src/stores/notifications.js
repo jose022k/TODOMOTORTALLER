@@ -28,7 +28,11 @@ export const useNotificationsStore = defineStore('notifications', {
         const { data } = await api.get('/notifications/unread-count')
         this.unreadCount = data.count || 0
         updateNativeAppBadge(this.unreadCount)
-      } catch { /* silent */ }
+      } catch (err) {
+        if (err.response && (err.response.status === 401 || err.response.status === 403)) {
+          this.stopPolling()
+        }
+      }
     },
     async fetchNotifications(limit = 20) {
       try {
