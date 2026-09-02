@@ -30,6 +30,7 @@ api.interceptors.response.use(
     if (!error.response) {
       return Promise.reject(error)
     }
+    const originalRequest = error.config
     if (error.response.status === 403) {
       localStorage.removeItem('access_token')
       localStorage.removeItem('refresh_token')
