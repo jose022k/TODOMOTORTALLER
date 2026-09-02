@@ -57,8 +57,11 @@ function unlockAudio() {
     if (!window._sharedAudioCtx || window._sharedAudioCtx.state === "closed") {
       window._sharedAudioCtx = new Ctx();
     }
-    if (window._sharedAudioCtx.state === "suspended") {
-      window._sharedAudioCtx.resume().catch(() => {});
+    if (window._sharedAudioCtx && window._sharedAudioCtx.state === "suspended") {
+      const p = window._sharedAudioCtx.resume();
+      if (p && typeof p.catch === "function") {
+        p.catch(() => {});
+      }
     }
   } catch { /* ignore */ }
 }
@@ -69,6 +72,8 @@ if (typeof window !== "undefined") {
 }
 
 function playNotifSound() {
+  // En PC escritorio NO reproducir chime web; el SO/navegador emite su sonido nativo por defecto
+  if (!isMobileOrPwa()) return;
   try {
     const Ctx = window.AudioContext || window.webkitAudioContext;
     if (!Ctx) return;

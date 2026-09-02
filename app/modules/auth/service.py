@@ -19,15 +19,33 @@ mecanico_dao = MecanicoDAO()
 
 
 def check_and_create_active_session(db: Session, user_id: int, role: str) -> str:
-    now = datetime.utcnow()
-    # 1. Limpiar sesiones anteriores de este usuario
-    db.query(ActiveSession).filter(
+    # 1. Comprobar si ya existe una sesión activa en otro dispositivo
+    existing = db.query(ActiveSession).filter(
         ActiveSession.user_id == user_id,
         ActiveSession.user_role == role,
-    ).delete()
-    db.commit()
-    
-    # 2. Registrar nueva sesión permanente (expira en 1 año o hasta que el usuario cierre sesión)
+    ).first()
+
+    if existing:
+        # Notificar al usuario con la sesión activa del intento de inicio de sesión
+        try:
+            from app.modules.notifications.service import create_notification
+            kw = {f"{role}_id": user_id}
+            create_notification(
+                db,
+                mensaje="⚠️ Alerta de Seguridad: Se ha detectado un intento de inicio de sesión no autorizado en otro dispositivo con tu cuenta.",
+                tipo="seguridad",
+                **kw
+            )
+        except Exception:
+            pass
+
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Ya existe una sesión activa con esta cuenta en otro dispositivo. Debe cerrar sesión en el otro dispositivo para poder ingresar.",
+        )
+
+    # 2. Registrar nueva sesión activa
+    now = datetime.utcnow()
     jti = str(uuid.uuid4())
     expires_at = now + timedelta(days=365)
     new_session = ActiveSession(
@@ -51,7 +69,11 @@ def remove_active_session(db: Session, user_id: int, role: str):
 
 
 def validate_active_session(db: Session, user_id: int, role: str, jti: str = None) -> bool:
-    return True
+    active = db.query(ActiveSession).filter(
+        ActiveSession.user_id == user_id,
+        ActiveSession.user_role == role,
+    ).first()
+    return active is not None
 
 
 def find_user_by_email(db: Session, email: str):
