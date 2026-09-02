@@ -3,7 +3,7 @@ import os
 
 load_dotenv()
 
-SECRET_KEY = os.getenv("SECRET_KEY")
+SECRET_KEY = os.getenv("SECRET_KEY", "todomotortaller_production_jwt_secret_key_2026_secure_fix")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 525600
 REFRESH_TOKEN_EXPIRE_MINUTES = 525600
