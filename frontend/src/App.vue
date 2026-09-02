@@ -231,30 +231,16 @@ export default {
         if (val) {
           orderSocket.enable();
           setTimeout(() => setupPush(), 1000);
-          this.startSessionTimer();
-        } else {
-          this.stopSessionTimer();
         }
       },
     },
     "authStore.accessToken"(newToken) {
       if (newToken) {
-        // Only reset timer when a NEW token arrives (login / token refresh)
-        this.lastActivityTime = Date.now();
-        this.sessionWarned3Min = false;
-        this.sessionWarned7Min = false;
-        this.sessionWarned9Min = false;
-        if (!this.sessionTimer) this.startSessionTimer();
         orderSocket.enable();
         setupPush();
       } else {
-        // Token gone → stop the timer and disconnect (logout already happened)
-        this.stopSessionTimer();
         orderSocket.disable();
       }
-    },
-    "$route.path"() {
-      this.onUserActivity();
     },
   },
   async created() {
@@ -264,16 +250,13 @@ export default {
   },
   mounted() {
     if (this.authStore.isAuthenticated) {
-      this.startSessionTimer();
       setupPush();
-      // Enable global WebSocket so ALL views get real-time updates
       orderSocket.enable();
     }
     this._focusPushSync = () => {
       if (this.authStore.isAuthenticated) {
         setupPush();
         orderSocket.reconnect();
-        this.onUserActivity();
       }
     };
     window.addEventListener("focus", this._focusPushSync);
@@ -311,16 +294,12 @@ export default {
     this._activityEvents.forEach((evt) => window.addEventListener(evt, this._onActivity, { passive: true }));
   },
   beforeUnmount() {
-    this.stopSessionTimer();
     orderSocket.disable();
     if (this._focusPushSync) {
       window.removeEventListener("focus", this._focusPushSync);
     }
     if (this._onVisibility) {
       document.removeEventListener("visibilitychange", this._onVisibility);
-    }
-    if (this._activityEvents && this._onActivity) {
-      this._activityEvents.forEach((evt) => window.removeEventListener(evt, this._onActivity));
     }
     if (this._swMsgHandler && "serviceWorker" in navigator) {
       navigator.serviceWorker.removeEventListener("message", this._swMsgHandler);
@@ -379,11 +358,6 @@ export default {
     return {
       showLogoutModal: false,
       loggingOut: false,
-      lastActivityTime: Date.now(),
-      sessionWarned3Min: false,
-      sessionWarned7Min: false,
-      sessionWarned9Min: false,
-      sessionTimer: null,
       isDark: document.documentElement.classList.contains("dark"),
       sunIcon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>',
       moonIcon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>',
@@ -395,69 +369,6 @@ export default {
     };
   },
   methods: {
-    onUserActivity() {
-      if (!this.authStore.isAuthenticated) return;
-      this.lastActivityTime = Date.now();
-      this.sessionWarned3Min = false;
-      this.sessionWarned7Min = false;
-      this.sessionWarned9Min = false;
-
-      // Si el token tiene menos de 10 minutos de validez, renovarlo para extender ActiveSession en DB
-      const exp = getTokenExp(this.authStore.accessToken);
-      if (exp) {
-        const remaining = exp - Math.floor(Date.now() / 1000);
-        if (remaining < 600) {
-          this.authStore.refreshAccessToken().catch(() => {});
-        }
-      }
-    },
-    startSessionTimer() {
-      if (this.sessionTimer) return;
-      this.lastActivityTime = Date.now();
-      this.sessionTimer = setInterval(() => this.checkSessionExpiration(), 2000);
-    },
-    stopSessionTimer() {
-      if (this.sessionTimer) {
-        clearInterval(this.sessionTimer);
-        this.sessionTimer = null;
-      }
-    },
-    checkSessionExpiration() {
-      if (!this.authStore.isAuthenticated || !this.authStore.accessToken) return;
-
-      const nowMs = Date.now();
-      const inactiveSec = Math.floor((nowMs - this.lastActivityTime) / 1000);
-
-      // Primer aviso: 15 minutos de inactividad
-      if (inactiveSec >= 900 && inactiveSec < 1500 && !this.sessionWarned3Min) {
-        this.sessionWarned3Min = true;
-        this.notifySessionWarning("⚠️ Inactividad detectada: Tu sesión se cerrará automáticamente en 15 minutos si no realizas ninguna acción");
-      }
-
-      // Segundo aviso: 25 minutos de inactividad (5 minutos antes del cierre)
-      if (inactiveSec >= 1500 && inactiveSec < 1740 && !this.sessionWarned7Min) {
-        this.sessionWarned7Min = true;
-        this.notifySessionWarning("🔴 ¡Atención! Tu sesión se cerrará en 5 minutos por inactividad. Muévete en la app para mantenerla activa");
-      }
-
-      // Tercer aviso: 29 minutos de inactividad (1 minuto antes del cierre)
-      if (inactiveSec >= 1740 && inactiveSec < 1800 && !this.sessionWarned9Min) {
-        this.sessionWarned9Min = true;
-        this.notifySessionWarning("🚨 Tu sesión se cerrará en 1 MINUTO por inactividad");
-      }
-
-      // Cerrar sesión tras 30 minutos (1800s) de inactividad total
-      if (inactiveSec >= 1800) {
-        this.stopSessionTimer();
-        // Notify user of forced logout
-        this.notifySessionWarning("🔒 Tu sesión fue cerrada por inactividad (30 minutos). Vuelve a iniciar sesión.");
-        // Give toast a moment to render, then logout & redirect
-        setTimeout(async () => {
-          await this.authStore.logout();
-          window.location.replace("/login");
-        }, 1200);
-      }
-    },
     notifySessionWarning(mensaje) {
       window.dispatchEvent(
         new CustomEvent("notification-new", {

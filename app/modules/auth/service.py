@@ -20,16 +20,16 @@ mecanico_dao = MecanicoDAO()
 
 def check_and_create_active_session(db: Session, user_id: int, role: str) -> str:
     now = datetime.utcnow()
-    # 1. Limpiar sesiones anteriores de este usuario (cierra sesión en cualquier otro dispositivo)
+    # 1. Limpiar sesiones anteriores de este usuario
     db.query(ActiveSession).filter(
         ActiveSession.user_id == user_id,
         ActiveSession.user_role == role,
     ).delete()
     db.commit()
     
-    # 2. Registrar nueva sesión activa de 30 minutos
+    # 2. Registrar nueva sesión permanente (expira en 1 año o hasta que el usuario cierre sesión)
     jti = str(uuid.uuid4())
-    expires_at = now + timedelta(minutes=30)
+    expires_at = now + timedelta(days=365)
     new_session = ActiveSession(
         user_id=user_id,
         user_role=role,
@@ -51,14 +51,9 @@ def remove_active_session(db: Session, user_id: int, role: str):
 
 
 def validate_active_session(db: Session, user_id: int, role: str, jti: str = None) -> bool:
-    now = datetime.utcnow()
-    db.query(ActiveSession).filter(ActiveSession.expires_at <= now).delete()
-    db.commit()
-
     active = db.query(ActiveSession).filter(
         ActiveSession.user_id == user_id,
         ActiveSession.user_role == role,
-        ActiveSession.expires_at > now
     ).first()
     return active is not None
 
