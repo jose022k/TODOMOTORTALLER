@@ -55,7 +55,8 @@ def send_push(subscription, title: str, body: str, icon: str = None, url: str = 
         "sound": "/sounds/notification.wav",
         "data": {
             "url": url or "/",
-            "unread_count": unread_count
+            "unread_count": unread_count,
+            "id": str(int(datetime.utcnow().timestamp() * 1000))
         },
     })
     try:
@@ -68,6 +69,7 @@ def send_push(subscription, title: str, body: str, icon: str = None, url: str = 
             data=payload,
             vapid_private_key=VAPID_PRIVATE_KEY,
             vapid_claims=VAPID_CLAIMS,
+            ttl=86400,
             headers={"Urgency": "high", "TTL": "86400"},
         )
         return "ok"

@@ -11,17 +11,21 @@ self.addEventListener('activate', (event) => {
 
 // Web Push Event Handler (runs in background even when app/browser is closed)
 self.addEventListener('push', (event) => {
-  if (!event.data) return;
-
   let parsed = null;
-  try {
-    parsed = event.data.json();
-  } catch {
-    parsed = null;
+  if (event.data) {
+    try {
+      parsed = event.data.json();
+    } catch {
+      try {
+        parsed = { title: "Todomotortaller", body: event.data.text() };
+      } catch {
+        parsed = null;
+      }
+    }
   }
 
   const title = (parsed && parsed.title) || 'Todomotortaller';
-  const body = (parsed && parsed.body) || '';
+  const body = (parsed && parsed.body) || 'Tienes una nueva notificación';
   const iconPath = (parsed && parsed.icon) || '/img/app-icon-192.png';
   const badgePath = (parsed && parsed.badge) || '/img/app-icon-192.png';
   const icon = new URL(iconPath, self.location.origin).href;
@@ -30,13 +34,14 @@ self.addEventListener('push', (event) => {
   const unreadCount = (pushData && typeof pushData.unread_count === 'number') ? pushData.unread_count : null;
   const count = (unreadCount !== null && unreadCount !== undefined) ? unreadCount : 1;
 
-  // 1. Update PWA home screen icon badge in top-right corner
+  // 1. Update PWA home screen icon badge (top-right badge on mobile app icon)
   const badgePromise = (async () => {
     try {
       if (typeof navigator !== 'undefined' && 'setAppBadge' in navigator) {
         if (count > 0) await navigator.setAppBadge(count);
         else if ('clearAppBadge' in navigator) await navigator.clearAppBadge();
-      } else if ('setAppBadge' in self) {
+      }
+      if ('setAppBadge' in self) {
         if (count > 0) await self.setAppBadge(count);
         else if ('clearAppBadge' in self) await self.clearAppBadge();
       }
@@ -49,7 +54,7 @@ self.addEventListener('push', (event) => {
     icon,
     badge,
     data: pushData,
-    vibrate: [300, 100, 300, 100, 300],
+    vibrate: [400, 150, 400, 150, 400],
     silent: false,
     requireInteraction: true,
     tag: pushData.id ? 'notif-' + pushData.id : 'notif-' + Date.now(),
@@ -60,7 +65,7 @@ self.addEventListener('push', (event) => {
 
   const showNotifPromise = self.registration.showNotification(title, notifOptions);
 
-  // 3. Notify open window clients for in-app sound & UI update
+  // 3. Post message to any open window tabs for in-app sound & store sync
   const notifyClientsPromise = self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
     for (const client of windowClients) {
       client.postMessage({ type: 'PLAY_NOTIFICATION_SOUND', data: pushData, unreadCount: count });

@@ -250,10 +250,18 @@ export default {
   mounted() {
     if (this.authStore.isAuthenticated) {
       this.startSessionTimer();
+      setupPush();
     }
+    this._focusPushSync = () => {
+      if (this.authStore.isAuthenticated) setupPush();
+    };
+    window.addEventListener("focus", this._focusPushSync);
   },
   beforeUnmount() {
     this.stopSessionTimer();
+    if (this._focusPushSync) {
+      window.removeEventListener("focus", this._focusPushSync);
+    }
   },
   computed: {
     homeRoute() {

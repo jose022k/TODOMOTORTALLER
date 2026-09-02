@@ -67,17 +67,23 @@ export async function unsubscribeUser() {
 }
 
 export async function setupPush() {
-  const hasPermission = await requestPermission();
-  if (!hasPermission) return false;
+  if (!("Notification" in window) || Notification.permission === "denied") return false;
+  
+  if (Notification.permission !== "granted") {
+    const granted = await requestPermission();
+    if (!granted) return false;
+  }
+
   const reg = await registerSw();
   if (!reg) return false;
   swRegistration = reg;
 
   try {
+    const vapidKey = await getVapidPublicKey();
+    if (!vapidKey) return false;
+
     let sub = await reg.pushManager.getSubscription();
     if (!sub) {
-      const vapidKey = await getVapidPublicKey();
-      if (!vapidKey) return false;
       sub = await reg.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(vapidKey),
