@@ -36,3 +36,14 @@ class Mecanico(Base):
     email = Column(String(255), unique=True, index=True, nullable=False)
     contraseña = Column(String(255), nullable=False)
     activo = Column(Boolean, default=True, nullable=False)
+
+
+class ActiveSession(Base):
+    __tablename__ = "active_session"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, nullable=False, index=True)
+    user_role = Column(String(50), nullable=False, index=True)
+    token_jti = Column(String(255), nullable=False, index=True)
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    expires_at = Column(DateTime, nullable=False, index=True)

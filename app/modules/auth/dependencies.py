@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.modules.auth.models import Admin, Cliente, Mecanico
 from app.modules.auth.utils import decode_token
-from app.modules.auth.service import get_user_by_id
+from app.modules.auth.service import get_user_by_id, validate_active_session
 from typing import Union
 
 security = HTTPBearer()
@@ -24,12 +24,18 @@ def get_current_user(
         )
     user_id = payload.get("sub")
     role = payload.get("role")
+    jti = payload.get("jti")
     if not user_id or not role:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid token payload",
         )
     user = get_user_by_id(db, user_id, role)
+    if jti and not validate_active_session(db, user.id, role, jti):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Sesión cerrada o iniciada en otro dispositivo",
+        )
     return user
 
 

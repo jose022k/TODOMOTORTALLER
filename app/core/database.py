@@ -103,6 +103,18 @@ def ensure_schema_updates():
             )"""))
             conn.commit()
 
+        # Crear tabla active_session si no existe
+        if "active_session" not in tables:
+            conn.execute(text("""CREATE TABLE active_session (
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER NOT NULL,
+                user_role VARCHAR(50) NOT NULL,
+                token_jti VARCHAR(255) NOT NULL,
+                created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                expires_at TIMESTAMP NOT NULL
+            )"""))
+            conn.commit()
+
         for table, col_def in _MIGRATIONS:
             if table not in tables:
                 continue

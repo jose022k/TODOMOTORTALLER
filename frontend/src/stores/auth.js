@@ -41,7 +41,12 @@ export const useAuthStore = defineStore('auth', {
         // Don't auto-logout — server might be cold-starting
       }
     },
-    logout() {
+    async logout() {
+      if (this.accessToken) {
+        try {
+          await api.post('/auth/logout')
+        } catch { /* silent */ }
+      }
       this.user = null
       this.accessToken = null
       this.refreshToken = null

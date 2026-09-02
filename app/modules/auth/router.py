@@ -12,6 +12,7 @@ from app.modules.auth.schemas import (
 from app.modules.auth.service import (
     register_cliente,
     login,
+    logout_session,
     refresh_token,
     get_user_by_id,
     update_user,
@@ -32,6 +33,14 @@ def register_new_cliente(
 @router.post("/login", response_model=TokenResponse)
 def login_user(data: UserLogin, db: Session = Depends(get_db)):
     return login(db, data)
+
+
+@router.post("/logout", status_code=200)
+def logout_user(
+    current_user: AnyUser = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    return logout_session(db, current_user)
 
 
 @router.post("/refresh", response_model=TokenResponse)

@@ -1,6 +1,9 @@
+import uuid
+from datetime import datetime, timedelta
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 from app.modules.auth.dao import AdminDAO, ClienteDAO, MecanicoDAO
+from app.modules.auth.models import ActiveSession
 from app.modules.auth.schemas import UserCreate, UserLogin, UserUpdate, ClienteCreate
 from app.modules.auth.utils import (
     hash_password,
@@ -13,6 +16,62 @@ from app.modules.auth.utils import (
 admin_dao = AdminDAO()
 cliente_dao = ClienteDAO()
 mecanico_dao = MecanicoDAO()
+
+
+def check_and_create_active_session(db: Session, user_id: int, role: str) -> str:
+    now = datetime.utcnow()
+    # 1. Limpiar sesiones expiradas
+    db.query(ActiveSession).filter(ActiveSession.expires_at <= now).delete()
+    
+    # 2. Verificar si ya existe una sesión activa no expirada para este usuario
+    active = db.query(ActiveSession).filter(
+        ActiveSession.user_id == user_id,
+        ActiveSession.user_role == role,
+        ActiveSession.expires_at > now
+    ).first()
+    
+    if active:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Este usuario ya tiene una sesión activa en otro dispositivo. Debes cerrar sesión en ese dispositivo o esperar a que expire la sesión (5 horas).",
+        )
+    
+    # 3. Registrar nueva sesión activa de 5 horas
+    jti = str(uuid.uuid4())
+    expires_at = now + timedelta(hours=5)
+    new_session = ActiveSession(
+        user_id=user_id,
+        user_role=role,
+        token_jti=jti,
+        created_at=now,
+        expires_at=expires_at,
+    )
+    db.add(new_session)
+    db.commit()
+    return jti
+
+
+def remove_active_session(db: Session, user_id: int, role: str):
+    db.query(ActiveSession).filter(
+        ActiveSession.user_id == user_id,
+        ActiveSession.user_role == role,
+    ).delete()
+    db.commit()
+
+
+def validate_active_session(db: Session, user_id: int, role: str, jti: str = None) -> bool:
+    now = datetime.utcnow()
+    db.query(ActiveSession).filter(ActiveSession.expires_at <= now).delete()
+    db.commit()
+
+    query = db.query(ActiveSession).filter(
+        ActiveSession.user_id == user_id,
+        ActiveSession.user_role == role,
+        ActiveSession.expires_at > now
+    )
+    if jti:
+        query = query.filter(ActiveSession.token_jti == jti)
+    return query.first() is not None
 
 
 def find_user_by_email(db: Session, email: str):
@@ -51,7 +110,6 @@ def get_user_by_id_and_role(db: Session, user_id: str, role: str):
     if user:
         setattr(user, "rol", role)
     return user, dao
-
 
 
 def register_cliente(db: Session, data: ClienteCreate):
@@ -93,13 +151,22 @@ def login(db: Session, data: UserLogin) -> dict:
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Usuario desactivado. Contacte al administrador.",
         )
-    access_token = create_access_token({"sub": str(user.id), "role": role})
-    refresh_token = create_refresh_token({"sub": str(user.id), "role": role})
+
+    # Validar sesión única activa por dispositivo
+    jti = check_and_create_active_session(db, user.id, role)
+
+    access_token = create_access_token({"sub": str(user.id), "role": role, "jti": jti})
+    refresh_token = create_refresh_token({"sub": str(user.id), "role": role, "jti": jti})
     return {
         "access_token": access_token,
         "refresh_token": refresh_token,
         "token_type": "bearer",
     }
+
+
+def logout_session(db: Session, current_user):
+    remove_active_session(db, current_user.id, current_user.rol)
+    return {"message": "Sesión cerrada exitosamente"}
 
 
 def refresh_token(db: Session, token: str) -> dict:
@@ -111,6 +178,7 @@ def refresh_token(db: Session, token: str) -> dict:
         )
     user_id = payload.get("sub")
     role = payload.get("role")
+    jti = payload.get("jti")
     
     user, _ = get_user_by_id_and_role(db, user_id, role)
     if not user:
@@ -118,11 +186,19 @@ def refresh_token(db: Session, token: str) -> dict:
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="User not found",
         )
-    access_token = create_access_token({"sub": str(user.id), "role": role})
-    refresh_token = create_refresh_token({"sub": str(user.id), "role": role})
+
+    # Verificar que la sesión no haya sido cerrada o reemplazada
+    if not validate_active_session(db, user.id, role, jti):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="La sesión ha expirado o fue cerrada en otro dispositivo.",
+        )
+
+    access_token = create_access_token({"sub": str(user.id), "role": role, "jti": jti})
+    new_refresh_token = create_refresh_token({"sub": str(user.id), "role": role, "jti": jti})
     return {
         "access_token": access_token,
-        "refresh_token": refresh_token,
+        "refresh_token": new_refresh_token,
         "token_type": "bearer",
     }
 
