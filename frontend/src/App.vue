@@ -293,6 +293,18 @@ export default {
       navigator.serviceWorker.addEventListener("message", this._swMsgHandler);
     }
 
+    // Visibilidad: cuando la PWA vuelve al frente reconectar socket y actualizar datos
+    this._onVisibility = () => {
+      if (document.visibilityState === "visible" && this.authStore.isAuthenticated) {
+        orderSocket.reconnect();
+        setupPush();
+        this.notifStore.fetchUnreadCount();
+        // Notificar a todas las vistas que deben recargar sus listas
+        window.dispatchEvent(new CustomEvent("order-updated", { detail: { tipo: "visibility_restore" } }));
+      }
+    };
+    document.addEventListener("visibilitychange", this._onVisibility);
+
     // Eventos de actividad del usuario para reiniciar el contador de 10 minutos
     this._activityEvents = ["mousedown", "mousemove", "keypress", "scroll", "touchstart", "click"];
     this._onActivity = () => this.onUserActivity();
@@ -303,6 +315,9 @@ export default {
     orderSocket.disable();
     if (this._focusPushSync) {
       window.removeEventListener("focus", this._focusPushSync);
+    }
+    if (this._onVisibility) {
+      document.removeEventListener("visibilitychange", this._onVisibility);
     }
     if (this._activityEvents && this._onActivity) {
       this._activityEvents.forEach((evt) => window.removeEventListener(evt, this._onActivity));

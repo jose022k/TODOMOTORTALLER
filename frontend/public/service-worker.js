@@ -1,5 +1,5 @@
-/* Todomotortaller Production Service Worker */
-const CACHE_NAME = 'todomotortaller-v1';
+/* Todomotortaller Production Service Worker v2 */
+const CACHE_NAME = 'todomotortaller-v2';
 
 self.addEventListener('install', () => {
   self.skipWaiting();
@@ -9,67 +9,48 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(self.clients.claim());
 });
 
-// Web Push Event Handler (runs in background even when app/browser is closed)
+// Web Push: runs in background even when screen is off / app is closed
 self.addEventListener('push', (event) => {
   let parsed = null;
   if (event.data) {
-    try {
-      parsed = event.data.json();
-    } catch {
-      try {
-        parsed = { title: "Todomotortaller", body: event.data.text() };
-      } catch {
-        parsed = null;
-      }
-    }
+    try { parsed = event.data.json(); }
+    catch { try { parsed = { title: "Todomotortaller", body: event.data.text() }; } catch { parsed = null; } }
   }
 
-  const title = (parsed && parsed.title) || 'Todomotortaller';
-  const body = (parsed && parsed.body) || 'Tienes una nueva notificación';
-  const iconPath = (parsed && parsed.icon) || '/img/app-icon-192.png';
-  const badgePath = (parsed && parsed.badge) || '/img/app-icon-192.png';
-  const icon = new URL(iconPath, self.location.origin).href;
-  const badge = new URL(badgePath, self.location.origin).href;
+  const title   = (parsed && parsed.title) || 'Todomotortaller';
+  const body    = (parsed && parsed.body)  || 'Tienes una nueva notificación';
+  const icon    = new URL((parsed && parsed.icon)  || '/img/app-icon-192.png', self.location.origin).href;
+  const badge   = new URL((parsed && parsed.badge) || '/img/app-icon-192.png', self.location.origin).href;
   const pushData = (parsed && parsed.data) || {};
-  const unreadCount = (pushData && typeof pushData.unread_count === 'number') ? pushData.unread_count : null;
-  const count = (unreadCount !== null && unreadCount !== undefined) ? unreadCount : 1;
+  const count   = (typeof pushData.unread_count === 'number') ? pushData.unread_count : 1;
 
-  // 1. Update PWA home screen icon badge (top-right badge on mobile app icon)
-  const badgePromise = (async () => {
+  // 1. Badge on home screen icon
+  const badgeP = (async () => {
     try {
-      if (typeof navigator !== 'undefined' && 'setAppBadge' in navigator) {
-        if (count > 0) await navigator.setAppBadge(count);
-        else if ('clearAppBadge' in navigator) await navigator.clearAppBadge();
-      }
-      if ('setAppBadge' in self) {
-        if (count > 0) await self.setAppBadge(count);
-        else if ('clearAppBadge' in self) await self.clearAppBadge();
-      }
-    } catch (e) { /* silent */ }
+      if ('setAppBadge' in self)      { count > 0 ? await self.setAppBadge(count) : await self.clearAppBadge(); }
+      if ('setAppBadge' in navigator) { count > 0 ? await navigator.setAppBadge(count) : await navigator.clearAppBadge(); }
+    } catch { /* ignore */ }
   })();
 
-  // 2. System notification in Android top status bar with sound & vibration
-  const notifOptions = {
+  // 2. System notification in status bar (sound + vibration handled by OS)
+  const notifOpts = {
     body,
     icon,
     badge,
     data: pushData,
     vibrate: [400, 150, 400, 150, 400],
     silent: false,
-    requireInteraction: true,
+    requireInteraction: false,
     tag: pushData.id ? 'notif-' + pushData.id : 'notif-' + Date.now(),
     renotify: true,
     timestamp: Date.now(),
-    actions: pushData.url ? [{ action: 'open', title: 'Ver' }] : [],
   };
+  const showP = self.registration.showNotification(title, notifOpts);
 
-  const showNotifPromise = self.registration.showNotification(title, notifOptions);
-
-  // 3. Post message to any open window tabs for in-app sound, store sync & instant list refresh
-  const notifyClientsPromise = self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
-    for (const client of windowClients) {
-      // PUSH_RECEIVED triggers notification-new and order-updated in App.vue
-      client.postMessage({
+  // 3. Post to ALL open windows so in-app toasts + order list refresh fires immediately
+  const clientsP = self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((wins) => {
+    for (const w of wins) {
+      w.postMessage({
         type: 'PUSH_RECEIVED',
         data: { ...(parsed || {}), ...pushData },
         unreadCount: count,
@@ -77,25 +58,23 @@ self.addEventListener('push', (event) => {
     }
   }).catch(() => {});
 
-  event.waitUntil(Promise.all([showNotifPromise, badgePromise, notifyClientsPromise]));
+  event.waitUntil(Promise.all([showP, badgeP, clientsP]));
 });
 
-// Notification Click Handler (opens/focuses app when user taps status bar notification)
+// Notification tap → open / focus the app
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   const url = (event.notification.data && event.notification.data.url) || '/';
   event.waitUntil(
-    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
-      const matching = windowClients.find((c) => {
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((wins) => {
+      const hit = wins.find((w) => {
         try {
-          const cUrl = new URL(c.url);
-          const nUrl = new URL(url, self.location.origin);
-          return cUrl.pathname === nUrl.pathname;
+          return new URL(w.url).origin === self.location.origin;
         } catch { return false; }
       });
-      if (matching) {
-        matching.navigate(url);
-        matching.focus();
+      if (hit) {
+        hit.navigate(url);
+        hit.focus();
       } else {
         self.clients.openWindow(url);
       }

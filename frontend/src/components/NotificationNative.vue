@@ -1,7 +1,5 @@
 <template>
   <div class="native-notifier">
-    <audio ref="audioEl" src="/sounds/notification.wav" preload="auto" data-notif-sound style="display:none"></audio>
-
     <!-- Permission banner -->
     <div v-if="showPermBanner" class="notif-perm-banner">
       <div class="notif-perm-banner-inner">
@@ -15,12 +13,12 @@
       </div>
     </div>
 
-    <!-- In-App Toasts (shown on all screens: mobile, PWA and desktop) -->
+    <!-- In-App Toasts: shown on mobile/PWA AND for session alerts on all screens -->
     <div class="in-app-toast-container">
       <transition-group name="toast-list" tag="div">
         <div
           v-for="toast in activeToasts"
-          :key="toast._toastId"
+          :key="toast._tid"
           class="in-app-toast"
           :class="{ 'toast--session': toast.tipo === 'sistema' }"
           @click="handleToastClick(toast)"
@@ -31,16 +29,14 @@
               <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
             </svg>
             <svg v-else width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="10"/>
-              <line x1="12" y1="8" x2="12" y2="12"/>
-              <line x1="12" y1="16" x2="12.01" y2="16"/>
+              <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
             </svg>
           </div>
           <div class="toast-content">
             <div class="toast-title">{{ toast.tipo === 'sistema' ? 'Sesión' : 'Todomotortaller' }}</div>
             <div class="toast-body">{{ toast.mensaje }}</div>
           </div>
-          <button class="toast-close" @click.stop="removeToast(toast._toastId)">&times;</button>
+          <button class="toast-close" @click.stop="removeToast(toast._tid)">&times;</button>
         </div>
       </transition-group>
     </div>
@@ -53,76 +49,72 @@ import { useNotificationsStore } from "@/stores/notifications";
 
 const OPEN_CHAT_TYPES = new Set(["mensaje_recibido", "evidencia_enviada"]);
 
-// ── Audio Engine: synthesized crystal glass marimba chime ───────────────────
+// ── Audio Engine ──────────────────────────────────────────────────────────────
 function unlockAudio() {
   try {
-    const AudioCtx = window.AudioContext || window.webkitAudioContext;
-    if (!AudioCtx) return;
-    if (!window._sharedAudioCtx) {
-      window._sharedAudioCtx = new AudioCtx();
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return;
+    if (!window._sharedAudioCtx || window._sharedAudioCtx.state === "closed") {
+      window._sharedAudioCtx = new Ctx();
     }
     if (window._sharedAudioCtx.state === "suspended") {
       window._sharedAudioCtx.resume().catch(() => {});
     }
-  } catch {
-    /* ignore audio unlock error */
-  }
+  } catch { /* ignore */ }
 }
 
 if (typeof window !== "undefined") {
-  window.addEventListener("touchstart", unlockAudio, { passive: true });
-  window.addEventListener("click", unlockAudio, { passive: true });
+  window.addEventListener("touchstart", unlockAudio, { passive: true, once: false });
+  window.addEventListener("click", unlockAudio, { passive: true, once: false });
 }
 
 function playNotifSound() {
   try {
-    const AudioCtx = window.AudioContext || window.webkitAudioContext;
-    if (!AudioCtx) return;
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return;
     let ctx = window._sharedAudioCtx;
     if (!ctx || ctx.state === "closed") {
-      ctx = new AudioCtx();
+      ctx = new Ctx();
       window._sharedAudioCtx = ctx;
     }
-    if (ctx.state === "suspended") {
-      ctx.resume().catch(() => {});
-    }
+    const resume = ctx.state === "suspended" ? ctx.resume() : Promise.resolve();
+    resume.then(() => {
+      const notes = [
+        { f: 880.00, h: 1760.00, t: 0.00, d: 0.25, v: 0.55 },
+        { f: 1318.51, h: 2637.02, t: 0.08, d: 0.28, v: 0.60 },
+        { f: 1760.00, h: 3520.00, t: 0.16, d: 0.35, v: 0.65 },
+      ];
+      notes.forEach(({ f, h, t: start, d, v }) => {
+        const t = ctx.currentTime + start;
+        const o1 = ctx.createOscillator(); const g1 = ctx.createGain();
+        o1.type = "sine"; o1.frequency.value = f;
+        o1.connect(g1); g1.connect(ctx.destination);
+        g1.gain.setValueAtTime(0, t);
+        g1.gain.linearRampToValueAtTime(v, t + 0.008);
+        g1.gain.exponentialRampToValueAtTime(0.0001, t + d);
+        o1.start(t); o1.stop(t + d);
 
-    const notes = [
-      { main: 880.00, harmonic: 1760.00, start: 0.00, dur: 0.25, vol: 0.50 },
-      { main: 1318.51, harmonic: 2637.02, start: 0.07, dur: 0.28, vol: 0.55 },
-      { main: 1760.00, harmonic: 3520.00, start: 0.14, dur: 0.35, vol: 0.60 },
-    ];
-
-    notes.forEach(({ main, harmonic, start, dur, vol }) => {
-      const t = ctx.currentTime + start;
-
-      const osc1 = ctx.createOscillator();
-      const env1 = ctx.createGain();
-      osc1.type = "sine";
-      osc1.frequency.value = main;
-      osc1.connect(env1);
-      env1.connect(ctx.destination);
-      env1.gain.setValueAtTime(0, t);
-      env1.gain.linearRampToValueAtTime(vol, t + 0.008);
-      env1.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-      osc1.start(t);
-      osc1.stop(t + dur);
-
-      const osc2 = ctx.createOscillator();
-      const env2 = ctx.createGain();
-      osc2.type = "triangle";
-      osc2.frequency.value = harmonic;
-      osc2.connect(env2);
-      env2.connect(ctx.destination);
-      env2.gain.setValueAtTime(0, t);
-      env2.gain.linearRampToValueAtTime(vol * 0.3, t + 0.005);
-      env2.gain.exponentialRampToValueAtTime(0.0001, t + dur * 0.6);
-      osc2.start(t);
-      osc2.stop(t + dur * 0.6);
-    });
+        const o2 = ctx.createOscillator(); const g2 = ctx.createGain();
+        o2.type = "triangle"; o2.frequency.value = h;
+        o2.connect(g2); g2.connect(ctx.destination);
+        g2.gain.setValueAtTime(0, t);
+        g2.gain.linearRampToValueAtTime(v * 0.3, t + 0.005);
+        g2.gain.exponentialRampToValueAtTime(0.0001, t + d * 0.6);
+        o2.start(t); o2.stop(t + d * 0.6);
+      });
+    }).catch(() => {});
   } catch { /* AudioContext not supported */ }
 }
-// ── End Audio Engine ────────────────────────────────────────────────────────
+// ── End Audio Engine ──────────────────────────────────────────────────────────
+
+function isMobileOrPwa() {
+  if (typeof window === "undefined") return false;
+  return (
+    window.innerWidth <= 900 ||
+    window.matchMedia("(display-mode: standalone)").matches ||
+    (window.navigator && window.navigator.standalone === true)
+  );
+}
 
 export default {
   name: "NotificationNative",
@@ -136,50 +128,31 @@ export default {
       showPermBanner: false,
       permDenied: false,
       activeToasts: [],
+      swRegistration: null,
     };
   },
   mounted() {
-    this.swRegistration = null;
-
-    // Get SW registration for native OS notifications
+    // Grab SW registration for native showNotification()
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.ready
         .then((reg) => { this.swRegistration = reg; })
         .catch(() => {});
-
-      this._swMsg = (event) => {
-        if (event.data && event.data.type === "PLAY_NOTIFICATION_SOUND") {
-          playNotifSound();
-          if (typeof event.data.unreadCount === "number") {
-            this.notifStore.unreadCount = event.data.unreadCount;
-            if (typeof navigator !== "undefined" && "setAppBadge" in navigator) {
-              if (event.data.unreadCount > 0) navigator.setAppBadge(event.data.unreadCount).catch(() => {});
-              else if ("clearAppBadge" in navigator) navigator.clearAppBadge().catch(() => {});
-            }
-          }
-        }
-      };
-      navigator.serviceWorker.addEventListener("message", this._swMsg);
     }
 
-    // Listen for WS real-time notification events
+    // Single window event listener — handles ALL notification-new events
     this._onNotif = this.onNewNotification.bind(this);
     window.addEventListener("notification-new", this._onNotif);
 
-    // Show permission prompt
+    // Show permission prompt if not granted
     this.checkPermission();
 
-    // Start shared polling (only if not already polling)
+    // Start badge/count polling
     if (this.authStore.isAuthenticated) {
       this.notifStore.startPolling();
     }
   },
   beforeUnmount() {
     window.removeEventListener("notification-new", this._onNotif);
-    if ("serviceWorker" in navigator && this._swMsg) {
-      navigator.serviceWorker.removeEventListener("message", this._swMsg);
-    }
-    // Don't stop polling here — NotificationsDropdown might still need it
   },
   methods: {
     checkPermission() {
@@ -211,44 +184,44 @@ export default {
       const notif = event.detail;
       if (!notif) return;
 
-      // Session warnings: always show toast on ALL screens + sound, skip deduplication
-      const isSessionAlert = notif.tipo === "sistema" || (notif.id && String(notif.id).startsWith("session-warn"));
-      if (isSessionAlert) {
+      // ── Session / system alerts: always show toast + sound on ALL screens ──
+      const isSession = notif.tipo === "sistema" || (notif.id && String(notif.id).startsWith("session-warn"));
+      if (isSession) {
         playNotifSound();
-        this.showInAppToast(notif);
+        this.pushToast(notif);
         return;
       }
 
-      // Register in shared store (deduplication + badge update)
+      // ── Regular notifications: deduplication first ──
       const isNew = this.notifStore.onNewNotification(notif);
       if (!isNew) return;
 
-      // Play sound always (mobile + desktop)
+      // Sound on all screens
       playNotifSound();
 
-      // In-app toast ONLY on mobile/PWA — on desktop the native OS notification is enough
-      const isMobileOrPwa = window.innerWidth <= 900
-        || window.matchMedia("(display-mode: standalone)").matches
-        || (window.navigator && window.navigator.standalone === true);
-      if (isMobileOrPwa) {
-        this.showInAppToast(notif);
+      if (isMobileOrPwa()) {
+        // Mobile / PWA: show in-app toast
+        this.pushToast(notif);
+        // ALSO attempt native SW notification so it appears in status bar
+        await this.showNativeNotification(notif);
+      } else {
+        // Desktop: only native browser OS notification (bottom-right box)
+        await this.showNativeNotification(notif);
       }
-
-      // Native OS notification: bottom-right popup on desktop, top status bar on Android
-      await this.showNativeNotification(notif);
     },
 
-    showInAppToast(notif) {
-      const toastItem = { ...notif, _toastId: notif.id || ("toast-" + Date.now()) };
-      this.activeToasts.push(toastItem);
-      setTimeout(() => this.removeToast(toastItem._toastId), 8000);
+    pushToast(notif) {
+      const tid = (notif.id ? String(notif.id) : "") + "-" + Date.now();
+      const item = { ...notif, _tid: tid };
+      this.activeToasts.push(item);
+      setTimeout(() => this.removeToast(tid), 8000);
     },
-    removeToast(id) {
-      this.activeToasts = this.activeToasts.filter((t) => t._toastId !== id && t.id !== id);
+    removeToast(tid) {
+      this.activeToasts = this.activeToasts.filter((t) => t._tid !== tid);
     },
     handleToastClick(notif) {
       const url = this.buildUrl(notif);
-      this.removeToast(notif.id);
+      this.removeToast(notif._tid);
       if (url && url !== "/") {
         this.$router.push(url).catch(() => { window.location.href = url; });
       }
@@ -264,14 +237,15 @@ export default {
         data: { url },
         vibrate: [200, 100, 200],
         silent: false,
-        tag: "notif-" + notif.id,
+        tag: "notif-" + (notif.id || Date.now()),
         renotify: true,
       };
-      if (this.swRegistration && this.swRegistration.showNotification) {
+      const reg = this.swRegistration;
+      if (reg && reg.showNotification) {
         try {
-          await this.swRegistration.showNotification("Todomotortaller", opts);
+          await reg.showNotification("Todomotortaller", opts);
           return;
-        } catch { /* fall through */ }
+        } catch { /* fall through to legacy */ }
       }
       try {
         const n = new Notification("Todomotortaller", opts);
@@ -282,7 +256,6 @@ export default {
         };
       } catch { /* ignored */ }
     },
-
 
     buildUrl(n) {
       const orderId = n.orden_servicio_id;
@@ -350,14 +323,21 @@ export default {
 /* Toast Container */
 .in-app-toast-container {
   position: fixed;
-  bottom: 24px;
-  right: 20px;
+  bottom: 80px;
+  right: 16px;
   z-index: 100000;
   display: flex;
   flex-direction: column-reverse;
   gap: 10px;
   pointer-events: none;
-  max-width: calc(100vw - 40px);
+  max-width: calc(100vw - 32px);
+}
+@media (min-width: 901px) {
+  /* On desktop, only session toasts are shown — they sit bottom-right */
+  .in-app-toast-container {
+    bottom: 24px;
+    right: 20px;
+  }
 }
 .in-app-toast {
   background: #1a1a1a;
@@ -374,6 +354,12 @@ export default {
   pointer-events: auto;
   cursor: pointer;
 }
+.toast--session {
+  border-left-color: #ef4444;
+  background: #1f1010;
+}
+.toast--session .toast-icon { color: #ef4444; }
+.toast--session .toast-title { color: #fca5a5; }
 .toast-icon { color: #ffaa00; flex-shrink: 0; margin-top: 2px; }
 .toast-content { flex: 1; min-width: 0; }
 .toast-title { font-weight: 700; font-size: 14px; margin-bottom: 3px; }
@@ -390,16 +376,6 @@ export default {
 }
 .toast-close:hover { color: #fff; }
 
-.toast--session {
-  border-left-color: #ef4444;
-  background: #1f1010;
-}
-.toast--session .toast-icon {
-  color: #ef4444;
-}
-.toast--session .toast-title {
-  color: #fca5a5;
-}
 /* Transitions */
 .toast-list-enter-active { transition: all 0.35s cubic-bezier(.25,.8,.25,1); }
 .toast-list-leave-active { transition: all 0.25s ease; }
