@@ -32,7 +32,7 @@ def login_or_register_google_cliente(
     data: GoogleAuthRequest,
     db: Session = Depends(get_db)
 ):
-    return authenticate_google_cliente(db, data.credential_token)
+    return authenticate_google_cliente(db, data)
 
 
 @router.post("/google/cliente/complete", response_model=GoogleAuthResponse)

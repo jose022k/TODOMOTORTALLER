@@ -58,11 +58,13 @@ class RefreshRequest(BaseModel):
 
 
 class GoogleAuthRequest(BaseModel):
-    credential_token: str
+    access_token: Optional[str] = None
+    credential_token: Optional[str] = None  # retrocompatibilidad
 
 
 class GoogleCompleteProfileRequest(BaseModel):
-    credential_token: str
+    access_token: Optional[str] = None
+    credential_token: Optional[str] = None  # retrocompatibilidad
     cedula: str
     nombre: str
     telefono: str

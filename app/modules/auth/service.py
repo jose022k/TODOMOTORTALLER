@@ -238,11 +238,19 @@ import urllib.request
 import json
 
 
-def verify_google_token(credential_token: str) -> dict:
-    if not credential_token:
+def verify_google_token(token: str, is_access_token: bool = False) -> dict:
+    if not token:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Token de Google no proporcionado.")
-    url = f"https://oauth2.googleapis.com/tokeninfo?id_token={credential_token}"
-    req = urllib.request.Request(url)
+    
+    if is_access_token:
+        # Verificar access_token via API de UserInfo de Google
+        url = "https://www.googleapis.com/oauth2/v2/userinfo"
+        req = urllib.request.Request(url, headers={"Authorization": f"Bearer {token}"})
+    else:
+        # Verificar ID token (credential) via tokeninfo
+        url = f"https://oauth2.googleapis.com/tokeninfo?id_token={token}"
+        req = urllib.request.Request(url)
+    
     try:
         with urllib.request.urlopen(req, timeout=10) as resp:
             if resp.status == 200:
@@ -264,8 +272,11 @@ def verify_google_token(credential_token: str) -> dict:
         )
 
 
-def authenticate_google_cliente(db: Session, credential_token: str) -> dict:
-    google_info = verify_google_token(credential_token)
+def authenticate_google_cliente(db: Session, data) -> dict:
+    # Determinar qué tipo de token se recibió
+    token = data.access_token or data.credential_token
+    is_access_token = bool(data.access_token)
+    google_info = verify_google_token(token, is_access_token=is_access_token)
     email = google_info["email"]
 
     admin = admin_dao.get_by_email(db, email)
@@ -307,7 +318,9 @@ def authenticate_google_cliente(db: Session, credential_token: str) -> dict:
 
 
 def complete_google_cliente_profile(db: Session, data) -> dict:
-    google_info = verify_google_token(data.credential_token)
+    token = data.access_token or data.credential_token
+    is_access_token = bool(data.access_token)
+    google_info = verify_google_token(token, is_access_token=is_access_token)
     email = google_info["email"]
 
     existing_cedula = db.query(cliente_dao.model).filter(

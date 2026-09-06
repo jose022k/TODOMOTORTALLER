@@ -10,14 +10,15 @@
       </div>
       <!-- Botón de Google para registro de Clientes -->
       <div class="google-auth-box">
-        <button type="button" class="btn-google" @click="triggerGoogleLogin" :disabled="loading">
-          <svg width="20" height="20" viewBox="0 0 24 24">
+        <button type="button" class="btn-google" @click="triggerGoogleLogin" :disabled="loading || googleLoading">
+          <span v-if="googleLoading" class="btn-spinner-google"></span>
+          <svg v-else width="20" height="20" viewBox="0 0 24 24">
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
             <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
             <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
             <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
           </svg>
-          <span>Registrarse con Google</span>
+          <span>{{ googleLoading ? 'Conectando...' : 'Registrarse con Google' }}</span>
         </button>
       </div>
 
@@ -176,6 +177,7 @@ export default {
       showConfirm: false,
       error: "",
       loading: false,
+      googleLoading: false,
       showGoogleModal: false,
       googleToken: "",
       savingGoogle: false,
@@ -211,54 +213,54 @@ export default {
   },
   methods: {
     initGoogleAuth() {
-      if (window.google && window.google.accounts && window.google.accounts.id) {
-        try {
-          window.google.accounts.id.initialize({
-            client_id: process.env.VUE_APP_GOOGLE_CLIENT_ID || "874591749871-todomotortaller.apps.googleusercontent.com",
-            callback: (res) => {
-              if (res.credential) {
-                this.processGoogleCredential(res.credential);
+      // Usamos OAuth2 Token Client para abrir popup nativo de selección de cuenta
+      this._googleClientReady = false;
+      const clientId = process.env.VUE_APP_GOOGLE_CLIENT_ID || "216388527510-67ma9i2l90sqc14cd1aq23guutbtns45.apps.googleusercontent.com";
+      const tryInit = () => {
+        if (window.google && window.google.accounts && window.google.accounts.oauth2) {
+          this._tokenClient = window.google.accounts.oauth2.initTokenClient({
+            client_id: clientId,
+            scope: "openid email profile",
+            callback: (tokenResponse) => {
+              if (tokenResponse.access_token) {
+                this.processGoogleAccessToken(tokenResponse.access_token);
+              } else {
+                this.googleLoading = false;
+                this.error = "No se pudo obtener acceso a Google. Intenta de nuevo.";
               }
             },
-            auto_select: false,
+            error_callback: (err) => {
+              this.googleLoading = false;
+              if (err.type !== "popup_closed") {
+                this.error = "Error al conectar con Google. Intenta de nuevo.";
+              }
+            },
           });
-        } catch (e) {
-          console.warn("Google GIS init:", e);
+          this._googleClientReady = true;
+        } else {
+          setTimeout(tryInit, 200);
         }
-      }
+      };
+      tryInit();
     },
     triggerGoogleLogin() {
-      if (window.google && window.google.accounts && window.google.accounts.id) {
-        window.google.accounts.id.prompt((notification) => {
-          if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-            this.fallbackGooglePrompt();
-          }
-        });
-      } else {
-        this.fallbackGooglePrompt();
+      if (!this._googleClientReady || !this._tokenClient) {
+        this.error = "El servicio de Google no está disponible aún. Intenta de nuevo en un momento.";
+        return;
       }
+      this.googleLoading = true;
+      this.error = "";
+      // requestAccessToken abre el popup nativo de Google para seleccionar cuenta
+      this._tokenClient.requestAccessToken({ prompt: "select_account" });
     },
-    fallbackGooglePrompt() {
-      const email = prompt("Simulación Google Login (Ingrese correo del cliente):");
-      if (!email || !email.includes("@")) return;
-      this.googleForm = {
-        email: email.toLowerCase().trim(),
-        nombre: email.split("@")[0],
-        cedula: "",
-        telefono: "",
-        direccion: "",
-      };
-      this.googleToken = "simulated_google_token_" + btoa(email);
-      this.processGoogleCredential(this.googleToken);
-    },
-    async processGoogleCredential(credentialToken) {
-      this.loading = true;
+    async processGoogleAccessToken(accessToken) {
+      this.googleLoading = true;
       this.error = "";
       try {
         const { data } = await api.post("/auth/google/cliente", {
-          credential_token: credentialToken,
+          access_token: accessToken,
         });
-        this.googleToken = credentialToken;
+        this.googleToken = accessToken;
 
         if (data.needs_profile_completion) {
           this.googleForm = {
@@ -277,7 +279,7 @@ export default {
       } catch (err) {
         this.error = err.response?.data?.detail || "Error con autenticación de Google";
       } finally {
-        this.loading = false;
+        this.googleLoading = false;
       }
     },
     onNombreInputGoogle(e) {
@@ -306,7 +308,7 @@ export default {
       this.savingGoogle = true;
       try {
         const { data } = await api.post("/auth/google/cliente/complete", {
-          credential_token: this.googleToken,
+          access_token: this.googleToken,
           cedula: this.googleForm.cedula,
           nombre: this.googleForm.nombre.trim(),
           telefono: this.googleForm.telefono,
@@ -686,16 +688,20 @@ html.dark .strength-hint { color: #94a3b8; }
 
 /* Google Button & Divider */
 .google-auth-box {
-  margin-bottom: 16px;
+  margin-bottom: 14px;
+  width: 100%;
+  box-sizing: border-box;
 }
 .btn-google {
   width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   padding: 11px 16px;
   background: #ffffff;
   border: 1.5px solid #cbd5e1;
   border-radius: 10px;
   color: #334155;
-  font-size: 14.5px;
+  font-size: 14px;
   font-weight: 700;
   display: flex;
   align-items: center;
@@ -704,11 +710,18 @@ html.dark .strength-hint { color: #94a3b8; }
   cursor: pointer;
   transition: all 0.2s ease;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  white-space: nowrap;
+  overflow: hidden;
 }
 .btn-google:hover:not(:disabled) {
   background: #f8fafc;
   border-color: #94a3b8;
   transform: translateY(-1px);
+}
+.btn-google:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
 }
 html.dark .btn-google {
   background: #0f172a;
@@ -717,6 +730,16 @@ html.dark .btn-google {
 }
 html.dark .btn-google:hover:not(:disabled) {
   background: #1e293b;
+}
+.btn-spinner-google {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  display: inline-block;
+  border-radius: 50%;
+  border: 2px solid #cbd5e1;
+  border-top-color: #4285F4;
+  animation: spin 0.7s linear infinite;
 }
 
 .divider {
