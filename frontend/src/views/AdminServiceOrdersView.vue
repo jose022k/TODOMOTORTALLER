@@ -260,7 +260,7 @@
             <label>Monto</label>
             <div class="monto-toggle">
               <button :class="['toggle-btn', { active: form.moneda === 'BS' }]" type="button" @click="form.moneda = 'BS'">Bs</button>
-              <button :class="['toggle-btn', { active: form.moneda === 'USD' }]" type="button" @click="form.moneda = 'USD'">$</button>
+              <button :class="['toggle-btn', { active: form.moneda === 'USD' }]" type="button" @click="form.moneda = 'USD'">€</button>
             </div>
             <div class="monto-input-row">
               <input
@@ -272,10 +272,10 @@
                 :placeholder="form.moneda === 'BS' ? 'Ej: 5000' : 'Ej: 50'"
                 @input="filterMonto"
               />
-              <span class="monto-currency">{{ form.moneda === 'BS' ? 'Bs' : '$' }}</span>
+              <span class="monto-currency">{{ form.moneda === 'BS' ? 'Bs' : '€' }}</span>
             </div>
             <p v-if="form.moneda === 'BS' && montoUsdPreview" class="monto-preview">
-              ≈ ${{ montoUsdPreview }}
+              ≈ €{{ montoUsdPreview }}
             </p>
             <p v-else-if="form.moneda === 'USD' && tasaBcv && form.monto > 0" class="monto-preview">
               ≈ {{ formatBs(form.monto * tasaBcv) }} Bs
@@ -368,8 +368,8 @@
               <div>
                 <span class="detail-label">Monto</span>
                 <span class="detail-value">
-                  <span class="monto-original">{{ detail.moneda === 'USD' ? '$' : 'Bs' }} {{ detail.moneda === 'USD' ? detail.monto : formatBs(detail.monto) }}</span>
-                  <span v-if="detail.monto_usd" class="detail-sub">≈ ${{ Number(detail.monto_usd).toFixed(2) }}</span>
+                  <span class="monto-original">{{ detail.moneda === 'USD' ? '€' : 'Bs' }} {{ detail.moneda === 'USD' ? detail.monto : formatBs(detail.monto) }}</span>
+                  <span v-if="detail.monto_usd" class="detail-sub">≈ €{{ Number(detail.monto_usd).toFixed(2) }}</span>
                 </span>
               </div>
             </div>

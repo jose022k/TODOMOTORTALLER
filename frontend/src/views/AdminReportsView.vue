@@ -103,7 +103,7 @@
                     <template v-else-if="col.key === 'dia'">{{ row.dia }}</template>
                     <template v-else-if="col.key === 'fecha'">{{ formatDate(row.fecha) }}</template>
                     <template v-else-if="col.key === 'total_dia'">{{ row.total }} órdenes</template>
-                    <template v-else-if="col.key === 'total_usd'">$ {{ Number(row.total_usd).toFixed(2) }}</template>
+                    <template v-else-if="col.key === 'total_usd'">€ {{ Number(row.total_usd).toFixed(2) }}</template>
                     <template v-else-if="col.key === 'porcentaje'">{{ Number(row.porcentaje).toFixed(1) }}%</template>
                     <template v-else-if="col.key === 'cantidad'">{{ row.cantidad }} {{ row.cantidad === 1 ? 'orden' : 'órdenes' }}</template>
                     <template v-else>{{ row[col.key] }}</template>
