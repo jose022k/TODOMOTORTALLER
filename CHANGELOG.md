@@ -6,6 +6,27 @@ Todas las modificaciones siguen el estándar de versión semántica (https://sem
 
 ---
 
+## [2.0.0] - 2026-09-06
+
+### Added
+
+- Autenticación e Inicio de Sesión con Google OAuth 2.0 nativo (popup oficial selector de cuentas Google) exclusivo para clientes en `LoginView.vue` y `ClienteRegisterView.vue`
+- Endpoints del backend `/auth/google/cliente` y `/auth/google/cliente/complete` compatibles con `access_token` y `credential_token` para verificación e inscripción de clientes con Google
+- Modal de autocompletado de perfil de cliente (cédula, teléfono y dirección) tras el primer registro con Google
+- Overlay de transición con spinner y animación "Entrando al sistema..." (`LoadingOverlay.vue`) activado durante el inicio de sesión y completado de perfil con Google
+
+### Changed
+
+- Eliminada simulación por prompt de texto (`fallbackGooglePrompt`) en el flujo de login y registro de clientes con Google
+- Rediseño compacto de tarjetas de formulario (`.auth-card`), botón de Google (`.btn-google`) y divisor (`.divider`) en `LoginView.vue` y `ClienteRegisterView.vue` para conservar las proporciones exactas del formulario
+- Optimización de layout responsive ajustado para escritorio (PC), dispositivos móviles y PWA web app
+
+### Removed
+
+- Configuración antigua de Netlify (`netlify.toml`) removida del repositorio
+
+---
+
 ## [1.9.0] - 2026-08-02
 
 ### Added
