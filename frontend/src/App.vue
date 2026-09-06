@@ -48,6 +48,10 @@
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
               Ubicación
             </router-link>
+            <router-link v-if="!authStore.isMecanico && !authStore.isCliente" to="/faq" class="nav-text-link">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              Preguntas frecuentes
+            </router-link>
             <router-link v-if="$route.path !== '/login'" to="/login" class="nav-text-link">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
               Iniciar Sesión
@@ -75,6 +79,10 @@
       <a href="/location" class="pwa-nav-item" :class="{ 'is-active': isRouteActive('/location') }" @click.prevent="$router.push('/location')">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
         <span>Ubicación</span>
+      </a>
+      <a href="/faq" class="pwa-nav-item" :class="{ 'is-active': isRouteActive('/faq') }" @click.prevent="$router.push('/faq')">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <span>Preguntas</span>
       </a>
       <a href="/login" class="pwa-nav-item" :class="{ 'is-active': isRouteActive('/login') }" @click.prevent="$router.push('/login')">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
@@ -184,6 +192,10 @@
       @confirm="confirmLogout"
       @cancel="showLogoutModal = false"
     />
+    <AdminFaqModal
+      :visible="showAdminFaqModal"
+      @close="showAdminFaqModal = false"
+    />
     <LoadingOverlay :visible="loggingOut" text="Cerrando sesión..." />
     <NotificationNative />
     <SplashScreen />
@@ -196,6 +208,7 @@ import { useNotificationsStore } from "@/stores/notifications";
 import NotificationsDropdown from "@/components/NotificationsDropdown.vue";
 import SettingsDropdown from "@/components/SettingsDropdown.vue";
 import ConfirmModal from "@/components/ConfirmModal.vue";
+import AdminFaqModal from "@/components/AdminFaqModal.vue";
 import LoadingOverlay from "@/components/LoadingOverlay.vue";
 import NotificationNative from "@/components/NotificationNative.vue";
 import SplashScreen from "@/components/SplashScreen.vue";
@@ -204,7 +217,7 @@ import orderSocket from "@/services/orderSocket";
 
 export default {
   name: "App",
-  components: { NotificationsDropdown, SettingsDropdown, ConfirmModal, LoadingOverlay, NotificationNative, SplashScreen },
+  components: { NotificationsDropdown, SettingsDropdown, ConfirmModal, AdminFaqModal, LoadingOverlay, NotificationNative, SplashScreen },
   setup() {
     const authStore = useAuthStore();
     const notifStore = useNotificationsStore();
@@ -273,6 +286,11 @@ export default {
       }
     };
     document.addEventListener("visibilitychange", this._onVisibility);
+
+    this._onOpenAdminFaq = () => {
+      this.showAdminFaqModal = true;
+    };
+    window.addEventListener("open-admin-faq", this._onOpenAdminFaq);
   },
   beforeUnmount() {
     orderSocket.disable();
@@ -281,6 +299,9 @@ export default {
     }
     if (this._onVisibility) {
       document.removeEventListener("visibilitychange", this._onVisibility);
+    }
+    if (this._onOpenAdminFaq) {
+      window.removeEventListener("open-admin-faq", this._onOpenAdminFaq);
     }
     if (this._swMsgHandler && "serviceWorker" in navigator) {
       navigator.serviceWorker.removeEventListener("message", this._swMsgHandler);
@@ -313,7 +334,7 @@ export default {
     },
     isPublicPage() {
       try {
-        const publicPaths = ["/login", "/register/cliente", "/workshop", "/location"];
+        const publicPaths = ["/login", "/register/cliente", "/workshop", "/location", "/faq"];
         return publicPaths.includes(this.$route.path);
       } catch (e) {
         return false;
@@ -329,7 +350,7 @@ export default {
       if (this.authStore.isCliente) {
         return ["/cliente/orders", "/notifications"];
       }
-      return ["/workshop", "/location", "/login", "/register/cliente"];
+      return ["/workshop", "/location", "/faq", "/login", "/register/cliente"];
     },
     currentSwipeIndex() {
       return this.swipePages.indexOf(this.$route.path);
@@ -338,6 +359,7 @@ export default {
   data() {
     return {
       showLogoutModal: false,
+      showAdminFaqModal: false,
       loggingOut: false,
       isDark: document.documentElement.classList.contains("dark"),
       sunIcon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>',

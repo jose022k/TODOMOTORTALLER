@@ -22,18 +22,32 @@
           <input type="checkbox" :checked="prefs.dark_mode" @change="updatePref('dark_mode', $event.target.checked)" />
         </label>
       </div>
+      <div v-if="isAdmin" class="settings-section">
+        <h4>Preguntas</h4>
+        <div class="settings-row settings-action" @click="openAdminFaq">
+          <span>Preguntas frecuentes</span>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script>
 import api from "@/services/api";
+import { useAuthStore } from "@/stores/auth";
 
 export default {
   name: "SettingsDropdown",
   emits: ["theme-change"],
   props: {
     above: { type: Boolean, default: false },
+  },
+  computed: {
+    isAdmin() {
+      const authStore = useAuthStore();
+      return authStore.isAdmin;
+    },
   },
   data() {
     return {
@@ -62,6 +76,10 @@ export default {
       try {
         await api.put("/preferences/", { [key]: val });
       } catch { /* silently */ }
+    },
+    openAdminFaq() {
+      this.open = false;
+      window.dispatchEvent(new CustomEvent("open-admin-faq"));
     },
     onClickOutside(e) {
       if (this.open && this.$refs.wrap && !this.$refs.wrap.contains(e.target)) {

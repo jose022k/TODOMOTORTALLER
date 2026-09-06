@@ -119,6 +119,44 @@ def ensure_schema_updates():
             conn.execute(text("DELETE FROM active_session"))
             conn.commit()
 
+        # Crear tabla faq si no existe y sembrar preguntas iniciales
+        if "faq" not in tables:
+            conn.execute(text("""CREATE TABLE faq (
+                id SERIAL PRIMARY KEY,
+                servicio VARCHAR(255) NOT NULL,
+                pregunta TEXT NOT NULL,
+                respuesta TEXT NOT NULL,
+                monto_euro FLOAT NOT NULL DEFAULT 0.0,
+                es_precio_minimo BOOLEAN NOT NULL DEFAULT FALSE,
+                orden INTEGER NOT NULL DEFAULT 0,
+                activo BOOLEAN NOT NULL DEFAULT TRUE,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )"""))
+            conn.commit()
+
+        faq_count = conn.execute(text("SELECT COUNT(*) FROM faq")).scalar()
+        if faq_count == 0:
+            defaults = [
+                ("Costo de motor completo varillero 150 y 200 de cilindrada", "¿Cuál es el costo de reparación de un motor completo varillero 150 y 200cc?", "Costo de motor completo varillero 150 y 200 de cilindrada: 100€", 100.0, False, 1),
+                ("Motor de cadena 150 y 200 de cilindrada", "¿Cuál es el precio de reparación para motor de cadena 150 y 200cc?", "Motor de cadena 150 y 200 de cilindrada: 120€", 120.0, False, 2),
+                ("Medio motor varillero", "¿Cuánto cuesta la reparación de medio motor varillero?", "Medio motor varillero: 50€", 50.0, False, 3),
+                ("Medio motor de cadena", "¿Cuánto cuesta la reparación de medio motor de cadena?", "Medio motor de cadena: 60€", 60.0, False, 4),
+                ("Mantenimiento general moto tipo TX", "¿Cuál es el costo del mantenimiento general para moto tipo TX?", "Mantenimiento general moto tipo TX: 50€", 50.0, False, 5),
+                ("Mantenimiento general moto tipo Horse", "¿Cuál es el costo del mantenimiento general para moto tipo Horse?", "Mantenimiento general moto tipo Horse: 40€", 40.0, False, 6),
+                ("Cambio de relación moto de baja cilindrada", "¿Cuánto cuesta el cambio de relación para moto de baja cilindrada?", "Cambio de relación moto de baja cilindrada: 10€", 10.0, False, 7),
+                ("Cambio de relación moto de media cilindrada", "¿Cuánto cuesta el cambio de relación para moto de media cilindrada?", "Cambio de relación moto de media cilindrada: 20€", 20.0, False, 8),
+                ("Cambio de relación moto de alta cilindrada", "¿Cuánto cuesta el cambio de relación para moto de alta cilindrada?", "Cambio de relación moto de alta cilindrada: 30€", 30.0, False, 9),
+                ("Falla eléctrica", "¿Cuál es el costo por diagnóstico y reparación de falla eléctrica?", "Falla eléctrica: mínimo 20€", 20.0, True, 10),
+                ("Enderezado de chasis", "¿Cuánto cuesta el enderezado de chasis?", "Enderezado de chasis: mínimo 50€", 50.0, True, 11),
+            ]
+            for s, p, r, m, min_flag, o in defaults:
+                conn.execute(
+                    text("""INSERT INTO faq (servicio, pregunta, respuesta, monto_euro, es_precio_minimo, orden)
+                            VALUES (:s, :p, :r, :m, :min_flag, :o)"""),
+                    {"s": s, "p": p, "r": r, "m": m, "min_flag": min_flag, "o": o}
+                )
+            conn.commit()
+
         for table, col_def in _MIGRATIONS:
             if table not in tables:
                 continue
