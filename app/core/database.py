@@ -133,6 +133,13 @@ def ensure_schema_updates():
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )"""))
             conn.commit()
+        else:
+            try:
+                conn.execute(text("ALTER TABLE faq ALTER COLUMN activo SET DEFAULT TRUE"))
+                conn.execute(text("UPDATE faq SET activo = TRUE WHERE activo IS NULL"))
+                conn.commit()
+            except Exception:
+                pass
 
         faq_count = conn.execute(text("SELECT COUNT(*) FROM faq")).scalar()
         if faq_count == 0:
@@ -151,8 +158,8 @@ def ensure_schema_updates():
             ]
             for s, p, r, m, min_flag, o in defaults:
                 conn.execute(
-                    text("""INSERT INTO faq (servicio, pregunta, respuesta, monto_euro, es_precio_minimo, orden)
-                            VALUES (:s, :p, :r, :m, :min_flag, :o)"""),
+                    text("""INSERT INTO faq (servicio, pregunta, respuesta, monto_euro, es_precio_minimo, orden, activo)
+                            VALUES (:s, :p, :r, :m, :min_flag, :o, TRUE)"""),
                     {"s": s, "p": p, "r": r, "m": m, "min_flag": min_flag, "o": o}
                 )
             conn.commit()
