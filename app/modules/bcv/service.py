@@ -16,7 +16,7 @@ _cache: Optional[dict] = None
 
 
 def _get_auto_tasa() -> Optional[float]:
-    """Consulta la tasa de referencia del dólar directamente en bcv.org.ve."""
+    """Consulta la tasa de referencia del euro directamente en bcv.org.ve."""
     try:
         urllib3.disable_warnings()
         resp = requests.get(
@@ -27,7 +27,7 @@ def _get_auto_tasa() -> Optional[float]:
         )
         resp.raise_for_status()
         html = resp.text
-        m = re.search(r'<div id="dolar".*?strong-tb">\s*([\d.,]+)\s*<', html, re.S)
+        m = re.search(r'<div id="euro".*?strong-tb">\s*([\d.,]+)\s*<', html, re.S)
         if not m:
             return None
         return float(m.group(1).replace(".", "").replace(",", "."))

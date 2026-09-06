@@ -280,7 +280,7 @@
             <p v-else-if="form.moneda === 'USD' && tasaBcv && form.monto > 0" class="monto-preview">
               ≈ {{ formatBs(form.monto * tasaBcv) }} Bs
             </p>
-            <p v-if="tasaBcv" class="monto-tasa">Tasa BCV: {{ tasaBcv.toFixed(2) }} Bs/$</p>
+            <p v-if="tasaBcv" class="monto-tasa">Tasa BCV: {{ tasaBcv.toFixed(2) }} Bs/€</p>
             <p v-else class="monto-tasa warn">Tasa no disponible. Configúrala en Reportes y Estadísticas.</p>
           </div>
         </div>
