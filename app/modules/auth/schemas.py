@@ -55,3 +55,25 @@ class TokenResponse(BaseModel):
 
 class RefreshRequest(BaseModel):
     refresh_token: str
+
+
+class GoogleAuthRequest(BaseModel):
+    credential_token: str
+
+
+class GoogleCompleteProfileRequest(BaseModel):
+    credential_token: str
+    cedula: str
+    nombre: str
+    telefono: str
+    direccion: Optional[str] = ""
+
+
+class GoogleAuthResponse(BaseModel):
+    needs_profile_completion: bool = False
+    google_email: Optional[str] = None
+    google_name: Optional[str] = None
+    access_token: Optional[str] = None
+    refresh_token: Optional[str] = None
+    token_type: Optional[str] = "bearer"
+

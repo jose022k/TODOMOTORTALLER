@@ -232,3 +232,128 @@ def update_user(db: Session, user_id: str, role: str, data: UserUpdate):
     updated_user = dao.update(db, user, update_data)
     setattr(updated_user, "rol", role)
     return updated_user
+
+
+import urllib.request
+import json
+
+
+def verify_google_token(credential_token: str) -> dict:
+    if not credential_token:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Token de Google no proporcionado.")
+    url = f"https://oauth2.googleapis.com/tokeninfo?id_token={credential_token}"
+    req = urllib.request.Request(url)
+    try:
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            if resp.status == 200:
+                data = json.loads(resp.read().decode("utf-8"))
+                email = data.get("email")
+                if not email:
+                    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="El token de Google no contiene un correo electrónico.")
+                return {
+                    "email": email.lower().strip(),
+                    "name": data.get("name", "").strip(),
+                    "sub": data.get("sub"),
+                }
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Token de Google no válido o expirado.",
+        )
+
+
+def authenticate_google_cliente(db: Session, credential_token: str) -> dict:
+    google_info = verify_google_token(credential_token)
+    email = google_info["email"]
+
+    admin = admin_dao.get_by_email(db, email)
+    if admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Este correo pertenece a una cuenta de Administrador. Debe iniciar sesión con contraseña.",
+        )
+    mecanico = mecanico_dao.get_by_email(db, email)
+    if mecanico:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Este correo pertenece a una cuenta de Mecánico. Debe iniciar sesión con contraseña.",
+        )
+
+    cliente = cliente_dao.get_by_email(db, email)
+    if not cliente or not cliente.cedula or not cliente.telefono:
+        return {
+            "needs_profile_completion": True,
+            "google_email": email,
+            "google_name": (cliente.nombre if cliente else google_info["name"]),
+        }
+
+    if hasattr(cliente, "activo") and not cliente.activo:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Usuario desactivado. Contacte al administrador.",
+        )
+
+    jti = check_and_create_active_session(db, cliente.id, "cliente")
+    access_token = create_access_token({"sub": str(cliente.id), "role": "cliente", "jti": jti})
+    refresh_token = create_refresh_token({"sub": str(cliente.id), "role": "cliente", "jti": jti})
+    return {
+        "needs_profile_completion": False,
+        "access_token": access_token,
+        "refresh_token": refresh_token,
+        "token_type": "bearer",
+    }
+
+
+def complete_google_cliente_profile(db: Session, data) -> dict:
+    google_info = verify_google_token(data.credential_token)
+    email = google_info["email"]
+
+    existing_cedula = db.query(cliente_dao.model).filter(
+        cliente_dao.model.cedula == data.cedula,
+        cliente_dao.model.email != email
+    ).first()
+    if existing_cedula:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="La cédula ingresada ya se encuentra registrada por otro usuario.",
+        )
+
+    cliente = cliente_dao.get_by_email(db, email)
+    if cliente:
+        cliente.cedula = data.cedula
+        cliente.nombre = data.nombre
+        cliente.telefono = data.telefono
+        if data.direccion:
+            cliente.direccion = data.direccion
+        db.commit()
+        db.refresh(cliente)
+    else:
+        new_client_dict = {
+            "email": email,
+            "nombre": data.nombre,
+            "cedula": data.cedula,
+            "contraseña": hash_password(str(uuid.uuid4())),
+            "telefono": data.telefono,
+            "direccion": data.direccion or "Sin dirección especificada",
+            "activo": True,
+        }
+        cliente = cliente_dao.create(db, new_client_dict)
+
+    if hasattr(cliente, "activo") and not cliente.activo:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Usuario desactivado. Contacte al administrador.",
+        )
+
+    jti = check_and_create_active_session(db, cliente.id, "cliente")
+    access_token = create_access_token({"sub": str(cliente.id), "role": "cliente", "jti": jti})
+    refresh_token = create_refresh_token({"sub": str(cliente.id), "role": "cliente", "jti": jti})
+    return {
+        "needs_profile_completion": False,
+        "access_token": access_token,
+        "refresh_token": refresh_token,
+        "token_type": "bearer",
+    }
+

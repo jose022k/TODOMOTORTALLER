@@ -8,6 +8,9 @@ from app.modules.auth.schemas import (
     UserUpdate,
     TokenResponse,
     RefreshRequest,
+    GoogleAuthRequest,
+    GoogleCompleteProfileRequest,
+    GoogleAuthResponse,
 )
 from app.modules.auth.service import (
     register_cliente,
@@ -16,10 +19,29 @@ from app.modules.auth.service import (
     refresh_token,
     get_user_by_id,
     update_user,
+    authenticate_google_cliente,
+    complete_google_cliente_profile,
 )
 from app.modules.auth.dependencies import get_current_user, get_current_admin, AnyUser
 
 router = APIRouter(prefix="/auth", tags=["auth"])
+
+
+@router.post("/google/cliente", response_model=GoogleAuthResponse)
+def login_or_register_google_cliente(
+    data: GoogleAuthRequest,
+    db: Session = Depends(get_db)
+):
+    return authenticate_google_cliente(db, data.credential_token)
+
+
+@router.post("/google/cliente/complete", response_model=GoogleAuthResponse)
+def complete_profile_google_cliente(
+    data: GoogleCompleteProfileRequest,
+    db: Session = Depends(get_db)
+):
+    return complete_google_cliente_profile(db, data)
+
 
 
 @router.post("/register/cliente", response_model=UserResponse, status_code=201)

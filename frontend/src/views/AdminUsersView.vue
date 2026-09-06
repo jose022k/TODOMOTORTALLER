@@ -183,8 +183,8 @@
             <input v-model="clientEditForm.nombre" type="text" required />
           </div>
           <div class="form-group">
-            <label>Email</label>
-            <input v-model="clientEditForm.email" type="email" required />
+            <label>Email (No editable)</label>
+            <input v-model="clientEditForm.email" type="email" disabled class="input-disabled" />
           </div>
           <div class="form-group">
             <label>Teléfono</label>
@@ -440,7 +440,6 @@ export default {
       try {
         const payload = {};
         if (this.clientEditForm.nombre) payload.nombre = this.clientEditForm.nombre;
-        if (this.clientEditForm.email) payload.email = this.clientEditForm.email;
         if (this.clientEditForm.telefono) payload.telefono = this.clientEditForm.telefono;
         if (this.clientEditForm.direccion) payload.direccion = this.clientEditForm.direccion;
         const { data } = await api.patch(`/users/clients/${this.clientEditForm.id}`, payload);
@@ -733,6 +732,12 @@ export default {
   border-radius: 8px;
   font-size: 0.9rem;
   box-sizing: border-box;
+}
+.input-disabled, input:disabled {
+  background-color: #f1f5f9;
+  color: #64748b;
+  cursor: not-allowed;
+  border-color: #cbd5e1;
 }
 .form-group input:focus {
   border-color: #ffaa00;
