@@ -16,7 +16,6 @@ class TasaManualIn(BaseModel):
 @router.get("/tasa")
 def tasa_bcv(
     db: Session = Depends(get_db),
-    admin=Depends(get_current_admin),
 ):
     """Devuelve la tasa BCV actual (automática o manual)."""
     try:
