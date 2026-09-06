@@ -153,15 +153,19 @@
         </form>
       </div>
     </div>
+
+    <LoadingOverlay :visible="loading" text="Entrando al sistema..." />
   </div>
 </template>
 
 <script>
 import api from "@/services/api";
 import { useAuthStore } from "@/stores/auth";
+import LoadingOverlay from "@/components/LoadingOverlay.vue";
 
 export default {
   name: "ClienteRegisterView",
+  components: { LoadingOverlay },
   data() {
     return {
       form: {
@@ -272,11 +276,13 @@ export default {
           };
           this.showGoogleModal = true;
         } else {
+          this.loading = true;
           const authStore = useAuthStore();
           await authStore.setTokens(data.access_token, data.refresh_token);
           this.$router.push("/cliente/orders");
         }
       } catch (err) {
+        this.loading = false;
         this.error = err.response?.data?.detail || "Error con autenticación de Google";
       } finally {
         this.googleLoading = false;
@@ -306,6 +312,8 @@ export default {
         return;
       }
       this.savingGoogle = true;
+      this.loading = true;
+      this.showGoogleModal = false;
       try {
         const { data } = await api.post("/auth/google/cliente/complete", {
           access_token: this.googleToken,
@@ -316,9 +324,10 @@ export default {
         });
         const authStore = useAuthStore();
         await authStore.setTokens(data.access_token, data.refresh_token);
-        this.showGoogleModal = false;
         this.$router.push("/cliente/orders");
       } catch (err) {
+        this.loading = false;
+        this.showGoogleModal = true;
         alert(err.response?.data?.detail || "Error al completar el perfil.");
       } finally {
         this.savingGoogle = false;
