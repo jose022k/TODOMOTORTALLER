@@ -273,42 +273,43 @@ export default {
 .auth-card {
   background: #fff;
   border-radius: 20px;
-  padding: 32px 40px 36px;
+  padding: 24px 32px 24px;
   width: 100%;
   max-width: 400px;
+  box-sizing: border-box;
 }
 html:not(.dark) .auth-card {
   box-shadow: 0 10px 40px rgba(0,0,0,0.18), 0 4px 12px rgba(0,0,0,0.08);
 }
 .auth-header {
   text-align: center;
-  margin-bottom: 28px;
+  margin-bottom: 14px;
 }
 .auth-logo {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 .logo-img {
-  height: 80px;
+  height: 64px;
   width: auto;
   display: block;
 }
 .auth-title {
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 800;
   color: #1a1a1a;
   letter-spacing: -0.3px;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 .auth-desc {
-  font-size: 14px;
+  font-size: 13px;
   color: #94a3b8;
   margin: 0;
 }
 .input-group {
-  margin-bottom: 18px;
+  margin-bottom: 14px;
 }
 .input-group label {
   display: block;
@@ -413,9 +414,9 @@ html:not(.dark) .auth-card {
   vertical-align: middle;
 }
 .auth-footer {
-  margin-top: 24px;
+  margin-top: 14px;
   text-align: center;
-  font-size: 14px;
+  font-size: 13.5px;
   color: #94a3b8;
 }
 .auth-footer a {
@@ -432,51 +433,52 @@ html:not(.dark) .auth-card {
   .auth-container {
     align-items: center;
     padding-top: 10px;
-    padding-bottom: 80px;
+    padding-bottom: 40px;
   }
   .auth-card {
     border-radius: 16px;
-    padding: 20px 20px 24px;
-    margin: 0 4px;
+    padding: 20px 18px 20px;
+    margin: 0 8px;
+    max-width: 100%;
   }
   .logo-img {
-    height: 60px;
+    height: 52px;
   }
   .auth-title {
-    font-size: 22px;
+    font-size: 19px;
   }
   .auth-desc {
-    font-size: 13px;
+    font-size: 12.5px;
   }
   .input-group {
-    margin-bottom: 16px;
+    margin-bottom: 12px;
   }
   .input-group label {
-    font-size: 13px;
-    margin-bottom: 6px;
+    font-size: 12.5px;
+    margin-bottom: 4px;
   }
   .input-wrapper input {
-    padding: 14px 14px 14px 42px;
-    border-radius: 12px;
-    font-size: 16px;
+    padding: 11px 12px 11px 38px;
+    border-radius: 10px;
+    font-size: 15px;
   }
   .input-icon {
-    left: 14px;
+    left: 12px;
   }
   .btn-submit {
-    padding: 15px;
-    border-radius: 12px;
-    font-size: 16px;
+    padding: 12px;
+    border-radius: 10px;
+    font-size: 15px;
     font-weight: 800;
     margin-top: 4px;
   }
   .toggle-pw {
-    right: 10px;
-    padding: 8px;
+    right: 8px;
+    padding: 6px;
   }
   .auth-footer {
-    font-size: 14px;
-    margin-top: 20px;
+    font-size: 13px;
+    margin-top: 14px;
   }
 }
 html.dark .auth-card {
@@ -510,7 +512,7 @@ html.dark .error-msg {
 
 /* Google Button & Divider */
 .google-auth-box {
-  margin-bottom: 14px;
+  margin-bottom: 8px;
   width: 100%;
   box-sizing: border-box;
 }
@@ -518,20 +520,21 @@ html.dark .error-msg {
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
-  padding: 11px 16px;
+  padding: 9px 12px;
+  height: 38px;
   background: #ffffff;
   border: 1.5px solid #cbd5e1;
-  border-radius: 10px;
+  border-radius: 8px;
   color: #334155;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   white-space: nowrap;
   overflow: hidden;
 }
@@ -568,9 +571,9 @@ html.dark .btn-google:hover:not(:disabled) {
   display: flex;
   align-items: center;
   text-align: center;
-  margin: 16px 0 20px;
+  margin: 10px 0 12px;
   color: #94a3b8;
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 600;
 }
 .divider::before,
@@ -584,7 +587,7 @@ html.dark .divider::after {
   border-bottom-color: #334155;
 }
 .divider span {
-  padding: 0 10px;
+  padding: 0 8px;
 }
 
 /* Modal Google Completa Perfil */
