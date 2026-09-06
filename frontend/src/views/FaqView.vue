@@ -1,10 +1,6 @@
 <template>
   <div class="faq-page">
     <div class="faq-header">
-      <button class="btn-back" @click="goBack" title="Volver">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-        <span>Volver</span>
-      </button>
       <div class="header-titles">
         <h1>Preguntas Frecuentes</h1>
         <p class="subtitle">Tarifas de referencia y servicios del taller</p>
@@ -42,11 +38,9 @@
 
     <div v-else class="faq-list">
       <div
-        v-for="(item, index) in filteredFaqs"
+        v-for="item in filteredFaqs"
         :key="item.id"
         class="faq-card"
-        :class="{ expanded: expandedIndex === index }"
-        @click="toggleExpand(index)"
       >
         <div class="faq-card-header">
           <div class="faq-card-title-group">
@@ -61,14 +55,7 @@
               ≈ {{ formatBs(item.monto_euro * tasaBcv) }} Bs
             </span>
           </div>
-          <svg class="chevron-icon" :class="{ rotated: expandedIndex === index }" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
         </div>
-
-        <transition name="accordion">
-          <div v-if="expandedIndex === index" class="faq-card-body">
-            <p class="faq-answer">{{ item.respuesta }}</p>
-          </div>
-        </transition>
       </div>
     </div>
   </div>
@@ -85,7 +72,6 @@ export default {
       loading: true,
       searchQuery: "",
       tasaBcv: null,
-      expandedIndex: 0, // Abrir la primera por defecto
     };
   },
   computed: {
@@ -119,16 +105,6 @@ export default {
         this.loading = false;
       }
     },
-    toggleExpand(index) {
-      this.expandedIndex = this.expandedIndex === index ? -1 : index;
-    },
-    goBack() {
-      if (window.history.length > 1) {
-        this.$router.back();
-      } else {
-        this.$router.push("/");
-      }
-    },
     formatBs(val) {
       if (val === null || val === undefined || isNaN(val)) return "0,00";
       return Number(val).toLocaleString("es-VE", {
@@ -148,43 +124,12 @@ export default {
 }
 
 .faq-header {
-  display: flex;
-  align-items: center;
-  gap: 16px;
+  text-align: center;
   margin-bottom: 24px;
-}
-
-.btn-back {
-  display: inline-flex;
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 6px;
-  background: #f1f5f9;
-  border: 1px solid #cbd5e1;
-  color: #334155;
-  padding: 8px 14px;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.btn-back:hover {
-  background: #ffaa00;
-  color: #1a1a1a;
-  border-color: #ffaa00;
-}
-
-html.dark .btn-back {
-  background: #1e293b;
-  border-color: #334155;
-  color: #cbd5e1;
-}
-
-html.dark .btn-back:hover {
-  background: #ffaa00;
-  color: #1a1a1a;
-  border-color: #ffaa00;
+  justify-content: center;
 }
 
 .header-titles h1 {
@@ -201,7 +146,7 @@ html.dark .header-titles h1 {
 .subtitle {
   font-size: 0.95rem;
   color: #64748b;
-  margin-top: 2px;
+  margin-top: 4px;
 }
 
 html.dark .subtitle {
@@ -261,6 +206,7 @@ html.dark .faq-search-input {
 .tasa-info-bar {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   background: #fff8eb;
   border: 1px solid #ffe3b3;
@@ -269,6 +215,7 @@ html.dark .faq-search-input {
   border-radius: 10px;
   font-size: 13.5px;
   margin-bottom: 24px;
+  text-align: center;
 }
 
 html.dark .tasa-info-bar {
@@ -311,7 +258,6 @@ html.dark .tasa-info-bar {
   border: 1px solid #e2e8f0;
   border-radius: 14px;
   padding: 18px 20px;
-  cursor: pointer;
   transition: all 0.2s ease;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
@@ -340,24 +286,6 @@ html.dark .faq-card:hover {
 
 .faq-card-title-group {
   flex: 1;
-}
-
-.faq-service-tag {
-  display: inline-block;
-  font-size: 11.5px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: #b45309;
-  background: #fef3c7;
-  padding: 3px 8px;
-  border-radius: 6px;
-  margin-bottom: 6px;
-}
-
-html.dark .faq-service-tag {
-  color: #fbbf24;
-  background: #451a03;
 }
 
 .faq-question {
@@ -414,54 +342,6 @@ html.dark .price-bs {
   color: #94a3b8;
 }
 
-.chevron-icon {
-  color: #94a3b8;
-  transition: transform 0.25s ease;
-}
-
-.chevron-icon.rotated {
-  transform: rotate(180deg);
-  color: #ffaa00;
-}
-
-.faq-card-body {
-  margin-top: 14px;
-  padding-top: 14px;
-  border-top: 1px dashed #e2e8f0;
-}
-
-html.dark .faq-card-body {
-  border-top-color: #334155;
-}
-
-.faq-answer {
-  font-size: 0.95rem;
-  color: #334155;
-  line-height: 1.5;
-  white-space: pre-line;
-}
-
-html.dark .faq-answer {
-  color: #cbd5e1;
-}
-
-/* Transición acordeón */
-.accordion-enter-active,
-.accordion-leave-active {
-  transition: all 0.25s ease-out;
-  max-height: 200px;
-  opacity: 1;
-  overflow: hidden;
-}
-
-.accordion-enter-from,
-.accordion-leave-to {
-  max-height: 0;
-  opacity: 0;
-  margin-top: 0;
-  padding-top: 0;
-}
-
 @media (max-width: 640px) {
   .faq-card-header {
     flex-wrap: wrap;
@@ -470,7 +350,7 @@ html.dark .faq-answer {
     align-items: flex-start;
     text-align: left;
     width: 100%;
-    margin-top: 4px;
+    margin-top: 6px;
     flex-direction: row;
     gap: 8px;
   }

@@ -40,18 +40,8 @@
                 v-model="form.pregunta"
                 type="text"
                 class="form-control"
-                placeholder="Ej: ¿Cuál es el costo de reparación de un motor completo varillero?"
+                placeholder="Ej: Costo de motor completo varillero 150 y 200 de cilindrada"
               />
-            </div>
-
-            <div class="form-group full-width">
-              <label>Respuesta / Descripción del servicio *</label>
-              <textarea
-                v-model="form.respuesta"
-                rows="3"
-                class="form-control"
-                placeholder="Ej: Incluye desarmado completo, limpieza de cárter, repuestos y ensamble..."
-              ></textarea>
             </div>
 
             <div class="form-group">
@@ -252,8 +242,9 @@ export default {
     },
     async saveForm() {
       this.form.servicio = this.form.pregunta;
-      if (!this.form.pregunta.trim() || !this.form.respuesta.trim()) {
-        alert("Por favor completa los campos obligatorios (*).");
+      this.form.respuesta = "";
+      if (!this.form.pregunta.trim()) {
+        alert("Por favor ingresa la pregunta completa.");
         return;
       }
       this.saving = true;

@@ -15,7 +15,7 @@ def create_faq(db: Session, data: FaqCreate) -> Faq:
     faq = Faq(
         servicio=data.servicio or data.pregunta,
         pregunta=data.pregunta,
-        respuesta=data.respuesta,
+        respuesta=data.respuesta or "",
         monto_euro=data.monto_euro,
         es_precio_minimo=data.es_precio_minimo if data.es_precio_minimo is not None else False,
         orden=data.orden if data.orden is not None else 0,

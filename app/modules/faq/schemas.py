@@ -6,7 +6,7 @@ from datetime import datetime
 class FaqCreate(BaseModel):
     servicio: Optional[str] = ""
     pregunta: str
-    respuesta: str
+    respuesta: Optional[str] = ""
     monto_euro: float
     es_precio_minimo: Optional[bool] = False
     orden: Optional[int] = 0
