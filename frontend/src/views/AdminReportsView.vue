@@ -104,6 +104,7 @@
                     <template v-else-if="col.key === 'fecha'">{{ formatDate(row.fecha) }}</template>
                     <template v-else-if="col.key === 'total_dia'">{{ row.total }} órdenes</template>
                     <template v-else-if="col.key === 'total_usd'">€ {{ Number(row.total_usd).toFixed(2) }}</template>
+                    <template v-else-if="col.key === 'total_bs'">{{ tasaBcv && row.total_usd ? formatBs(row.total_usd * tasaBcv) + ' Bs' : '—' }}</template>
                     <template v-else-if="col.key === 'porcentaje'">{{ Number(row.porcentaje).toFixed(1) }}%</template>
                     <template v-else-if="col.key === 'cantidad'">{{ row.cantidad }} {{ row.cantidad === 1 ? 'orden' : 'órdenes' }}</template>
                     <template v-else>{{ row[col.key] }}</template>
@@ -225,7 +226,7 @@ export default {
         rendimiento: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20v-6"/><path d="M12 10V4"/><path d="M6 20v-4"/><path d="M6 12V4"/><path d="M18 20v-8"/><path d="M18 8V4"/></svg>',
       };
       const columns = {
-        ganancias: [{ key: "dia", label: "Día" }, { key: "fecha", label: "Fecha" }, { key: "total_usd", label: "Monto" }],
+        ganancias: [{ key: "dia", label: "Día" }, { key: "fecha", label: "Fecha" }, { key: "total_usd", label: "Monto (€)" }, { key: "total_bs", label: "Equivalente (Bs)" }],
         mecanicos: [{ key: "_rank", label: "#" }, { key: "nombre", label: "Nombre" }, { key: "total_servicios", label: "Servicios" }],
         motos: [{ key: "_rank", label: "#" }, { key: "moto", label: "Moto" }, { key: "total_ordenes", label: "Órdenes" }],
         servicios: [{ key: "_rank", label: "#" }, { key: "descripcion", label: "Servicio" }, { key: "total", label: "Veces" }],
@@ -248,7 +249,7 @@ export default {
         ganancias: (d) => ({
           labels: d.map((g) => g.dia),
           datasets: [{
-            label: "Ingresos ($)",
+            label: "Ingresos (€)",
             data: d.map((g) => g.total_usd),
             borderColor: "#ffaa00",
             backgroundColor: "#ffaa00",
@@ -336,7 +337,7 @@ export default {
                   ...baseOptions.plugins,
                   tooltip: {
                     ...baseOptions.plugins.tooltip,
-                    callbacks: { label: (ctx) => ` $ ${Number(ctx.parsed.y).toFixed(2)}` },
+                    callbacks: { label: (ctx) => ` € ${Number(ctx.parsed.y).toFixed(2)}` },
                   },
                 },
                 scales: {
@@ -349,7 +350,7 @@ export default {
                       ...baseOptions.scales.y.ticks,
                       stepSize: step,
                       precision: step < 1 ? 1 : 0,
-                      callback: (v) => "$" + v,
+                      callback: (v) => "€" + v,
                     },
                   },
                 },
@@ -469,6 +470,13 @@ export default {
       const d = new Date(f + "T00:00:00");
       if (isNaN(d)) return f;
       return d.toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit", year: "numeric" });
+    },
+    formatBs(val) {
+      if (val === null || val === undefined || isNaN(val)) return "0,00";
+      return Number(val).toLocaleString("es-VE", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
     },
   },
 };
