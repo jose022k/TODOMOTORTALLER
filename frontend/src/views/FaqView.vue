@@ -17,7 +17,7 @@
       <input
         v-model="searchQuery"
         type="text"
-        placeholder="Buscar servicio o pregunta (ej: motor, TX, cadena...)"
+        placeholder="Buscar pregunta (ej: motor, TX, cadena...)"
         class="faq-search-input"
       />
       <button v-if="searchQuery" class="clear-search" @click="searchQuery = ''">&times;</button>
@@ -50,7 +50,6 @@
       >
         <div class="faq-card-header">
           <div class="faq-card-title-group">
-            <span class="faq-service-tag">{{ item.servicio }}</span>
             <h3 class="faq-question">{{ item.pregunta }}</h3>
           </div>
           <div class="faq-price-badge">
@@ -95,9 +94,9 @@ export default {
       const q = this.searchQuery.toLowerCase();
       return this.faqs.filter(
         (f) =>
-          f.servicio.toLowerCase().includes(q) ||
-          f.pregunta.toLowerCase().includes(q) ||
-          f.respuesta.toLowerCase().includes(q)
+          (f.pregunta && f.pregunta.toLowerCase().includes(q)) ||
+          (f.respuesta && f.respuesta.toLowerCase().includes(q)) ||
+          (f.servicio && f.servicio.toLowerCase().includes(q))
       );
     },
   },

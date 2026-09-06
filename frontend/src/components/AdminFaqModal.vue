@@ -16,7 +16,7 @@
             <input
               v-model="search"
               type="text"
-              placeholder="Buscar servicio..."
+              placeholder="Buscar pregunta..."
               class="form-control form-control-sm"
             />
           </div>
@@ -34,16 +34,6 @@
           </div>
 
           <div class="form-grid">
-            <div class="form-group full-width">
-              <label>Servicio / Título corto *</label>
-              <input
-                v-model="form.servicio"
-                type="text"
-                class="form-control"
-                placeholder="Ej: Costo de motor completo varillero 150 y 200 de cilindrada"
-              />
-            </div>
-
             <div class="form-group full-width">
               <label>Pregunta completa *</label>
               <input
@@ -121,7 +111,7 @@
             <thead>
               <tr>
                 <th style="width: 50px;">#</th>
-                <th>Servicio / Pregunta</th>
+                <th>Pregunta Frecuente</th>
                 <th style="width: 110px; text-align: right;">Monto (€)</th>
                 <th style="width: 140px; text-align: center;">Acciones</th>
               </tr>
@@ -130,8 +120,7 @@
               <tr v-for="f in filteredFaqs" :key="f.id" :class="{ 'editing-row': editingId === f.id }">
                 <td class="text-center font-mono">{{ f.orden }}</td>
                 <td>
-                  <div class="faq-item-title">{{ f.servicio }}</div>
-                  <div class="faq-item-sub">{{ f.pregunta }}</div>
+                  <div class="faq-item-title">{{ f.pregunta }}</div>
                 </td>
                 <td class="text-right font-bold">
                   <span v-if="f.es_precio_minimo" class="min-tag">Mínimo </span>
@@ -158,7 +147,7 @@
     <ConfirmModal
       :visible="showDeleteModal"
       title="Eliminar Pregunta Frecuente"
-      :message="`¿Deseas eliminar la pregunta '${itemToDelete?.servicio}'?`"
+      :message="`¿Deseas eliminar la pregunta '${itemToDelete?.pregunta}'?`"
       confirmText="Eliminar"
       cancelText="Cancelar"
       @confirm="confirmDelete"
@@ -211,8 +200,9 @@ export default {
       const q = this.search.toLowerCase();
       return this.faqs.filter(
         (f) =>
-          f.servicio.toLowerCase().includes(q) ||
-          f.pregunta.toLowerCase().includes(q)
+          (f.pregunta && f.pregunta.toLowerCase().includes(q)) ||
+          (f.respuesta && f.respuesta.toLowerCase().includes(q)) ||
+          (f.servicio && f.servicio.toLowerCase().includes(q))
       );
     },
   },
@@ -247,7 +237,7 @@ export default {
     editItem(f) {
       this.editingId = f.id;
       this.form = {
-        servicio: f.servicio,
+        servicio: f.servicio || f.pregunta,
         pregunta: f.pregunta,
         respuesta: f.respuesta,
         monto_euro: f.monto_euro,
@@ -261,7 +251,8 @@ export default {
       this.editingId = null;
     },
     async saveForm() {
-      if (!this.form.servicio.trim() || !this.form.pregunta.trim() || !this.form.respuesta.trim()) {
+      this.form.servicio = this.form.pregunta;
+      if (!this.form.pregunta.trim() || !this.form.respuesta.trim()) {
         alert("Por favor completa los campos obligatorios (*).");
         return;
       }

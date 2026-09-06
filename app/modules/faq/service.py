@@ -13,7 +13,7 @@ def get_all_faqs(db: Session, include_inactive: bool = False) -> List[Faq]:
 
 def create_faq(db: Session, data: FaqCreate) -> Faq:
     faq = Faq(
-        servicio=data.servicio,
+        servicio=data.servicio or data.pregunta,
         pregunta=data.pregunta,
         respuesta=data.respuesta,
         monto_euro=data.monto_euro,

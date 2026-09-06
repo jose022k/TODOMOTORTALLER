@@ -4,7 +4,7 @@ from datetime import datetime
 
 
 class FaqCreate(BaseModel):
-    servicio: str
+    servicio: Optional[str] = ""
     pregunta: str
     respuesta: str
     monto_euro: float
