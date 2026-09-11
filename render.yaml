@@ -1,6 +1,7 @@
 services:
   - type: web
     name: todomotortaller2026
+    plan: free
     runtime: docker
     dockerfilePath: Dockerfile
     envVars:
