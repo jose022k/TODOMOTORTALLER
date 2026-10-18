@@ -337,6 +337,9 @@ html.dark .chat-overlay { background: rgba(0,0,0,0.7) !important; }
 html.dark .chat-modal { background: var(--modal-bg) !important; box-shadow: 0 20px 60px rgba(0,0,0,0.5) !important; }
 html.dark .chat-container { background: var(--modal-bg); }
 html.dark .chat-header { background: var(--color-primary); }
+html.dark .presencia-chip { background: rgba(15,23,42,0.75); color: #4ade80; }
+html.dark .presencia-vacio { color: var(--text-muted); }
+html.dark .escribiendo-chip { color: #cbd5e1; }
 html.dark .chat-body { background: #1a1a1a; }
 html.dark .chat-empty { color: var(--text-muted); }
 html.dark .bubble-mine { background: #78350f; }
@@ -453,19 +456,10 @@ html.dark .tracker-info-label { color: var(--text-muted); }
 html.dark .tracker-info-value { color: var(--text-secondary); }
 html.dark .tracker-empty { color: var(--text-muted); }
 
-/* ── ChatBox ── */
-html.dark .chat-box { background: var(--bg-card); border-color: var(--border-default); }
-html.dark .chat-messages { background: transparent; }
-html.dark .chat-msg { background: var(--bg-muted); color: var(--text-default); }
-html.dark .chat-msg-own { background: #422006; }
-html.dark .chat-msg .msg-author { color: var(--text-muted); }
-html.dark .chat-msg .msg-body { color: var(--text-default); }
-html.dark .chat-msg .msg-time { color: var(--text-subtle); }
+/* ── Chat (input del modal) ── */
 html.dark .chat-input-row { border-top-color: var(--border-default); }
 html.dark .chat-input { background: var(--bg-input); color: var(--text-default); }
 html.dark .chat-input:disabled { background: var(--bg-muted); }
-html.dark .btn-chat-send { background: #ffaa00; color: #1a1a1a; }
-html.dark .btn-chat-send:disabled { background: var(--bg-muted); color: var(--text-muted); }
 
 /* ── Admin dashboard ── */
 html.dark .admin-panel { background: var(--bg-page); }

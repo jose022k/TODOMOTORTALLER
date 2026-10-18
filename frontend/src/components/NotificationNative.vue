@@ -7,9 +7,13 @@
           <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
           <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
         </svg>
-        <span>{{ permDenied ? "Activa las notificaciones en la configuración de tu navegador" : "Habilita las notificaciones para recibir alertas" }}</span>
-        <button v-if="!permDenied" class="notif-perm-btn" @click="requestPermission">Activar</button>
+        <span>Activa las notificaciones para recibir alertas</span>
+        <button class="notif-perm-btn" @click="requestPermission">Activar</button>
         <button class="notif-perm-close" @click="dismissPerm">&times;</button>
+      </div>
+      <!-- Solo aparece si el navegador las tiene bloqueadas (no es lo mismo que no haberlas activado) -->
+      <div v-if="bloqueado" class="notif-perm-ayuda">
+        <strong>Tu navegador las tiene bloqueadas.</strong> {{ ayuda }}
       </div>
     </div>
 
@@ -46,6 +50,7 @@
 <script>
 import { useAuthStore } from "@/stores/auth";
 import { useNotificationsStore } from "@/stores/notifications";
+import { setupPush } from "@/services/push";
 
 const OPEN_CHAT_TYPES = new Set(["mensaje_recibido", "evidencia_enviada"]);
 
@@ -131,25 +136,42 @@ export default {
   data() {
     return {
       showPermBanner: false,
-      permDenied: false,
+      bloqueado: false,
       activeToasts: [],
       swRegistration: null,
     };
   },
+  computed: {
+    ayuda() {
+      // Sin candado (http://) el navegador bloquea las notificaciones por su cuenta:
+      // no es algo que el usuario pueda desbloquear desde el aviso.
+      if (typeof window !== "undefined" && window.isSecureContext === false) {
+        return "Esta página está en http:// y el navegador solo permite notificaciones en sitios con candado (https:// o localhost). En el sitio oficial y en localhost sí funcionan.";
+      }
+      return "Pulsa el candado de la barra de direcciones → Notificaciones → Permitir y recarga la página.";
+    },
+  },
   mounted() {
     // Grab SW registration for native showNotification()
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.ready
-        .then((reg) => { this.swRegistration = reg; })
-        .catch(() => {});
-    }
+    this.getReg();
 
     // Single window event listener — handles ALL notification-new events
     this._onNotif = this.onNewNotification.bind(this);
     window.addEventListener("notification-new", this._onNotif);
 
-    // Show permission prompt if not granted
+    // Mostrar el aviso "Activa las notificaciones" apenas se abre la app
     this.checkPermission();
+
+    // Si el usuario lo activa desde los ajustes del navegador, se quita el aviso.
+    // OJO: solo se comprueba al volver a estar visible; si no, cada cambio de
+    // pestaña reabriría el aviso antes de tiempo y retrasaría los 60 s.
+    this._onPermVis = () => {
+      if (document.visibilityState !== "visible") return;
+      if ("Notification" in window && Notification.permission === "granted") {
+        this.checkPermission();
+      }
+    };
+    document.addEventListener("visibilitychange", this._onPermVis);
 
     // Start badge/count polling
     if (this.authStore.isAuthenticated) {
@@ -158,31 +180,113 @@ export default {
   },
   beforeUnmount() {
     window.removeEventListener("notification-new", this._onNotif);
+    document.removeEventListener("visibilitychange", this._onPermVis);
+    if (this._permTimer) clearTimeout(this._permTimer);
+    if (this._regPromise) this._regPromise = null;
   },
   methods: {
+    permisoOtorgado() {
+      // Navegador sin soporte de notificaciones: no hay nada que activar
+      if (typeof Notification === "undefined") return true;
+      return Notification.permission === "granted";
+    },
+
     checkPermission() {
       if (!("Notification" in window)) return;
-      if (Notification.permission !== "granted") {
-        this.showPermBanner = true;
-        this.permDenied = Notification.permission === "denied";
+      if (Notification.permission === "granted") {
+        this.showPermBanner = false;
+        this.bloqueado = false;
+        if (this._permTimer) {
+          clearTimeout(this._permTimer);
+          this._permTimer = null;
+        }
+        return;
       }
+      // El aviso es SIEMPRE el mismo y SIEMPRE trae su botón "Activar".
+      // "bloqueado" solo indica si el navegador ya las tiene denegadas.
+      this.bloqueado = Notification.permission === "denied";
+      this.showPermBanner = true;
+      this.agendarPermiso();
     },
+
+    /**
+     * El aviso vuelve a aparecer a los 60 segundos y sigue apareciendo cada
+     * 60 s hasta que el usuario pulse "Activar" (o lo active en el navegador).
+     * Cierra con la X y no se puede deshacer para siempre.
+     */
+    agendarPermiso() {
+      if (this._permTimer) clearTimeout(this._permTimer);
+      this._permTimer = setTimeout(() => {
+        if (!("Notification" in window) || Notification.permission === "granted") {
+          this._permTimer = null;
+          return;
+        }
+        this.bloqueado = Notification.permission === "denied";
+        this.showPermBanner = true;
+        this.agendarPermiso();
+      }, 60000);
+    },
+
     async requestPermission() {
       if (!("Notification" in window)) return;
       unlockAudio();
       try {
         const result = await Notification.requestPermission();
         if (result === "granted") {
+          this.bloqueado = false;
+          this.showPermBanner = false;
+          if (this._permTimer) {
+            clearTimeout(this._permTimer);
+            this._permTimer = null;
+          }
+          // Suscripción a Web Push: así avisa aunque la app esté cerrada
+          setupPush().catch(() => {});
           playNotifSound();
-          this.permDenied = false;
         } else {
-          this.permDenied = result === "denied";
+          this.bloqueado = true;
+          this.showPermBanner = true;
+          this.agendarPermiso();
         }
-      } catch { /* ignored */ }
-      this.showPermBanner = false;
+      } catch {
+        this.agendarPermiso();
+      }
     },
+
     dismissPerm() {
+      // Se cierra, pero vuelve a salir en 60 s hasta que se active
       this.showPermBanner = false;
+      this.agendarPermiso();
+    },
+
+    /** Registro del Service Worker (necesario en Android: no existe new Notification()). */
+    async getReg() {
+      if (this.swRegistration) return this.swRegistration;
+      if (this._regPromise) return this._regPromise;
+      if (!("serviceWorker" in navigator)) return null;
+
+      this._regPromise = (async () => {
+        try {
+          const reg = await Promise.race([
+            navigator.serviceWorker.ready,
+            new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), 4000)),
+          ]);
+          if (reg) {
+            this.swRegistration = reg;
+            return reg;
+          }
+        } catch { /* seguimos abajo */ }
+        try {
+          const reg = await navigator.serviceWorker.getRegistration();
+          if (reg) {
+            this.swRegistration = reg;
+            return reg;
+          }
+        } catch { /* ignore */ }
+        this._regPromise = null;
+        return null;
+      })();
+
+      return this._regPromise;
     },
 
     async onNewNotification(event) {
@@ -200,6 +304,10 @@ export default {
       // ── Regular notifications: deduplication first ──
       const isNew = this.notifStore.onNewNotification(notif);
       if (!isNew) return;
+
+      // Aún no ha pulsado "Activar": no se muestra ni se sonía nada.
+      // La campanita y el contador siguen actualizándose igualmente.
+      if (!this.permisoOtorgado()) return;
 
       // Sound on all screens
       playNotifSound();
@@ -245,7 +353,7 @@ export default {
         tag: "notif-" + (notif.id || Date.now()),
         renotify: true,
       };
-      const reg = this.swRegistration;
+      const reg = await this.getReg();
       if (reg && reg.showNotification) {
         try {
           await reg.showNotification("Todomotortaller", opts);
@@ -284,10 +392,10 @@ export default {
   top: env(safe-area-inset-top, 70px);
   left: 50%;
   transform: translateX(-50%);
-  z-index: 9999;
+  z-index: 99999;
   animation: slideDown 0.3s ease;
   width: max-content;
-  max-width: 90vw;
+  max-width: min(92vw, 420px);
 }
 .notif-perm-banner-inner {
   display: flex;
@@ -324,6 +432,20 @@ export default {
   line-height: 1;
 }
 .notif-perm-close:hover { color: #fff; }
+.notif-perm-ayuda {
+  margin-top: 6px;
+  max-width: 340px;
+  background: #1a1a1a;
+  border: 1px solid #78350f;
+  color: #fde68a;
+  padding: 9px 14px;
+  border-radius: 10px;
+  font-size: 12px;
+  line-height: 1.45;
+  text-align: left;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+.notif-perm-ayuda strong { color: #ffaa00; }
 
 /* Toast Container */
 .in-app-toast-container {

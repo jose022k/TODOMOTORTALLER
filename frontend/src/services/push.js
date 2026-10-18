@@ -67,12 +67,14 @@ export async function unsubscribeUser() {
 }
 
 export async function setupPush() {
-  if (!("Notification" in window) || Notification.permission === "denied") return false;
-  
-  if (Notification.permission !== "granted") {
-    const granted = await requestPermission();
-    if (!granted) return false;
-  }
+  if (!("Notification" in window)) return false;
+
+  // ⚠️ El permiso SOLO se pide desde el botón "Activar" del aviso.
+  // Antes aquí se llamaba a Notification.requestPermission() automáticamente
+  // (al entrar, al volver a la pestaña, al recuperar el foco...). Eso hacía
+  // que el navegador descartara el aviso por venir sin gesto del usuario y
+  // acabara bloqueando las notificaciones para siempre.
+  if (Notification.permission !== "granted") return false;
 
   const reg = await registerSw();
   if (!reg) return false;

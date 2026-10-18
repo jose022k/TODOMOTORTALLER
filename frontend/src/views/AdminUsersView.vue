@@ -493,6 +493,9 @@ export default {
   margin: 0 auto;
   padding: 30px 20px;
 }
+.users-header {
+  margin-bottom: 26px;
+}
 .users-header h1 {
   font-size: 1.8rem;
   color: #1a1a1a;
@@ -856,6 +859,9 @@ export default {
 @media (max-width: 768px) {
   .admin-users {
     padding: 12px 12px 80px;
+  }
+  .users-header {
+    margin-bottom: 0;
   }
   .users-header h1 {
     font-size: 1.3rem;

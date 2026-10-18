@@ -9,6 +9,8 @@
 
     <!-- HEADER NORMAL: navegador web desktop -->
     <header v-else class="app-header">
+      <!-- En PC los textos de los enlaces están ocultos y reaparecen al pasar
+           el mouse por cualquier zona del header. El logo siempre es visible. -->
       <router-link :to="homeRoute" class="logo">Todomotortaller</router-link>
       <nav class="app-nav">
         <transition name="nav-fade" mode="out-in">
@@ -42,19 +44,19 @@
           <div v-else key="guest" class="nav-group">
             <router-link v-if="!authStore.isMecanico && !authStore.isCliente" to="/workshop" class="nav-text-link">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>
-              Taller
+              <span class="nav-text">Taller</span>
             </router-link>
             <router-link v-if="!authStore.isMecanico && !authStore.isCliente" to="/location" class="nav-text-link">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-              Ubicación
+              <span class="nav-text">Ubicación</span>
             </router-link>
             <router-link v-if="!authStore.isMecanico && !authStore.isCliente" to="/faq" class="nav-text-link">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-              Preguntas frecuentes
+              <span class="nav-text">Preguntas frecuentes</span>
             </router-link>
             <router-link v-if="$route.path !== '/login'" to="/login" class="nav-text-link">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
-              Iniciar Sesión
+              <span class="nav-text">Iniciar Sesión</span>
             </router-link>
             <button class="theme-toggle" @click="toggleTheme" :title="isDark ? 'Modo claro' : 'Modo oscuro'" v-html="isDark ? sunIcon : moonIcon"></button>
           </div>
@@ -70,18 +72,18 @@
       </router-view>
     </main>
 
-    <!-- BOTTOM NAV MOBILE: paginas publicas -->
-    <nav v-if="showMobileNav && !authStore.isAuthenticated && isPublicPage" class="pwa-bottom-nav pwa-bottom-nav--centered">
+    <!-- BOTTOM NAV FLOTANTE: sin sesión (todas las vistas) -->
+    <nav v-if="showMobileNav && !authStore.isAuthenticated" class="pwa-bottom-nav pwa-bottom-nav--centered">
       <a href="/workshop" class="pwa-nav-item" :class="{ 'is-active': isRouteActive('/workshop') }" @click.prevent="$router.push('/workshop')">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>
+        <span v-html="iconTaller"></span>
         <span>Taller</span>
       </a>
       <a href="/location" class="pwa-nav-item" :class="{ 'is-active': isRouteActive('/location') }" @click.prevent="$router.push('/location')">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        <span v-html="iconUbicacion"></span>
         <span>Ubicación</span>
       </a>
       <a href="/faq" class="pwa-nav-item" :class="{ 'is-active': isRouteActive('/faq') }" @click.prevent="$router.push('/faq')">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <span v-html="iconPreguntas"></span>
         <span>Preguntas</span>
       </a>
       <a href="/login" class="pwa-nav-item" :class="{ 'is-active': isRouteActive('/login') }" @click.prevent="$router.push('/login')">
@@ -92,7 +94,7 @@
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
         <span>Registrar</span>
       </a>
-      <button class="pwa-nav-item" @click="toggleTheme">
+      <button class="pwa-nav-item pwa-nav-theme" @click="toggleTheme">
         <span v-html="isDark ? sunIcon : moonIcon"></span>
         <span>{{ isDark ? 'Claro' : 'Oscuro' }}</span>
       </button>
@@ -230,6 +232,9 @@ export default {
         if (val) {
           orderSocket.enable();
           setTimeout(() => setupPush(), 1000);
+          this.notifStore.startPolling();
+        } else {
+          this.notifStore.stopPolling();
         }
       },
     },
@@ -267,9 +272,10 @@ export default {
         const msgType = msgEvent.data.type;
         if (msgType === "PUSH_RECEIVED" || msgType === "PLAY_NOTIFICATION_SOUND" || msgType === "PUSH_NOTIFICATION") {
           const payload = msgEvent.data.data || {};
-          // Dispatch both events so views refresh and sound plays
+          // El push es una notificación, NO un cambio de orden: solo alimenta
+          // la campanita y el sonido. Refrescar la lista aquí hacía que el
+          // panel se recargara con cada mensaje del chat.
           window.dispatchEvent(new CustomEvent("notification-new", { detail: payload }));
-          window.dispatchEvent(new CustomEvent("order-updated", { detail: payload }));
         }
       };
       navigator.serviceWorker.addEventListener("message", this._swMsgHandler);
@@ -332,14 +338,6 @@ export default {
     showMobileNav() {
       return this.isPwa || this.isMobile;
     },
-    isPublicPage() {
-      try {
-        const publicPaths = ["/login", "/register/cliente", "/workshop", "/location", "/faq"];
-        return publicPaths.includes(this.$route.path);
-      } catch (e) {
-        return false;
-      }
-    },
     swipePages() {
       if (this.authStore.isAdmin) {
         return ["/admin", "/admin/service-orders", "/admin/reports", "/admin/catalog", "/admin/users", "/notifications"];
@@ -364,6 +362,13 @@ export default {
       isDark: document.documentElement.classList.contains("dark"),
       sunIcon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>',
       moonIcon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>',
+      // Iconos de las páginas públicas (compartidos por todas las barras inferiores)
+      iconTaller:
+        '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>',
+      iconUbicacion:
+        '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>',
+      iconPreguntas:
+        '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
       touchStartX: 0,
       touchStartY: 0,
       touchStartTime: 0,
@@ -420,7 +425,11 @@ export default {
       const remaining = Math.max(0, 2500 - elapsed);
       setTimeout(async () => {
         try {
-          await this.$router.push("/login");
+          // Limpiar el historial para que "Atrás" no recupere pantallas con datos privados.
+          if (window.history && window.history.replaceState) {
+            window.history.replaceState(null, "", "/login");
+          }
+          await this.$router.replace("/login");
         } catch (e) {
           /* silent */
         } finally {
@@ -501,6 +510,47 @@ export default {
   text-transform: uppercase;
   letter-spacing: 0.5px;
   text-decoration: none;
+  display: inline-flex;
+  align-items: baseline;
+  white-space: nowrap;
+}
+
+/* ===== HEADER PC: los textos están ocultos y reaparecen al pasar el mouse
+   por cualquier zona del header. El icono siempre queda visible; solo el
+   texto se oculta/muestra con animación. Solo aplica en vista de PC: el
+   header desktop no se renderiza en móvil ni en PWA (usa .pwa-header). =====
+   Por defecto los iconos quedan PEGADOS (gap mínimo) y, al hacer hover en el
+   header, cada enlace se abre con su texto mientras los iconos se separan. */
+.app-header .nav-text-link {
+  gap: 0;
+  padding-inline: 8px; /* toque de aire para los iconos sueltos */
+  border-radius: 8px;
+  transition: gap 0.45s cubic-bezier(0.25, 1, 0.35, 1),
+              background-color 0.25s ease,
+              padding-inline 0.45s cubic-bezier(0.25, 1, 0.35, 1);
+}
+.app-header:hover .nav-text-link {
+  gap: 7px;
+  padding-inline: 11px;
+}
+.app-header .nav-text-link:hover {
+  background-color: rgba(255, 170, 0, 0.12);
+}
+.nav-text {
+  display: inline-block;
+  max-width: 0;
+  opacity: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  transform: translateX(-6px);
+  transition: max-width 0.45s cubic-bezier(0.25, 1, 0.35, 1),
+              opacity 0.3s ease,
+              transform 0.45s cubic-bezier(0.25, 1, 0.35, 1);
+}
+.app-header:hover .nav-text {
+  max-width: 220px;
+  opacity: 1;
+  transform: translateX(0);
 }
 .app-nav {
   display: flex;
@@ -510,7 +560,11 @@ export default {
 .nav-group {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 2px; /* iconos pegados por defecto */
+  transition: gap 0.45s cubic-bezier(0.25, 1, 0.35, 1);
+}
+.app-header:hover .nav-group {
+  gap: 10px;
 }
 .nav-fade-enter-active,
 .nav-fade-leave-active {
@@ -683,26 +737,31 @@ html.dark .theme-toggle:hover { color: #ffaa00; }
 /* ===== PWA MAIN & BOTTOM NAV ===== */
 .pwa-main {
   padding: 12px 16px;
-  padding-bottom: calc(90px + env(safe-area-inset-bottom));
+  padding-bottom: calc(104px + env(safe-area-inset-bottom));
 }
+/* ===== BARRA INFERIOR FLOTANTE ===== */
 .pwa-bottom-nav {
   position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  left: 10px;
+  right: 10px;
+  bottom: calc(10px + env(safe-area-inset-bottom));
+  margin-inline: auto;
+  max-width: 580px;
   background: #1a1a1a;
+  border: 1px solid rgba(255, 170, 0, 0.25);
+  border-radius: 22px;
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.34), 0 3px 10px rgba(0, 0, 0, 0.22);
   display: flex;
   justify-content: flex-start;
   align-items: stretch;
-  padding: 8px 8px;
-  padding-bottom: calc(8px + env(safe-area-inset-bottom));
+  padding: 5px;
   z-index: 100;
-  border-top: 1px solid rgba(255, 170, 0, 0.2);
-  gap: 4px;
+  gap: 0;
   overflow-x: auto;
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
   touch-action: pan-x;
+  overscroll-behavior-x: contain;
   scrollbar-width: none;
 }
 .pwa-bottom-nav::-webkit-scrollbar {
@@ -710,7 +769,7 @@ html.dark .theme-toggle:hover { color: #ffaa00; }
 }
 .pwa-bottom-nav--centered {
   justify-content: space-evenly;
-  overflow-x: visible;
+  overflow-x: auto;
 }
 .pwa-nav-item {
   display: flex;
@@ -720,26 +779,31 @@ html.dark .theme-toggle:hover { color: #ffaa00; }
   gap: 3px;
   color: #8b9299;
   text-decoration: none;
-  font-size: 9px;
-  font-weight: 600;
+  font-size: 10px;
+  font-weight: 700;
   background: none;
   border: none;
   cursor: pointer;
-  padding: 6px 14px;
-  border-radius: 8px;
-  transition: color 0.15s;
+  padding: 7px 9px;
+  border-radius: 14px;
+  transition: color 0.15s, background-color 0.15s;
   white-space: nowrap;
   flex-shrink: 0;
-  min-width: 52px;
+  min-width: 48px;
 }
+/* Activo: pastilla ámbar + icono y etiqueta ámbar */
 .pwa-nav-item.is-active,
 .pwa-nav-item.is-active svg,
 .pwa-nav-item.is-active > span {
   color: #ffaa00 !important;
 }
+.pwa-nav-item.is-active {
+  background: rgba(255, 170, 0, 0.15);
+}
 @media (hover: hover) {
   .pwa-nav-item:not(.pwa-nav-settings):not(.pwa-nav-logout):hover {
     color: #ffaa00;
+    background: rgba(255, 170, 0, 0.1);
   }
 }
 .pwa-nav-item svg {
@@ -780,6 +844,8 @@ html.dark .theme-toggle:hover { color: #ffaa00; }
 }
 html.dark .pwa-bottom-nav {
   background: #0d1117;
+  border-color: rgba(255, 170, 0, 0.22);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.6), 0 3px 10px rgba(0, 0, 0, 0.45);
 }
 html.dark .settings-panel {
   background: #1a1f2e;

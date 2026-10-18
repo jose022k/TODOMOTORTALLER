@@ -32,15 +32,17 @@
             <label for="nombre">Nombre y apellido</label>
             <div class="input-wrapper">
               <svg class="input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-              <input id="nombre" v-model="form.nombre" type="text" placeholder="Juan Perez" required @input="onNombreInput" />
+              <input id="nombre" v-model="form.nombre" type="text" placeholder="Juan Perez" required @input="onNombreInput" @blur="validarCampo('nombre')" />
             </div>
+            <p v-if="errores.nombre" class="field-error">{{ errores.nombre }}</p>
           </div>
           <div class="input-group">
             <label for="cedula">Cédula</label>
             <div class="input-wrapper">
               <svg class="input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-              <input id="cedula" v-model="form.cedula" type="text" maxlength="8" placeholder="12345678" required @input="onCedulaInput" />
+              <input id="cedula" v-model="form.cedula" type="text" maxlength="11" placeholder="10345876" required @input="onCedulaInput" @blur="validarCampo('cedula')" />
             </div>
+            <p v-if="errores.cedula" class="field-error">{{ errores.cedula }}</p>
           </div>
         </div>
         <div class="form-row">
@@ -48,23 +50,26 @@
             <label for="telefono">Teléfono</label>
             <div class="input-wrapper">
               <svg class="input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-              <input id="telefono" v-model="form.telefono" type="tel" maxlength="10" placeholder="04121234567" required @input="onTelefonoInput" />
+              <input id="telefono" v-model="form.telefono" type="tel" maxlength="11" placeholder="04121234567" required @input="onTelefonoInput" @blur="validarCampo('telefono')" />
             </div>
+            <p v-if="errores.telefono" class="field-error">{{ errores.telefono }}</p>
           </div>
           <div class="input-group">
             <label for="email">Email</label>
             <div class="input-wrapper">
               <svg class="input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-              <input id="email" v-model="form.email" type="email" placeholder="ejemplo@gmail.com" required />
+              <input id="email" v-model="form.email" type="email" placeholder="ejemplo@gmail.com" required @input="onEmailInput" @blur="validarCampo('email')" />
             </div>
+            <p v-if="errores.email" class="field-error">{{ errores.email }}</p>
           </div>
         </div>
         <div class="input-group">
           <label for="direccion">Dirección</label>
           <div class="input-wrapper">
             <svg class="input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-            <input id="direccion" v-model="form.direccion" type="text" placeholder="Av. Principal..." required />
+            <input id="direccion" v-model="form.direccion" type="text" placeholder="Av. Principal..." required @input="onDireccionInput" @blur="validarCampo('direccion')" />
           </div>
+          <p v-if="errores.direccion" class="field-error">{{ errores.direccion }}</p>
         </div>
         <div class="form-row">
           <div class="input-group">
@@ -77,19 +82,23 @@
                 <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffaa00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
               </button>
             </div>
-            <!-- Password strength indicator -->
-            <div v-if="form.password" class="strength-meter">
-              <div class="strength-bars">
-                <div class="bar" :class="{ 'active weak': passwordStrength.level === 'weak' || passwordStrength.level === 'medium' || passwordStrength.level === 'strong' }"></div>
-                <div class="bar" :class="{ 'active medium': passwordStrength.level === 'medium' || passwordStrength.level === 'strong' }"></div>
-                <div class="bar" :class="{ 'active strong': passwordStrength.level === 'strong' }"></div>
-              </div>
-              <div class="strength-label" :class="passwordStrength.class">
-                Contraseña {{ passwordStrength.label }}
-                <span v-if="passwordStrength.level !== 'strong'" class="strength-hint">
-                  (Fuerte: 8+ caracteres, mayúscula, número y símbolo)
-                </span>
-              </div>
+            <!-- Password strength indicator: solo visible mientras se escribe.
+                 En PC reserva su espacio (no mueve el botón); en móvil/PWA se
+                 ubica en la fila de la etiqueta (no suma altura). -->
+            <div class="strength-meter">
+              <template v-if="form.password">
+                <div class="strength-bars" :class="passwordStrength.level ? 'nivel-' + passwordStrength.level : ''">
+                  <div class="bar"></div>
+                  <div class="bar"></div>
+                  <div class="bar"></div>
+                </div>
+                <div class="strength-label" :class="passwordStrength.class">
+                  <span class="pw-prefix">Contraseña</span> {{ passwordStrength.label }}
+                  <span v-if="passwordStrength.level !== 'strong'" class="strength-hint">
+                    (Fuerte: 8+ caracteres, mayúscula, número y símbolo)
+                  </span>
+                </div>
+              </template>
             </div>
           </div>
           <div class="input-group">
@@ -105,7 +114,7 @@
           </div>
         </div>
         <p v-if="error" class="error-msg">{{ error }}</p>
-        <button type="submit" class="btn-submit" :disabled="loading">
+        <button type="submit" class="btn-submit" :disabled="loading || tieneErrores">
           <span v-if="loading" class="btn-spinner"></span>
           <span>{{ loading ? "Registrando..." : "Crear Cuenta" }}</span>
         </button>
@@ -130,23 +139,27 @@
           </div>
           <div class="form-group-modal">
             <label>Nombre y Apellido *</label>
-            <input v-model="googleForm.nombre" type="text" required placeholder="Juan Pérez" @input="onNombreInputGoogle" />
+            <input v-model="googleForm.nombre" type="text" required placeholder="Juan Pérez" @input="onNombreInputGoogle" @blur="validarCampoGoogle('nombre')" />
+            <p v-if="erroresGoogle.nombre" class="field-error">{{ erroresGoogle.nombre }}</p>
           </div>
           <div class="form-group-modal">
             <label>Cédula *</label>
-            <input v-model="googleForm.cedula" type="text" maxlength="8" placeholder="12345678" required @input="onCedulaInputGoogle" />
+            <input v-model="googleForm.cedula" type="text" maxlength="11" placeholder="10345876" required @input="onCedulaInputGoogle" @blur="validarCampoGoogle('cedula')" />
+            <p v-if="erroresGoogle.cedula" class="field-error">{{ erroresGoogle.cedula }}</p>
           </div>
           <div class="form-group-modal">
             <label>Teléfono *</label>
-            <input v-model="googleForm.telefono" type="tel" maxlength="10" placeholder="04121234567" required @input="onTelefonoInputGoogle" />
+            <input v-model="googleForm.telefono" type="tel" maxlength="11" placeholder="04121234567" required @input="onTelefonoInputGoogle" @blur="validarCampoGoogle('telefono')" />
+            <p v-if="erroresGoogle.telefono" class="field-error">{{ erroresGoogle.telefono }}</p>
           </div>
           <div class="form-group-modal">
-            <label>Dirección</label>
-            <input v-model="googleForm.direccion" type="text" placeholder="Av. Principal..." />
+            <label>Dirección *</label>
+            <input v-model="googleForm.direccion" type="text" placeholder="Av. Principal..." required @input="onDireccionInputGoogle" @blur="validarCampoGoogle('direccion')" />
+            <p v-if="erroresGoogle.direccion" class="field-error">{{ erroresGoogle.direccion }}</p>
           </div>
           <div class="modal-actions-row">
             <button type="button" class="btn-secondary-modal" @click="showGoogleModal = false">Cancelar</button>
-            <button type="submit" class="btn-primary-modal" :disabled="savingGoogle">
+            <button type="submit" class="btn-primary-modal" :disabled="savingGoogle || tieneErrores">
               {{ savingGoogle ? "Guardando..." : "Completar Registro" }}
             </button>
           </div>
@@ -161,6 +174,7 @@
 <script>
 import api from "@/services/api";
 import { useAuthStore } from "@/stores/auth";
+import { validarCampoRegistro, esErrorDuplicado, CAMPOS_DISPONIBLES } from "@/services/validacionRegistro";
 import LoadingOverlay from "@/components/LoadingOverlay.vue";
 
 export default {
@@ -185,6 +199,19 @@ export default {
       showGoogleModal: false,
       googleToken: "",
       savingGoogle: false,
+      errores: {
+        nombre: "",
+        cedula: "",
+        telefono: "",
+        email: "",
+        direccion: "",
+      },
+      erroresGoogle: {
+        nombre: "",
+        cedula: "",
+        telefono: "",
+        direccion: "",
+      },
       googleForm: {
         email: "",
         nombre: "",
@@ -193,6 +220,11 @@ export default {
         direccion: "",
       },
     };
+  },
+  created() {
+    // Temporizadores de validación en vivo (no reactivos)
+    this._validTimers = {};
+    this._dupTokens = {};
   },
   mounted() {
     this.initGoogleAuth();
@@ -213,6 +245,11 @@ export default {
         return { label: "Media", level: "medium", class: "text-medium" };
       }
       return { label: "Débil", level: "weak", class: "text-weak" };
+    },
+    tieneErrores() {
+      const principal = Object.values(this.errores).some((m) => !!m);
+      const google = this.showGoogleModal && Object.values(this.erroresGoogle).some((m) => !!m);
+      return principal || google;
     },
   },
   methods: {
@@ -291,24 +328,34 @@ export default {
     onNombreInputGoogle(e) {
       let val = e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]/g, "");
       this.googleForm.nombre = val.replace(/\b[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ]/g, (char) => char.toUpperCase());
+      this.programarValidacion("nombre", this.googleForm.nombre, true);
     },
     onCedulaInputGoogle(e) {
-      this.googleForm.cedula = e.target.value.replace(/\D/g, "").slice(0, 8);
+      this.googleForm.cedula = e.target.value.replace(/\D/g, "").slice(0, 11);
+      this.programarValidacion("cedula", this.googleForm.cedula, true);
     },
     onTelefonoInputGoogle(e) {
-      this.googleForm.telefono = e.target.value.replace(/\D/g, "").slice(0, 10);
+      this.googleForm.telefono = e.target.value.replace(/\D/g, "").slice(0, 11);
+      this.programarValidacion("telefono", this.googleForm.telefono, true);
+    },
+    onDireccionInputGoogle() {
+      this.programarValidacion("direccion", this.googleForm.direccion, true);
     },
     async submitGoogleProfile() {
-      if (!this.googleForm.nombre.trim()) {
-        alert("El nombre y apellido es obligatorio.");
-        return;
+      const campos = ["nombre", "cedula", "telefono", "direccion"];
+      let primerError = "";
+      for (const campo of campos) {
+        const valor = this.googleForm[campo];
+        this.validarCampo(campo, true);
+        if (!this.erroresGoogle[campo]) {
+          await this.verificarDisponibilidad(campo, valor, true);
+        }
+        if (!primerError && this.erroresGoogle[campo]) {
+          primerError = this.erroresGoogle[campo];
+        }
       }
-      if (!/^\d{5,8}$/.test(this.googleForm.cedula)) {
-        alert("La cédula debe contener solo números (máximo 8 dígitos).");
-        return;
-      }
-      if (this.googleForm.telefono.length < 10) {
-        alert("El teléfono debe tener al menos 10 dígitos.");
+      if (primerError || this.tieneErrores) {
+        alert(primerError || "Revisa los campos marcados.");
         return;
       }
       this.savingGoogle = true;
@@ -336,43 +383,97 @@ export default {
     onNombreInput(e) {
       let val = e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]/g, "");
       this.form.nombre = val.replace(/\b[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ]/g, (char) => char.toUpperCase());
+      this.programarValidacion("nombre", this.form.nombre);
     },
     onCedulaInput(e) {
-      this.form.cedula = e.target.value.replace(/\D/g, "").slice(0, 8);
+      this.form.cedula = e.target.value.replace(/\D/g, "").slice(0, 11);
+      this.programarValidacion("cedula", this.form.cedula);
     },
     onTelefonoInput(e) {
-      this.form.telefono = e.target.value.replace(/\D/g, "").slice(0, 10);
+      this.form.telefono = e.target.value.replace(/\D/g, "").slice(0, 11);
+      this.programarValidacion("telefono", this.form.telefono);
     },
+    onEmailInput() {
+      this.programarValidacion("email", this.form.email);
+    },
+    onDireccionInput() {
+      this.programarValidacion("direccion", this.form.direccion);
+    },
+
+    // ---------- Validación en vivo (avisa sin pulsar "Crear Cuenta") ----------
+    mensajeValidacion(campo, valor) {
+      return validarCampoRegistro(campo, valor);
+    },
+    programarValidacion(campo, valor, desdeGoogle = false) {
+      const clave = (desdeGoogle ? "g:" : "f:") + campo;
+      if (this._validTimers[clave]) clearTimeout(this._validTimers[clave]);
+      this._validTimers[clave] = setTimeout(() => {
+        this.aplicarValidacion(campo, valor, desdeGoogle);
+      }, 400);
+    },
+    aplicarValidacion(campo, valor, desdeGoogle) {
+      const errores = desdeGoogle ? this.erroresGoogle : this.errores;
+      const msg = this.mensajeValidacion(campo, valor);
+      errores[campo] = msg;
+      if (!msg && CAMPOS_DISPONIBLES.includes(campo)) {
+        this.verificarDisponibilidad(campo, valor, desdeGoogle);
+      }
+    },
+    validarCampo(campo, desdeGoogle = false) {
+      const clave = (desdeGoogle ? "g:" : "f:") + campo;
+      if (this._validTimers[clave]) {
+        clearTimeout(this._validTimers[clave]);
+        this._validTimers[clave] = null;
+      }
+      const valor = desdeGoogle ? this.googleForm[campo] : this.form[campo];
+      this.aplicarValidacion(campo, valor, desdeGoogle);
+    },
+    validarCampoGoogle(campo) {
+      this.validarCampo(campo, true);
+    },
+    async verificarDisponibilidad(campo, valor, desdeGoogle = false) {
+      const errores = desdeGoogle ? this.erroresGoogle : this.errores;
+      const v = (valor || "").trim();
+      if (!v || !CAMPOS_DISPONIBLES.includes(campo)) return;
+
+      const clave = (desdeGoogle ? "g:" : "f:") + campo;
+      const token = (this._dupTokens[clave] || 0) + 1;
+      this._dupTokens[clave] = token;
+
+      try {
+        const { data } = await api.get("/auth/disponibilidad", {
+          params: { campo, valor: v },
+        });
+        if (this._dupTokens[clave] !== token) return; // respuesta obsoleta
+        if (!data.disponible) {
+          errores[campo] = data.detalle || "Este dato ya está registrado.";
+        } else if (esErrorDuplicado(errores[campo])) {
+          errores[campo] = "";
+        }
+      } catch (err) {
+        // Sin consulta al servidor: el backend vuelve a validar todo al registrar.
+      }
+    },
+
     async handleRegister() {
       this.error = "";
 
-      // 1. Validar Nombre
-      if (!this.form.nombre.trim()) {
-        this.error = "El nombre y apellido es obligatorio";
+      const campos = ["nombre", "cedula", "email", "telefono", "direccion"];
+      let primerError = "";
+      for (const campo of campos) {
+        this.validarCampo(campo);
+        if (!this.errores[campo]) {
+          await this.verificarDisponibilidad(campo, this.form[campo]);
+        }
+        if (!primerError && this.errores[campo]) primerError = this.errores[campo];
+      }
+      if (primerError) {
+        this.error = primerError;
         return;
       }
 
-      // 2. Validar Cédula (máximo 8 dígitos, solo números)
-      if (!/^\d{5,8}$/.test(this.form.cedula)) {
-        this.error = "La cédula debe contener solo números (máximo 8 dígitos)";
-        return;
-      }
-
-      // 3. Validar Correo (@gmail.com, @outlook.com, @icloud.com)
-      const emailOk = /^[^\s@]+@(gmail\.com|outlook\.com|icloud\.com)$/i.test(this.form.email.trim());
-      if (!emailOk) {
-        this.error = "El correo debe terminar en @gmail.com, @outlook.com o @icloud.com";
-        return;
-      }
-
-      // 4. Validar Contraseña coincidente
       if (this.form.password !== this.confirmPassword) {
         this.error = "Las contraseñas no coinciden";
-        return;
-      }
-
-      if (this.form.telefono.length < 10) {
-        this.error = "El teléfono debe tener al menos 10 dígitos";
         return;
       }
 
@@ -410,7 +511,7 @@ export default {
 .auth-card {
   background: #fff;
   border-radius: 20px;
-  padding: 18px 32px 20px;
+  padding: 12px 32px 14px;
   width: 100%;
   max-width: 560px;
   box-sizing: border-box;
@@ -420,7 +521,7 @@ html:not(.dark) .auth-card {
 }
 .auth-header {
   text-align: center;
-  margin-bottom: 10px;
+  margin-bottom: 6px;
 }
 .auth-logo {
   display: flex;
@@ -429,7 +530,7 @@ html:not(.dark) .auth-card {
   margin-bottom: 0;
 }
 .logo-img {
-  height: 56px;
+  height: 44px;
   width: auto;
   display: block;
 }
@@ -454,7 +555,8 @@ html:not(.dark) .auth-card {
   min-width: 0;
 }
 .input-group {
-  margin-bottom: 12px;
+  margin-bottom: 8px;
+  position: relative;
 }
 .input-group label {
   display: block;
@@ -503,6 +605,12 @@ html:not(.dark) .auth-card {
   background: #fef2f2;
   padding: 5px 12px;
   border-radius: 8px;
+}
+.field-error {
+  color: #e74c3c;
+  font-size: 11.5px;
+  margin: 4px 0 0 2px;
+  line-height: 1.35;
 }
 .btn-submit {
   width: 100%;
@@ -558,7 +666,7 @@ html:not(.dark) .auth-card {
   vertical-align: middle;
 }
 .auth-footer {
-  margin-top: 16px;
+  margin-top: 10px;
   text-align: center;
   font-size: 14px;
   color: #94a3b8;
@@ -572,63 +680,6 @@ html:not(.dark) .auth-card {
   text-decoration: underline;
 }
 
-/* ===== MOBILE / PWA native feel ===== */
-@media (max-width: 768px) {
-  .auth-container {
-    align-items: flex-start;
-    padding-top: 10px;
-    padding-bottom: 40px;
-  }
-  .auth-card {
-    border-radius: 16px;
-    padding: 16px 16px 20px;
-    margin: 0 8px;
-    max-width: 100%;
-  }
-  .logo-img {
-    height: 48px;
-  }
-  .auth-title {
-    font-size: 19px;
-  }
-  .auth-desc {
-    font-size: 12.5px;
-  }
-  .form-row {
-    flex-direction: column;
-    gap: 0;
-  }
-  .input-group {
-    margin-bottom: 10px;
-  }
-  .input-group label {
-    font-size: 12px;
-    margin-bottom: 3px;
-  }
-  .input-wrapper input {
-    padding: 10px 12px 10px 36px;
-    border-radius: 10px;
-    font-size: 14.5px;
-  }
-  .input-icon {
-    left: 12px;
-  }
-  .btn-submit {
-    padding: 11px;
-    border-radius: 10px;
-    font-size: 15px;
-    font-weight: 800;
-    margin-top: 4px;
-  }
-  .toggle-pw {
-    right: 8px;
-    padding: 6px;
-  }
-  .auth-footer {
-    font-size: 13px;
-    margin-top: 12px;
-  }
-}
 html.dark .auth-card {
   background: #1a1f2e;
 }
@@ -657,10 +708,15 @@ html.dark .error-msg {
   background: #2d1215;
   color: #fca5a5;
 }
+html.dark .field-error {
+  color: #fca5a5;
+}
 
-/* Password strength meter */
+/* Password strength meter (altura fija: el botón no se mueve al escribir) */
 .strength-meter {
   margin-top: 6px;
+  min-height: 46px; /* reserva espacio para barra + etiqueta + ayuda en 2 líneas */
+  box-sizing: border-box;
 }
 .strength-bars {
   display: flex;
@@ -675,21 +731,21 @@ html.dark .error-msg {
   border-radius: 2px;
   transition: background 0.3s;
 }
-.bar.active.weak { background: #ef4444; }
-.bar.active.medium { background: #f59e0b; }
-.bar.active.strong { background: #10b981; }
+/* Toda la barra de un solo color según la fuerza */
+.strength-bars.nivel-weak .bar { background: #ef4444; }
+.strength-bars.nivel-medium .bar { background: #f97316; }
+.strength-bars.nivel-strong .bar { background: #10b981; }
 .strength-label {
   font-size: 11.5px;
   font-weight: 700;
   margin-top: 4px;
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
+  display: block;
 }
 .text-weak { color: #ef4444; }
-.text-medium { color: #f59e0b; }
+.text-medium { color: #f97316; }
 .text-strong { color: #10b981; }
 .strength-hint {
+  display: block;
   font-size: 10.5px;
   font-weight: 500;
   color: #64748b;
@@ -699,7 +755,7 @@ html.dark .strength-hint { color: #94a3b8; }
 
 /* Google Button & Divider */
 .google-auth-box {
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   width: 100%;
   box-sizing: border-box;
 }
@@ -707,8 +763,8 @@ html.dark .strength-hint { color: #94a3b8; }
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
-  padding: 9px 12px;
-  height: 38px;
+  padding: 7px 12px;
+  height: 34px;
   background: #ffffff;
   border: 1.5px solid #cbd5e1;
   border-radius: 8px;
@@ -758,7 +814,7 @@ html.dark .btn-google:hover:not(:disabled) {
   display: flex;
   align-items: center;
   text-align: center;
-  margin: 8px 0 12px;
+  margin: 6px 0 10px;
   color: #94a3b8;
   font-size: 11.5px;
   font-weight: 600;
@@ -886,5 +942,100 @@ html.dark .input-disabled, html.dark input:disabled {
 html.dark .btn-secondary-modal {
   border-color: #334155;
   color: #cbd5e1;
+}
+
+/* ===== MOBILE / PWA =====
+   IMPORTANTE: este bloque debe ir al FINAL del style, para que las reglas
+   móviles ganen sobre las de escritorio. El aspecto de la tarjeta (card) es
+   el original; aquí solo la barra de fuerza se superpone a la etiqueta para
+   que al escribir NO empuje el botón ni el pie. */
+@media (max-width: 768px) {
+  .auth-container {
+    align-items: flex-start;
+    padding-top: 10px;
+    padding-bottom: 40px;
+  }
+  .auth-card {
+    border-radius: 16px;
+    padding: 16px 16px 20px;
+    margin: 0 8px;
+    max-width: 100%;
+  }
+  .logo-img {
+    height: 48px;
+  }
+  .auth-title {
+    font-size: 19px;
+  }
+  .auth-desc {
+    font-size: 12.5px;
+  }
+  /* en móvil los campos van apilados (uno debajo del otro) */
+  .form-row {
+    flex-direction: column;
+    gap: 0;
+  }
+  .input-group {
+    margin-bottom: 10px;
+  }
+  .input-group label {
+    font-size: 12px;
+    margin-bottom: 3px;
+  }
+  .input-wrapper input {
+    padding: 10px 12px 10px 36px;
+    border-radius: 10px;
+    font-size: 14.5px;
+  }
+  .input-icon {
+    left: 12px;
+  }
+  .btn-submit {
+    padding: 11px;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 800;
+    margin-top: 4px;
+  }
+  .toggle-pw {
+    right: 8px;
+    padding: 6px;
+  }
+  .auth-footer {
+    font-size: 13px;
+    margin-top: 12px;
+  }
+
+  /* La barra de fuerza vive en la fila de la etiqueta "Contraseña"
+     (position:absolute): al escribir NO empuja el botón ni el pie. */
+  .strength-meter {
+    position: absolute;
+    top: 0;
+    right: 0;
+    margin-top: 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 4px;
+    max-width: 65%;
+    pointer-events: none;
+    z-index: 2;
+  }
+  .strength-bars {
+    width: 44px;
+    height: 3px;
+    gap: 2px;
+    flex: none;
+  }
+  .strength-label {
+    margin-top: 0;
+    font-size: 9.5px;
+    white-space: nowrap;
+  }
+  .pw-prefix,
+  .strength-hint {
+    display: none;
+  }
 }
 </style>

@@ -2,8 +2,16 @@
   <div class="chat-overlay" @click.self="$emit('close')">
     <div class="chat-modal">
       <div class="chat-header">
-        <h3>Chat — Orden #{{ ordenId }}</h3>
-        <button class="chat-close" @click="$emit('close')">×</button>
+        <div class="chat-header-main">
+          <h3>Chat — Orden #{{ ordenId }}</h3>
+          <button class="chat-close" @click="$emit('close')">×</button>
+        </div>
+        <div class="chat-presencia">
+          <span v-if="rolesEnLinea.length === 0" class="presencia-vacio">Nadie más conectado ahora</span>
+          <span v-for="rol in rolesEnLinea" :key="'on-' + rol" class="presencia-chip">
+            <span class="presencia-punto"></span>En línea {{ etiquetaRol(rol) }}
+          </span>
+        </div>
       </div>
 
       <div class="chat-body" ref="chatBody">
@@ -14,7 +22,7 @@
         <template v-for="item in timeline" :key="item.key">
           <!-- Evidencia suelta (sin mensaje) -->
           <div v-if="item.type === 'evidencia'" class="evidencia-bubble">
-            <img :src="imageUrl(item.url)" class="evidencia-img" @click="openLightbox(imageUrl(item.url))" />
+            <img :src="imageUrl(item.url)" class="evidencia-img" @load="onImageLoad" @click="openLightbox(imageUrl(item.url))" />
           </div>
           <!-- Mensaje -->
           <div v-else class="msg-row" :class="item.mine ? 'msg-mine' : 'msg-other'">
@@ -34,6 +42,7 @@
                     :key="ev._key || ev.id"
                     :src="imageUrl(ev.url)"
                     class="attached-img"
+                    @load="onImageLoad"
                     @click="openLightbox(imageUrl(ev.url))"
                   />
                 </div>
@@ -55,6 +64,11 @@
       </div>
 
       <div class="chat-footer">
+        <div v-if="quienEscribe.length" class="chat-escribiendo">
+          <span v-for="rol in quienEscribe" :key="'typ-' + rol" class="escribiendo-chip">
+            {{ etiquetaRol(rol) }} escribiendo<span class="puntos"><i>.</i><i>.</i><i>.</i></span>
+          </span>
+        </div>
         <div class="chat-input-row">
           <div class="upload-btns">
             <label class="upload-icon-btn" title="Tomar foto">
@@ -82,6 +96,8 @@
               v-model="text"
               class="chat-input"
               placeholder="Escribe un mensaje..."
+              @input="onInput"
+              @blur="detenerEscritura"
               @keydown.enter="send"
               :disabled="!canChat"
             />
@@ -97,6 +113,7 @@
 
 <script>
 import api from "@/services/api";
+import { avisarEscritura } from "@/services/orderSocket";
 
 export default {
   name: "ChatModal",
@@ -119,6 +136,9 @@ export default {
       lightboxUrl: "",
       editingId: null,
       editText: "",
+      atBottom: true,   // si el usuario está al final del chat (se actualiza con su scroll)
+      participantes: [], // quién participa en la orden y quién está conectado
+      escribiendoPor: {}, // rol -> timestamp de "está escribiendo"
     };
   },
   computed: {
@@ -158,6 +178,23 @@ export default {
       items.sort((a, b) => new Date(a.fecha || a.fecha_hora) - new Date(b.fecha || b.fecha_hora));
       return items;
     },
+    rolesEnLinea() {
+      // Solo el ROL (sin nombres) y sin repetir: si hay dos admins conectados
+      // se muestra un único "En línea Admin".
+      const roles = [];
+      this.participantes.forEach((p) => {
+        if (!p.online) return;
+        if (p.rol === this.myRole && p.id === this.myId) return;
+        if (!roles.includes(p.rol)) roles.push(p.rol);
+      });
+      return roles;
+    },
+    quienEscribe() {
+      const ahora = Date.now();
+      return Object.keys(this.escribiendoPor).filter(
+        (rol) => ahora - this.escribiendoPor[rol] < 4000
+      );
+    },
   },
   methods: {
     async fetchAll() {
@@ -166,22 +203,48 @@ export default {
           api.get(`/chat/${this.ordenId}`),
           api.get(`/chat/${this.ordenId}/evidencias`),
         ]);
-        this.messages = msgRes.data;
+        // Conserva las claves locales: así Vue reutiliza los nodos del DOM en vez
+        // de destruirlos y recrearlos en cada sondeo (evita saltos de scroll).
+        const msgKeys = {};
+        this.messages.forEach(m => { if (m._key && m.id) msgKeys[m.id] = m._key; });
+        const evKeys = {};
+        this.evidencias.forEach(e => { if (e._key && e.id) evKeys[e.id] = e._key; });
         const localLinks = {};
         this.evidencias.forEach(e => { if (e.id && e.mensaje_id) localLinks[e.id] = e.mensaje_id; });
-        this.evidencias = evRes.data.map(ev => { if (localLinks[ev.id]) ev.mensaje_id = localLinks[ev.id]; return ev; });
+
+        this.messages = msgRes.data.map(m => ({ ...m, _key: msgKeys[m.id] || m.id }));
+        this.evidencias = evRes.data.map(ev => {
+          if (localLinks[ev.id]) ev.mensaje_id = localLinks[ev.id];
+          return { ...ev, _key: evKeys[ev.id] || ev.id };
+        });
         await this.$nextTick();
         this.scrollDown();
       } catch (e) { /* polling error silently */ }
     },
-    scrollDown() {
+    scrollDown(forzar = false) {
       const el = this.$refs.chatBody;
       if (!el) return;
-      const threshold = 50;
-      const nearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < threshold;
-      if (nearBottom) el.scrollTop = el.scrollHeight;
+      // Si el usuario subió para leer el historial, NO se lo arrastramos hacia abajo.
+      // 'this.atBottom' conserva el valor previo a la actualización, por eso funciona.
+      if (!forzar && !this.atBottom) return;
+      const bajar = () => { el.scrollTop = el.scrollHeight; };
+      this.$nextTick(() => {
+        bajar();
+        // Las imágenes terminan de cargar después y agrandan el contenido
+        requestAnimationFrame(bajar);
+      });
+    },
+    onChatScroll() {
+      const el = this.$refs.chatBody;
+      if (!el) return;
+      this.atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 60;
+    },
+    onImageLoad() {
+      // Al cargar una imagen crece el contenido: si estábamos abajo, seguimos abajo
+      if (this.atBottom) this.scrollDown(true);
     },
     async send() {
+      this.detenerEscritura();
       const textContent = this.text.trim();
       const file = this.selectedFile;
       if (!textContent && !file) return;
@@ -226,12 +289,9 @@ export default {
         alert("Error al enviar: " + (err.response?.data?.detail || err.message));
       } finally {
         this.uploading = false;
-        this.$nextTick(() => {
-          requestAnimationFrame(() => {
-            const el = this.$refs.chatBody;
-            if (el) el.scrollTop = el.scrollHeight;
-          });
-        });
+        // Al enviar un mensaje propio SIEMPRE se baja al final
+        this.atBottom = true;
+        this.scrollDown(true);
       }
     },
     selectFile(e) {
@@ -274,16 +334,93 @@ export default {
       }
     },
     onOrderUpdated(event) {
-      if (event && event.detail) {
-        const orderId = event.detail.orden_servicio_id;
-        const newStatus = event.detail.estado;
-        if (orderId === this.ordenId && newStatus && newStatus !== "en_proceso") {
-          this.$emit("close");
-        }
+      // Cerramos el chat si la orden dejó de estar "en proceso".
+      const detail = event && event.detail ? event.detail : {};
+      const orderId = detail.order_id ?? detail.orden_servicio_id;
+      const newStatus = detail.estado;
+      if (orderId === this.ordenId && newStatus && newStatus !== "en_proceso") {
+        this.$emit("close");
       }
     },
     onVisible() {
-      if (document.visibilityState === "visible") this.fetchAll();
+      if (document.visibilityState === "visible") {
+        this.fetchAll();
+        this.fetchPresence();
+      }
+    },
+    async fetchPresence() {
+      // Carga quiénes participan en la orden y quién está conectado ("En línea")
+      try {
+        const { data } = await api.get(`/chat/${this.ordenId}/presencia`);
+        const lista = [];
+        if (data.cliente) lista.push(data.cliente);
+        if (data.mecanico) lista.push(data.mecanico);
+        (data.admins || []).forEach((a) => lista.push(a));
+        this.participantes = lista;
+      } catch (e) { /* sin backend: se reintenta en el siguiente sondeo */ }
+    },
+    etiquetaRol(rol) {
+      if (rol === "mecanico") return "Mecánico";
+      if (rol === "cliente") return "Cliente";
+      if (rol === "admin") return "Admin";
+      return rol;
+    },
+    onTyping(event) {
+      // Alguien del chat está escribiendo (o dejó de escribir)
+      const d = event && event.detail;
+      if (!d || d.orden_id !== this.ordenId) return;
+      if (d.rol === this.myRole && d.user_id === this.myId) return;
+
+      clearTimeout(this._typingTimers && this._typingTimers[d.rol]);
+      const copia = { ...this.escribiendoPor };
+
+      if (d.tipo === "escribiendo") {
+        copia[d.rol] = Date.now();
+        // Si no llega ningún aviso nuevo, el indicador se apaga solo
+        if (!this._typingTimers) this._typingTimers = {};
+        this._typingTimers[d.rol] = setTimeout(() => {
+          const actual = { ...this.escribiendoPor };
+          delete actual[d.rol];
+          this.escribiendoPor = actual;
+        }, 4000);
+      } else {
+        delete copia[d.rol];
+      }
+      this.escribiendoPor = copia;
+    },
+    onInput() {
+      const escribiendo = this.text.trim().length > 0;
+      clearTimeout(this._typingKeepalive);
+
+      if (!escribiendo) {
+        this.detenerEscritura();
+        return;
+      }
+      if (!this._escribiendo) {
+        this._escribiendo = true;
+        avisarEscritura(this.ordenId, true);
+      }
+      // Si pasa un rato sin escribir, se avisa al resto que ya no está escribiendo
+      this._typingKeepalive = setTimeout(() => this.detenerEscritura(), 2500);
+    },
+    detenerEscritura() {
+      clearTimeout(this._typingKeepalive);
+      if (!this._escribiendo) return;
+      this._escribiendo = false;
+      avisarEscritura(this.ordenId, false);
+    },
+    onChatActualizado(event) {
+      // Evento WebSocket: alguien escribió o adjuntó algo en el chat.
+      // Solo se recarga ESTE chat si es de esta orden; la lista de órdenes no se toca.
+      const orden = event && event.detail ? event.detail.orden_id : null;
+      if (orden !== this.ordenId) return;
+      this.fetchAll();
+    },
+    onPresenceChanged(event) {
+      const d = event && event.detail;
+      if (!d) return;
+      const p = this.participantes.find((x) => x.id === d.user_id && x.rol === d.rol);
+      if (p) p.online = !!d.online;
     },
     imageUrl(url) {
       if (url && url.startsWith("/")) return api.defaults.baseURL + url;
@@ -304,20 +441,41 @@ export default {
     },
   },
   mounted() {
-    this.fetchAll().then(() => {
-      this.$nextTick(() => {
-        const el = this.$refs.chatBody;
-        if (el) el.scrollTop = el.scrollHeight;
-      });
-    });
-    this.polling = setInterval(() => this.fetchAll(), 2000);
+    // Registra la posición del usuario en el chat (¿está al final o leyendo arriba?)
+    this._onScroll = () => this.onChatScroll();
+    const el = this.$refs.chatBody;
+    if (el) el.addEventListener("scroll", this._onScroll, { passive: true });
+
+    this.atBottom = true;
+    this.fetchAll().then(() => this.scrollDown(true));
+    this.fetchPresence();
+
+    // El chat se actualiza AL INSTANTE por WebSocket ("chat-actualizado").
+    // Este sondeo lento es solo una red de seguridad por si se cae la conexión.
+    this.polling = setInterval(() => {
+      this.fetchAll();
+      this.fetchPresence();
+    }, 10000);
+
     document.addEventListener("visibilitychange", this.onVisible);
     window.addEventListener("order-updated", this.onOrderUpdated);
+    window.addEventListener("chat-actualizado", this.onChatActualizado);
+    window.addEventListener("presence-changed", this.onPresenceChanged);
+    window.addEventListener("typing", this.onTyping);
   },
   beforeUnmount() {
+    this.detenerEscritura();
+    if (this._typingTimers) {
+      Object.values(this._typingTimers).forEach((t) => clearTimeout(t));
+    }
     if (this.polling) clearInterval(this.polling);
+    const el = this.$refs.chatBody;
+    if (el && this._onScroll) el.removeEventListener("scroll", this._onScroll);
     document.removeEventListener("visibilitychange", this.onVisible);
     window.removeEventListener("order-updated", this.onOrderUpdated);
+    window.removeEventListener("chat-actualizado", this.onChatActualizado);
+    window.removeEventListener("presence-changed", this.onPresenceChanged);
+    window.removeEventListener("typing", this.onTyping);
   },
 };
 </script>
@@ -345,16 +503,80 @@ export default {
   overflow: hidden;
 }
 .chat-header {
+  padding: 12px 18px 10px;
+  background: #ffaa00;
+  color: #1a1a1a;
+}
+.chat-header-main {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 14px 18px;
-  background: #ffaa00;
-  color: #1a1a1a;
+  gap: 8px;
 }
 .chat-header h3 { font-size: 1rem; margin: 0; }
 .chat-close { background: none; border: none; width: 36px; height: 36px; border-radius: 8px; color: #1a1a1a; font-size: 1.5rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
 .chat-close:hover { background: #fee2e2; color: #dc2626; }
+.chat-presencia {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+  min-height: 18px;
+}
+.presencia-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  background: rgba(255,255,255,0.75);
+  border-radius: 999px;
+  padding: 2px 9px;
+  color: #166534;
+}
+.presencia-punto {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 0 2px rgba(34,197,94,0.25);
+  flex: 0 0 auto;
+}
+.presencia-vacio {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: #78350f;
+  opacity: 0.75;
+}
+/* Indicador "escribiendo..." — abajo, sobre el campo de texto (estilo WhatsApp) */
+.chat-escribiendo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  min-height: 18px;
+  padding: 0 4px 5px;
+}
+.escribiendo-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 0.8rem;
+  font-style: italic;
+  font-weight: 500;
+  color: #6b7280;
+  line-height: 1.1;
+}
+.escribiendo-chip .puntos i {
+  font-style: normal;
+  animation: escribiendoPunto 1.2s infinite;
+}
+.escribiendo-chip .puntos i:nth-child(2) { animation-delay: 0.2s; }
+.escribiendo-chip .puntos i:nth-child(3) { animation-delay: 0.4s; }
+@keyframes escribiendoPunto {
+  0%, 60%, 100% { opacity: 0.25; }
+  30% { opacity: 1; }
+}
 .chat-body {
   flex: 1;
   overflow-y: auto;

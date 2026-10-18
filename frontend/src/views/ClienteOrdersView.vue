@@ -279,7 +279,7 @@
 import api from "@/services/api";
 import { useAuthStore } from "@/stores/auth";
 import ChatModal from "@/components/ChatModal.vue";
-import orderSocket from "@/services/orderSocket";
+import orderSocket, { esEventoDeOrden, ordenIdDe } from "@/services/orderSocket";
 
 export default {
   name: "ClienteOrders",
@@ -347,11 +347,31 @@ export default {
         this.motosLoading = false;
       }
     },
-    async fetchOrders() {
+    fetchOrders() {
+      // Varias fuentes pueden pedir el mismo refresco casi a la vez
+      // (evento WebSocket "order-updated" + "notification-new").
+      // Si se pide exactamente lo mismo en menos de 1 s, se reutiliza la misma
+      // petición para que la lista se actualice UNA sola vez y rápido.
+      const clave = JSON.stringify({
+        skip: (this.page - 1) * this.pageSize,
+        limit: this.pageSize,
+      });
+      const ahora = Date.now();
+      if (this._fetchClave === clave && this._fetchPromesa && ahora - this._fetchTiempo < 1000) {
+        return this._fetchPromesa;
+      }
+      this._fetchClave = clave;
+      this._fetchTiempo = ahora;
+      this._fetchPromesa = this._loadOrders(clave);
+      return this._fetchPromesa;
+    },
+    async _loadOrders(clave) {
       this.loading = true;
       try {
         const skip = (this.page - 1) * this.pageSize;
         const { data } = await api.get("/service-orders/", { params: { skip, limit: this.pageSize } });
+        // Si mientras viajaba la petición cambió la página, se ignora
+        if (clave !== this._fetchClave) return;
         this.orders = data;
       } catch (err) {
         this.showAlert(err.response?.data?.detail || "Error al cargar órdenes.", "error");
@@ -360,12 +380,22 @@ export default {
       }
     },
     async fetchCount() {
+      // Misma coalescidencia que fetchOrders: evita contar dos veces
+      const ahora = Date.now();
+      if (this._countPromesa && ahora - this._countTiempo < 1000) {
+        return this._countPromesa;
+      }
+      this._countTiempo = ahora;
+      this._countPromesa = this._loadCount();
+      return this._countPromesa;
+    },
+    async _loadCount() {
       try {
         const { data } = await api.get("/service-orders/count");
         this.totalItems = data.total;
         this.totalPages = Math.ceil(this.totalItems / this.pageSize) || 1;
       } catch (e) {
-        console.error("Error fetching count", e);
+        // silencioso
       }
     },
     async goToPage(p) {
@@ -443,18 +473,21 @@ export default {
       }
     },
     onOrderUpdated(event) {
+      // SOLO los eventos de orden refrescan la lista. Los mensajes y las
+      // evidencias del chat NO recargan el panel: el ChatModal los recibe
+      // al instante por WebSocket y se actualiza solo.
+      const detail = event && event.detail ? event.detail : {};
+      if (detail.tipo && !esEventoDeOrden(detail.tipo)) return;
       this.fetchOrders();
       this.fetchCount();
-      if (event && event.detail) {
-        const orderId = event.detail.orden_servicio_id;
-        const newStatus = event.detail.estado;
-        if (this.showChatModal && this.chatOrdenId === orderId && newStatus && newStatus !== "en_proceso") {
-          this.showChatModal = false;
-          this.showAlert(`El chat se ha cerrado porque la orden ha sido ${newStatus === "completada" ? "completada" : "cancelada"}.`, "info");
-        }
-        if (this.detail && this.detail.id === orderId && newStatus) {
-          this.detail.estado = newStatus;
-        }
+      const orderId = ordenIdDe(detail);
+      const newStatus = detail.estado;
+      if (this.showChatModal && this.chatOrdenId === orderId && newStatus && newStatus !== "en_proceso") {
+        this.showChatModal = false;
+        this.showAlert(`El chat se ha cerrado porque la orden ha sido ${newStatus === "completada" ? "completada" : "cancelada"}.`, "info");
+      }
+      if (this.detail && this.detail.id === orderId && newStatus) {
+        this.detail.estado = newStatus;
       }
     },
     colorHex(colorName) {
@@ -473,11 +506,9 @@ export default {
     this.openOrderFromRoute();
     orderSocket.enable();
     window.addEventListener("order-updated", this.onOrderUpdated);
-    window.addEventListener("notification-new", this.onOrderUpdated);
   },
   beforeUnmount() {
     window.removeEventListener("order-updated", this.onOrderUpdated);
-    window.removeEventListener("notification-new", this.onOrderUpdated);
   },
   watch: {
     "$route.query": {

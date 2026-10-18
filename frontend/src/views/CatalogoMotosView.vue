@@ -269,7 +269,7 @@ export default {
         this.totalItems = data.total;
         this.totalPages = Math.ceil(this.totalItems / this.pageSize) || 1;
       } catch (e) {
-        console.error("Error fetching count", e);
+        // silencioso
       }
     },
     async goToPage(p) {
@@ -289,7 +289,7 @@ export default {
         const { data } = await api.get("/motorcycles/brands");
         this.brands = data;
       } catch (err) {
-        console.error("Error al cargar marcas:", err);
+        // silencioso
       }
     },
     showAlert(message, type = "success") {

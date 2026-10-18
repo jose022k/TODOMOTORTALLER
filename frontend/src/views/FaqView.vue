@@ -100,7 +100,7 @@ export default {
         this.faqs = faqRes.data;
         this.tasaBcv = tasaRes.data?.tasa || null;
       } catch (err) {
-        console.error("Error al cargar FAQs:", err);
+        // silencioso
       } finally {
         this.loading = false;
       }

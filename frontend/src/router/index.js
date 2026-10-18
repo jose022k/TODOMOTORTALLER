@@ -148,6 +148,15 @@ router.beforeEach((to, from, next) => {
     return next("/login");
   }
 
+  // Si ya tiene sesión activa, no debe volver al login ni al registro:
+  // redirigir al panel según rol (evita el botón "Atrás" y el reenvío del formulario).
+  if (authStore.isAuthenticated && (to.path === "/login" || to.path === "/register/cliente")) {
+    if (authStore.isAdmin) return next("/admin");
+    if (authStore.isMecanico) return next("/mecanico/orders");
+    if (authStore.isCliente) return next("/cliente/orders");
+    return next("/");
+  }
+
   next();
 });
 

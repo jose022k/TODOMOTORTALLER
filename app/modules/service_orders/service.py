@@ -1,13 +1,14 @@
 import base64
 import qrcode
 from io import BytesIO
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Optional, List
 
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.modules.service_orders.dao import OrdenServicioDAO
+from app.modules.service_orders.models import OrdenServicio
 from app.modules.service_orders.schemas import (
     OrdenServicioCreate,
     OrdenServicioDetailResponse,
@@ -15,7 +16,7 @@ from app.modules.service_orders.schemas import (
 )
 from app.modules.motorcycles.models import HistorialMantenimiento, MotoCliente, CatalogoMoto
 from app.modules.auth.models import Admin
-from app.modules.notifications.service import create_notification
+from app.modules.notifications.service import create_notifications_in_background
 from app.modules.bcv.service import convertir_a_usd
 from app.core.ws_manager import manager
 
@@ -28,6 +29,11 @@ TRANSICIONES_VALIDAS = {
     "completada": [],
     "cancelada": [],
 }
+
+# Monto máximo de una orden, expresado en euros (USD)
+MAX_MONTO_EUR = 1500.0
+# Ventana (segundos) en la que se considera "doble envío" una orden idéntica
+DUPLICADOS_VENTANA_SEG = 60
 
 
 def _build_list_response(order):
@@ -60,6 +66,11 @@ def _build_list_response(order):
 
 def create_order(db: Session, data: OrdenServicioCreate, admin_user):
     """Crea una nueva orden de servicio.
+
+    Protecciones aplicadas:
+      · Máximo de monto (MAX_MONTO_EUR en €, o su equivalente en Bs con la tasa BCV).
+      · No se permite una segunda orden activa (pendiente/en proceso) para la misma moto.
+      · No se permite enviar dos veces la misma orden (doble clic / reenvío).
     Si se proporciona catalogo_moto_id + placa + anio, registra una nueva moto
     para el cliente antes de crear la orden. De lo contrario usa moto_cliente_id existente.
     """
@@ -79,17 +90,82 @@ def create_order(db: Session, data: OrdenServicioCreate, admin_user):
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Modelo de moto no encontrado en el catálogo",
             )
-        # Crear nueva MotoCliente
-        nueva_moto = MotoCliente(
-            placa=data.placa.upper(),
-            anio=data.anio,
-            color=data.color,
-            catalogo_moto_id=data.catalogo_moto_id,
-            cliente_id=data.cliente_id,
+        # Si el cliente ya tiene una moto con esa placa, se reutiliza el registro
+        # en lugar de crear uno duplicado (una placa identifica a una sola moto).
+        moto_con_placa = (
+            db.query(MotoCliente)
+            .filter(
+                MotoCliente.cliente_id == data.cliente_id,
+                MotoCliente.placa == data.placa.upper(),
+            )
+            .first()
         )
-        db.add(nueva_moto)
-        db.flush()
-        moto_cliente_id = nueva_moto.id
+        if moto_con_placa:
+            moto_cliente_id = moto_con_placa.id
+        else:
+            # Crear nueva MotoCliente
+            nueva_moto = MotoCliente(
+                placa=data.placa.upper(),
+                anio=data.anio,
+                color=data.color,
+                catalogo_moto_id=data.catalogo_moto_id,
+                cliente_id=data.cliente_id,
+            )
+            db.add(nueva_moto)
+            db.flush()
+            moto_cliente_id = nueva_moto.id
+    else:
+        # Validar que la moto exista y pertenezca al cliente indicado
+        moto = db.query(MotoCliente).filter(MotoCliente.id == moto_cliente_id).first()
+        if not moto:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Moto del cliente no encontrada",
+            )
+        if moto.cliente_id != data.cliente_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="La moto seleccionada no pertenece al cliente indicado",
+            )
+        moto_cliente_id = moto.id
+
+    # ── Protección 1: una sola orden activa por moto ──
+    orden_activa = (
+        db.query(OrdenServicio.id)
+        .filter(
+            OrdenServicio.moto_cliente_id == moto_cliente_id,
+            OrdenServicio.estado.in_(("pendiente", "en_proceso")),
+        )
+        .first()
+    )
+    if orden_activa:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=(
+                f"Esta moto ya tiene una orden activa (#{orden_activa[0]}). "
+                "Cancele o complétela antes de crear otra."
+            ),
+        )
+
+    # ── Protección 2: misma orden enviada dos veces en poco tiempo ──
+    desde = datetime.utcnow() - timedelta(seconds=DUPLICADOS_VENTANA_SEG)
+    duplicada = (
+        db.query(OrdenServicio.id)
+        .filter(
+            OrdenServicio.cliente_id == data.cliente_id,
+            OrdenServicio.moto_cliente_id == moto_cliente_id,
+            OrdenServicio.descripcion == data.descripcion,
+            OrdenServicio.monto == data.monto,
+            OrdenServicio.moneda == data.moneda,
+            OrdenServicio.fecha_creacion >= desde,
+        )
+        .first()
+    )
+    if duplicada:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Orden duplicada: esta orden ya fue registrada hace unos segundos.",
+        )
 
     order_data = {
         "descripcion": data.descripcion,
@@ -105,22 +181,56 @@ def create_order(db: Session, data: OrdenServicioCreate, admin_user):
     # Convertir a USD según la moneda (Bs usa la tasa BCV)
     try:
         monto_usd, tasa, _ = convertir_a_usd(db, data.monto, data.moneda)
-        order_data["monto_usd"] = monto_usd
-        order_data["tasa_bcv"] = tasa
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e),
         )
 
+    # ── Límite de monto: tope en euros (o su equivalente en Bs) ──
+    if monto_usd > MAX_MONTO_EUR:
+        if data.moneda == "BS" and tasa:
+            equivalencia = f"{MAX_MONTO_EUR * tasa:,.2f} Bs".replace(",", ".")
+            detalle = f"El monto no puede superar €{MAX_MONTO_EUR:,.0f} (equivalente a {equivalencia} según la tasa BCV)."
+        else:
+            detalle = f"El monto no puede superar €{MAX_MONTO_EUR:,.0f}."
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=detalle,
+        )
+
+    order_data["monto_usd"] = monto_usd
+    order_data["tasa_bcv"] = tasa
+
     order = orden_dao.create(db, order_data)
 
-    # Notificar creación de la orden (estado: pendiente)
-    create_notification(db, "orden_creada", f"Se ha creado una nueva orden de servicio", orden_servicio_id=order.id, cliente_id=data.cliente_id)
-    create_notification(db, "orden_creada", f"Tienes una nueva orden asignada", orden_servicio_id=order.id, mecanico_id=data.mecanico_id)
+    # Ids de administradores: se necesitan también para el broadcast
     admin_ids = [a.id for a in db.query(Admin.id).all()]
-    for aid in admin_ids:
-        create_notification(db, "orden_creada", f"Se ha creado la orden #{order.id}", orden_servicio_id=order.id, admin_id=aid)
+
+    # Las notificaciones se crean en segundo plano (la respuesta no espera)
+    create_notifications_in_background([
+        {
+            "tipo": "orden_creada",
+            "mensaje": "Se ha creado una nueva orden de servicio",
+            "orden_servicio_id": order.id,
+            "cliente_id": data.cliente_id,
+        },
+        {
+            "tipo": "orden_creada",
+            "mensaje": "Tienes una nueva orden asignada",
+            "orden_servicio_id": order.id,
+            "mecanico_id": data.mecanico_id,
+        },
+        *[
+            {
+                "tipo": "orden_creada",
+                "mensaje": f"Se ha creado la orden #{order.id}",
+                "orden_servicio_id": order.id,
+                "admin_id": aid,
+            }
+            for aid in admin_ids
+        ],
+    ])
 
     # Broadcast WebSocket
     manager.schedule_broadcast_order_event(
@@ -265,24 +375,29 @@ def update_order_status(db: Session, order_id: int, new_status: str, current_use
 
     updated = orden_dao.update(db, order, update_data)
 
-    # Notificar según la transición
+    # Ids de administradores: se necesitan también para el broadcast
     admin_ids = [a.id for a in db.query(Admin.id).all()]
+
+    # Las notificaciones se crean en segundo plano (la respuesta no espera)
     if new_status == "en_proceso":
-        create_notification(db, "orden_en_proceso", f"La orden #{order_id} está en proceso", orden_servicio_id=order_id, cliente_id=order.cliente_id)
+        mensaje = f"La orden #{order_id} está en proceso"
+        specs = [{"tipo": "orden_en_proceso", "mensaje": mensaje, "orden_servicio_id": order_id, "cliente_id": order.cliente_id}]
         if order.mecanico_id:
-            create_notification(db, "orden_en_proceso", f"La orden #{order_id} está en proceso", orden_servicio_id=order_id, mecanico_id=order.mecanico_id)
-        for aid in admin_ids:
-            create_notification(db, "orden_en_proceso", f"La orden #{order_id} está en proceso", orden_servicio_id=order_id, admin_id=aid)
+            specs.append({"tipo": "orden_en_proceso", "mensaje": mensaje, "orden_servicio_id": order_id, "mecanico_id": order.mecanico_id})
     elif new_status == "completada":
-        create_notification(db, "orden_completada", f"La orden #{order_id} ha sido completada", orden_servicio_id=order_id, cliente_id=order.cliente_id)
-        for aid in admin_ids:
-            create_notification(db, "orden_completada", f"La orden #{order_id} ha sido completada", orden_servicio_id=order_id, admin_id=aid)
-    elif new_status == "cancelada":
-        create_notification(db, "orden_cancelada", f"La orden #{order_id} ha sido cancelada", orden_servicio_id=order_id, cliente_id=order.cliente_id)
+        mensaje = f"La orden #{order_id} ha sido completada"
+        specs = [{"tipo": "orden_completada", "mensaje": mensaje, "orden_servicio_id": order_id, "cliente_id": order.cliente_id}]
+    else:  # cancelada
+        mensaje = f"La orden #{order_id} ha sido cancelada"
+        specs = [{"tipo": "orden_cancelada", "mensaje": mensaje, "orden_servicio_id": order_id, "cliente_id": order.cliente_id}]
         if order.mecanico_id:
-            create_notification(db, "orden_cancelada", f"La orden #{order_id} ha sido cancelada", orden_servicio_id=order_id, mecanico_id=order.mecanico_id)
-        for aid in admin_ids:
-            create_notification(db, "orden_cancelada", f"La orden #{order_id} ha sido cancelada", orden_servicio_id=order_id, admin_id=aid)
+            specs.append({"tipo": "orden_cancelada", "mensaje": mensaje, "orden_servicio_id": order_id, "mecanico_id": order.mecanico_id})
+
+    specs.extend(
+        {"tipo": f"orden_{new_status}", "mensaje": mensaje, "orden_servicio_id": order_id, "admin_id": aid}
+        for aid in admin_ids
+    )
+    create_notifications_in_background(specs)
 
     # Si se completa la orden, crear historial y generar QR
     if new_status == "completada":
@@ -345,15 +460,29 @@ def assign_mechanic(db: Session, order_id: int, mecanico_id: int, admin_user):
     old_mecanico_id = order.mecanico_id
     updated = orden_dao.update(db, order, {"mecanico_id": mecanico_id})
 
-    # Notificar reasignación a cliente, antiguo y nuevo mecánico, y todos los admin
+    # Ids de administradores: se necesitan también para el broadcast
     admin_ids = [a.id for a in db.query(Admin.id).all()]
-    if old_mecanico_id and old_mecanico_id != mecanico_id:
-        create_notification(db, "orden_actualizada", f"Has sido desasignado de la orden #{order_id}", orden_servicio_id=order_id, mecanico_id=old_mecanico_id)
-    if updated.cliente_id:
-        create_notification(db, "orden_actualizada", f"La orden #{order_id} tiene un nuevo mecánico asignado", orden_servicio_id=order_id, cliente_id=updated.cliente_id)
-    create_notification(db, "orden_actualizada", f"Te han asignado la orden #{order_id}", orden_servicio_id=order_id, mecanico_id=mecanico_id)
-    for aid in admin_ids:
-        create_notification(db, "orden_actualizada", f"Se reasignó mecánico en la orden #{order_id}", orden_servicio_id=order_id, admin_id=aid)
+
+    # Notificaciones en segundo plano (la respuesta no espera)
+    create_notifications_in_background([
+        *(
+            [{"tipo": "orden_actualizada", "mensaje": f"Has sido desasignado de la orden #{order_id}",
+              "orden_servicio_id": order_id, "mecanico_id": old_mecanico_id}]
+            if old_mecanico_id and old_mecanico_id != mecanico_id else []
+        ),
+        *(
+            [{"tipo": "orden_actualizada", "mensaje": f"La orden #{order_id} tiene un nuevo mecánico asignado",
+              "orden_servicio_id": order_id, "cliente_id": updated.cliente_id}]
+            if updated.cliente_id else []
+        ),
+        {"tipo": "orden_actualizada", "mensaje": f"Te han asignado la orden #{order_id}",
+         "orden_servicio_id": order_id, "mecanico_id": mecanico_id},
+        *[
+            {"tipo": "orden_actualizada", "mensaje": f"Se reasignó mecánico en la orden #{order_id}",
+             "orden_servicio_id": order_id, "admin_id": aid}
+            for aid in admin_ids
+        ],
+    ])
 
     # Broadcast WebSocket
     manager.schedule_broadcast_order_event(

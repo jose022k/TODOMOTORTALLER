@@ -71,23 +71,27 @@
           </div>
           <div class="form-group-modal">
             <label>Nombre y Apellido *</label>
-            <input v-model="googleForm.nombre" type="text" required placeholder="Juan Pérez" @input="onNombreInputGoogle" />
+            <input v-model="googleForm.nombre" type="text" required placeholder="Juan Pérez" @input="onNombreInputGoogle" @blur="validarCampoGoogle('nombre')" />
+            <p v-if="erroresGoogle.nombre" class="field-error">{{ erroresGoogle.nombre }}</p>
           </div>
           <div class="form-group-modal">
             <label>Cédula *</label>
-            <input v-model="googleForm.cedula" type="text" maxlength="8" placeholder="12345678" required @input="onCedulaInputGoogle" />
+            <input v-model="googleForm.cedula" type="text" maxlength="11" placeholder="10345876" required @input="onCedulaInputGoogle" @blur="validarCampoGoogle('cedula')" />
+            <p v-if="erroresGoogle.cedula" class="field-error">{{ erroresGoogle.cedula }}</p>
           </div>
           <div class="form-group-modal">
             <label>Teléfono *</label>
-            <input v-model="googleForm.telefono" type="tel" maxlength="10" placeholder="04121234567" required @input="onTelefonoInputGoogle" />
+            <input v-model="googleForm.telefono" type="tel" maxlength="11" placeholder="04121234567" required @input="onTelefonoInputGoogle" @blur="validarCampoGoogle('telefono')" />
+            <p v-if="erroresGoogle.telefono" class="field-error">{{ erroresGoogle.telefono }}</p>
           </div>
           <div class="form-group-modal">
-            <label>Dirección</label>
-            <input v-model="googleForm.direccion" type="text" placeholder="Av. Principal..." />
+            <label>Dirección *</label>
+            <input v-model="googleForm.direccion" type="text" placeholder="Av. Principal..." required @input="onDireccionInputGoogle" @blur="validarCampoGoogle('direccion')" />
+            <p v-if="erroresGoogle.direccion" class="field-error">{{ erroresGoogle.direccion }}</p>
           </div>
           <div class="modal-actions-row">
             <button type="button" class="btn-secondary-modal" @click="showGoogleModal = false">Cancelar</button>
-            <button type="submit" class="btn-primary-modal" :disabled="savingGoogle">
+            <button type="submit" class="btn-primary-modal" :disabled="savingGoogle || tieneErroresGoogle">
               {{ savingGoogle ? "Guardando..." : "Completar Registro" }}
             </button>
           </div>
@@ -102,6 +106,7 @@
 <script>
 import api from "@/services/api";
 import { useAuthStore } from "@/stores/auth";
+import { validarCampoRegistro, esErrorDuplicado, CAMPOS_DISPONIBLES } from "@/services/validacionRegistro";
 import LoadingOverlay from "@/components/LoadingOverlay.vue";
 
 export default {
@@ -118,6 +123,12 @@ export default {
       showGoogleModal: false,
       googleToken: "",
       savingGoogle: false,
+      erroresGoogle: {
+        nombre: "",
+        cedula: "",
+        telefono: "",
+        direccion: "",
+      },
       googleForm: {
         email: "",
         nombre: "",
@@ -127,8 +138,18 @@ export default {
       },
     };
   },
+  created() {
+    // Temporizadores de validación en vivo (no reactivos)
+    this._validTimers = {};
+    this._dupTokens = {};
+  },
   mounted() {
     this.initGoogleAuth();
+  },
+  computed: {
+    tieneErroresGoogle() {
+      return this.showGoogleModal && Object.values(this.erroresGoogle).some((m) => !!m);
+    },
   },
   methods: {
     initGoogleAuth() {
@@ -194,7 +215,7 @@ export default {
           this.loading = true;
           const authStore = useAuthStore();
           await authStore.setTokens(data.access_token, data.refresh_token);
-          this.$router.push("/cliente/orders");
+          this.$router.replace("/cliente/orders");
         }
       } catch (err) {
         this.loading = false;
@@ -206,24 +227,71 @@ export default {
     onNombreInputGoogle(e) {
       let val = e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]/g, "");
       this.googleForm.nombre = val.replace(/\b[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ]/g, (char) => char.toUpperCase());
+      this.programarValidacionGoogle("nombre", this.googleForm.nombre);
     },
     onCedulaInputGoogle(e) {
-      this.googleForm.cedula = e.target.value.replace(/\D/g, "").slice(0, 8);
+      this.googleForm.cedula = e.target.value.replace(/\D/g, "").slice(0, 11);
+      this.programarValidacionGoogle("cedula", this.googleForm.cedula);
     },
     onTelefonoInputGoogle(e) {
-      this.googleForm.telefono = e.target.value.replace(/\D/g, "").slice(0, 10);
+      this.googleForm.telefono = e.target.value.replace(/\D/g, "").slice(0, 11);
+      this.programarValidacionGoogle("telefono", this.googleForm.telefono);
+    },
+    onDireccionInputGoogle() {
+      this.programarValidacionGoogle("direccion", this.googleForm.direccion);
+    },
+    // ---------- Validación en vivo (avisa sin pulsar "Completar Registro") ----------
+    programarValidacionGoogle(campo, valor) {
+      if (this._validTimers[campo]) clearTimeout(this._validTimers[campo]);
+      this._validTimers[campo] = setTimeout(() => {
+        this.validarCampoGoogle(campo, valor);
+      }, 400);
+    },
+    validarCampoGoogle(campo, valor) {
+      if (this._validTimers[campo]) {
+        clearTimeout(this._validTimers[campo]);
+        this._validTimers[campo] = null;
+      }
+      const v = valor !== undefined ? valor : this.googleForm[campo];
+      const msg = validarCampoRegistro(campo, v);
+      this.erroresGoogle[campo] = msg;
+      if (!msg && CAMPOS_DISPONIBLES.includes(campo)) this.verificarDisponibilidadGoogle(campo, v);
+    },
+    async verificarDisponibilidadGoogle(campo, valor) {
+      const v = (valor || "").trim();
+      if (!v || !CAMPOS_DISPONIBLES.includes(campo)) return;
+
+      const token = (this._dupTokens[campo] || 0) + 1;
+      this._dupTokens[campo] = token;
+
+      try {
+        const { data } = await api.get("/auth/disponibilidad", {
+          params: { campo, valor: v },
+        });
+        if (this._dupTokens[campo] !== token) return; // respuesta obsoleta
+        if (!data.disponible) {
+          this.erroresGoogle[campo] = data.detalle || "Este dato ya está registrado.";
+        } else if (esErrorDuplicado(this.erroresGoogle[campo])) {
+          this.erroresGoogle[campo] = "";
+        }
+      } catch (err) {
+        // Sin consulta al servidor: el backend vuelve a validar todo al registrar.
+      }
     },
     async submitGoogleProfile() {
-      if (!this.googleForm.nombre.trim()) {
-        alert("El nombre y apellido es obligatorio.");
-        return;
+      const campos = ["nombre", "cedula", "telefono", "direccion"];
+      let primerError = "";
+      for (const campo of campos) {
+        this.validarCampoGoogle(campo);
+        if (!this.erroresGoogle[campo]) {
+          await this.verificarDisponibilidadGoogle(campo, this.googleForm[campo]);
+        }
+        if (!primerError && this.erroresGoogle[campo]) {
+          primerError = this.erroresGoogle[campo];
+        }
       }
-      if (!/^\d{5,8}$/.test(this.googleForm.cedula)) {
-        alert("La cédula debe contener solo números (máximo 8 dígitos).");
-        return;
-      }
-      if (this.googleForm.telefono.length < 10) {
-        alert("El teléfono debe tener al menos 10 dígitos.");
+      if (primerError || this.tieneErroresGoogle) {
+        alert(primerError || "Revisa los campos marcados.");
         return;
       }
       this.savingGoogle = true;
@@ -239,7 +307,7 @@ export default {
         });
         const authStore = useAuthStore();
         await authStore.setTokens(data.access_token, data.refresh_token);
-        this.$router.push("/cliente/orders");
+        this.$router.replace("/cliente/orders");
       } catch (err) {
         this.loading = false;
         this.showGoogleModal = true;
@@ -254,10 +322,10 @@ export default {
       try {
         const authStore = useAuthStore();
         await authStore.login(this.email, this.password);
-        if (authStore.isAdmin) this.$router.push("/admin");
-        else if (authStore.isMecanico) this.$router.push("/mecanico/orders");
-        else if (authStore.isCliente) this.$router.push("/cliente/orders");
-        else this.$router.push("/");
+        if (authStore.isAdmin) this.$router.replace("/admin");
+        else if (authStore.isMecanico) this.$router.replace("/mecanico/orders");
+        else if (authStore.isCliente) this.$router.replace("/cliente/orders");
+        else this.$router.replace("/");
       } catch (err) {
         this.error = err.response?.data?.detail || "Error al iniciar sesión";
       } finally {
@@ -380,6 +448,12 @@ html:not(.dark) .auth-card {
   background: #fef2f2;
   padding: 8px 12px;
   border-radius: 8px;
+}
+.field-error {
+  color: #e74c3c;
+  font-size: 11.5px;
+  margin: 4px 0 0 2px;
+  line-height: 1.35;
 }
 .btn-submit {
   width: 100%;
@@ -512,6 +586,9 @@ html.dark .input-wrapper input::placeholder {
 }
 html.dark .error-msg {
   background: #2d1215;
+  color: #fca5a5;
+}
+html.dark .field-error {
   color: #fca5a5;
 }
 

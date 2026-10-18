@@ -1,7 +1,26 @@
 import axios from 'axios'
 
+/**
+ * Resuelve la URL base de la API.
+ *
+ * - Desarrollo: se usa el prefijo "/api", que el servidor de desarrollo
+ *   (vue.config.js) enruta hacia el backend. Así el navegador SIEMPRE habla
+ *   con el mismo origen (localhost:8080 o 192.168.0.194:8080) y funciona
+ *   igual desde la PC como desde cualquier otro dispositivo de la red,
+ *   sin depender de la IP ni de "localhost" (que en otro equipo es él mismo).
+ * - Producción: la API y el SPA comparten origen (VUE_APP_API_URL vacío).
+ *
+ * Si se define VUE_APP_API_URL con una URL absoluta, ésta tiene prioridad.
+ */
+function resolveBaseURL() {
+  const configurada = process.env.VUE_APP_API_URL
+  if (configurada) return configurada
+  if (process.env.NODE_ENV === 'development') return '/api'
+  return ''
+}
+
 const api = axios.create({
-  baseURL: process.env.VUE_APP_API_URL || '',
+  baseURL: resolveBaseURL(),
   timeout: 60000,
 })
 

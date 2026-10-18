@@ -18,7 +18,8 @@
         </div>
         <img src="https://res.cloudinary.com/dorj3mvvr/image/upload/v1783609693/logos/logotaller01.png" alt="" class="print-logo" />
       </div>
-      <div class="reports-toolbar no-print">
+      <div class="header-actions no-print">
+      <div class="reports-toolbar">
         <DateRangePicker
           :start="fechaInicio"
           :end="fechaFin"
@@ -55,6 +56,7 @@
             <button class="btn-pdf-generate" @click="printReport">Generar PDF</button>
           </div>
         </div>
+      </div>
       </div>
     </div>
 
@@ -414,7 +416,7 @@ export default {
         this.tasaBcv = tasaRes.data.tasa;
         this.tasaInput = tasaRes.data.tasa ? String(tasaRes.data.tasa) : "";
       } catch (err) {
-        console.error("Error al cargar reportes", err);
+        // silencioso
       } finally {
         this.loading = false;
       }
@@ -427,7 +429,7 @@ export default {
         this.tasaBcv = val;
         this.editTasa = false;
       } catch (err) {
-        console.error("Error al guardar tasa", err);
+        // silencioso
       }
     },
     clearFilters() {
@@ -504,11 +506,20 @@ export default {
   font-size: 1.05rem;
 }
 .print-header { display: none; }
+/* Contenedor que agrupa toolbar + dropdown de PDF en una sola línea anclada
+   a la derecha, para que "Generar PDF" nunca salte de posición cuando aparece
+   el botón "Limpiar filtros" u otros controles crecen (PC). */
+.header-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: nowrap;
+  margin-left: auto;
+}
 .reports-toolbar {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-left: auto;
   justify-content: flex-end;
   flex-wrap: wrap;
 }
@@ -741,6 +752,14 @@ html.dark .spinner { border-color: #334155; border-top-color: #ffaa00; }
   .reports-header {
     flex-direction: column;
     align-items: flex-start;
+    gap: 10px;
+  }
+  .header-actions {
+    margin-left: 0;
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
     gap: 10px;
   }
   .reports-header h1 {

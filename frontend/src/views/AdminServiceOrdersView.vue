@@ -268,8 +268,9 @@
                 type="number"
                 step="0.01"
                 min="0"
+                :max="montoMaximo"
                 class="form-control"
-                :placeholder="form.moneda === 'BS' ? 'Ej: 5000' : 'Ej: 50'"
+                :placeholder="form.moneda === 'BS' ? placeholderBs : 'Ej: 50'"
                 @input="filterMonto"
               />
               <span class="monto-currency">{{ form.moneda === 'BS' ? 'Bs' : '€' }}</span>
@@ -280,13 +281,15 @@
             <p v-else-if="form.moneda === 'USD' && tasaBcv && form.monto > 0" class="monto-preview">
               ≈ {{ formatBs(form.monto * tasaBcv) }} Bs
             </p>
+            <p class="monto-limit">Máximo permitido: <strong>€1.500</strong><span v-if="form.moneda === 'BS' && tasaBcv"> ({{ formatBs(1500 * tasaBcv) }} Bs)</span></p>
+            <p v-if="montoExcede" class="monto-limit-error">El monto supera el máximo permitido.</p>
             <p v-if="tasaBcv" class="monto-tasa">Tasa BCV: {{ tasaBcv.toFixed(2) }} Bs/€</p>
             <p v-else class="monto-tasa warn">Tasa no disponible. Configúrala en Reportes y Estadísticas.</p>
           </div>
         </div>
         <div class="modal-footer">
-          <button class="btn-cancel" @click="showCreateModal = false">Cancelar</button>
-          <button class="btn-primary" @click="handleCreate" :disabled="!canCreate">Crear Orden</button>
+          <button class="btn-cancel" @click="showCreateModal = false" :disabled="creating">Cancelar</button>
+          <button class="btn-primary" @click="handleCreate" :disabled="!canCreate || creating">{{ creating ? "Creando..." : "Crear Orden" }}</button>
         </div>
       </div>
     </div>
@@ -386,23 +389,23 @@
           <div class="detail-actions" v-if="canChangeStatus || (detail.estado !== 'completada' && detail.estado !== 'cancelada')">
             <span class="actions-title">Acciones</span>
             <div class="actions-row" v-if="detail.estado === 'pendiente'">
-              <button class="action-btn action-btn--start" @click="changeStatus('en_proceso')">
+              <button class="action-btn action-btn--start" :disabled="statusLoading" @click="changeStatus('en_proceso')">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                Iniciar
+                {{ statusLoading ? "Procesando..." : "Iniciar" }}
               </button>
-              <button class="action-btn action-btn--cancel" @click="changeStatus('cancelada')">
+              <button class="action-btn action-btn--cancel" :disabled="statusLoading" @click="changeStatus('cancelada')">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
-                Cancelar
+                {{ statusLoading ? "Procesando..." : "Cancelar" }}
               </button>
             </div>
             <div class="actions-row" v-else-if="detail.estado === 'en_proceso'">
-              <button class="action-btn action-btn--complete" @click="changeStatus('completada')">
+              <button class="action-btn action-btn--complete" :disabled="statusLoading" @click="changeStatus('completada')">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                Completar
+                {{ statusLoading ? "Procesando..." : "Completar" }}
               </button>
-              <button class="action-btn action-btn--cancel" @click="changeStatus('cancelada')">
+              <button class="action-btn action-btn--cancel" :disabled="statusLoading" @click="changeStatus('cancelada')">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
-                Cancelar
+                {{ statusLoading ? "Procesando..." : "Cancelar" }}
               </button>
             </div>
               <div class="reassign-inline" v-if="detail.estado !== 'completada' && detail.estado !== 'cancelada'">
@@ -439,7 +442,7 @@
 import api from "@/services/api";
 import { useAuthStore } from "@/stores/auth";
 import ChatModal from "@/components/ChatModal.vue";
-import orderSocket from "@/services/orderSocket";
+import orderSocket, { esEventoDeOrden } from "@/services/orderSocket";
 
 export default {
   name: "AdminServiceOrders",
@@ -456,6 +459,8 @@ export default {
       showFilters: false,
       showCreateModal: false,
       showDetailModal: false,
+      creating: false,      // evita duplicar la orden mientras se envía
+      statusLoading: false, // evita doble clic en Iniciar/Completar/Cancelar
       clients: [],
       mechanics: [],
       clienteBusqueda: "",
@@ -519,6 +524,20 @@ export default {
       if (this.form.moneda !== 'BS' || !this.tasaBcv || !(this.form.monto > 0)) return "";
       return (this.form.monto / this.tasaBcv).toFixed(2);
     },
+    // Tope del monto en la moneda seleccionada (€1.500 o su equivalente en Bs)
+    montoMaximo() {
+      if (this.form.moneda === 'BS') {
+        return this.tasaBcv ? Math.round(1500 * this.tasaBcv) : null;
+      }
+      return 1500;
+    },
+    montoExcede() {
+      const max = this.montoMaximo;
+      return max !== null && Number(this.form.monto) > max;
+    },
+    placeholderBs() {
+      return this.tasaBcv ? `Ej: ${this.formatBs(1500 * this.tasaBcv)}` : 'Ej: 5000';
+    },
     marcas() {
       const set = new Set(this.catalog.map((m) => m.marca));
       return [...set].sort();
@@ -557,6 +576,7 @@ export default {
     canCreate() {
       if (!this.form.cliente_id || !this.form.mecanico_id || !this.form.descripcion.trim()) return false;
       if (!(this.form.monto > 0) || !this.form.moneda) return false;
+      if (this.montoExcede) return false;
       if (this.motoMode === "existente") return !!this.form.moto_cliente_id;
       return !!(this.form.catalogoModelo && this.modeloSeleccionado && this.form.color && this.form.placa && this.form.anio);
     },
@@ -594,7 +614,29 @@ export default {
       this.form.placa = "";
       this.form.anio = "";
     },
-    async fetchOrders() {
+    fetchOrders() {
+      // Varias fuentes pueden pedir el mismo refresco casi a la vez
+      // (refresco explícito + evento WebSocket "order-updated" + "notification-new").
+      // Si se pide exactamente lo mismo en menos de 1 s, se reutiliza la misma
+      // petición para que la lista se actualice UNA sola vez y rápido.
+      const clave = JSON.stringify({
+        skip: (this.page - 1) * this.pageSize,
+        limit: this.pageSize,
+        estado: this.filterEstado || "",
+        cliente: this.filterClienteId || "",
+        mecanico: this.filterMecanicoId || "",
+        q: (this.searchQuery || "").trim(),
+      });
+      const ahora = Date.now();
+      if (this._fetchClave === clave && this._fetchPromesa && ahora - this._fetchTiempo < 1000) {
+        return this._fetchPromesa;
+      }
+      this._fetchClave = clave;
+      this._fetchTiempo = ahora;
+      this._fetchPromesa = this._loadOrders(clave);
+      return this._fetchPromesa;
+    },
+    async _loadOrders(clave) {
       this.loading = true;
       try {
         const params = { skip: (this.page - 1) * this.pageSize, limit: this.pageSize };
@@ -603,6 +645,8 @@ export default {
         if (this.filterMecanicoId) params.mecanico_id = this.filterMecanicoId;
         if (this.searchQuery && this.searchQuery.trim()) params.q = this.searchQuery.trim();
         const { data } = await api.get("/service-orders/", { params });
+        // Si mientras viajaba la petición cambiaron los filtros, se ignora
+        if (clave !== this._fetchClave) return;
         this.orders = data;
       } catch (err) {
         this.showAlert(err.response?.data?.detail || "Error al cargar órdenes.", "error");
@@ -611,6 +655,23 @@ export default {
       }
     },
     async fetchCount() {
+      // Misma coalescidencia que fetchOrders: evita contar dos veces
+      const clave = JSON.stringify({
+        estado: this.filterEstado || "",
+        cliente: this.filterClienteId || "",
+        mecanico: this.filterMecanicoId || "",
+        q: (this.searchQuery || "").trim(),
+      });
+      const ahora = Date.now();
+      if (this._countClave === clave && this._countPromesa && ahora - this._countTiempo < 1000) {
+        return this._countPromesa;
+      }
+      this._countClave = clave;
+      this._countTiempo = ahora;
+      this._countPromesa = this._loadCount(clave);
+      return this._countPromesa;
+    },
+    async _loadCount(clave) {
       try {
         const params = {};
         if (this.filterEstado) params.estado = this.filterEstado;
@@ -618,10 +679,11 @@ export default {
         if (this.filterMecanicoId) params.mecanico_id = this.filterMecanicoId;
         if (this.searchQuery && this.searchQuery.trim()) params.q = this.searchQuery.trim();
         const { data } = await api.get("/service-orders/count", { params });
+        if (clave !== this._countClave) return;
         this.totalItems = data.total;
         this.totalPages = Math.ceil(this.totalItems / this.pageSize) || 1;
       } catch (e) {
-        console.error("Error fetching count", e);
+        // Silencioso: el contador no debe interrumpir la experiencia
       }
     },
     async goToPage(p) {
@@ -664,7 +726,7 @@ export default {
         const { data } = await api.get("/users/clients/summary");
         this.clients = data;
       } catch (err) {
-        console.error("Error loading clients", err);
+        // silencioso
       }
     },
     async fetchMechanics() {
@@ -672,7 +734,7 @@ export default {
         const { data } = await api.get("/users/mechanics");
         this.mechanics = data;
       } catch (err) {
-        console.error("Error loading mechanics", err);
+        // silencioso
       }
     },
     async fetchCatalog() {
@@ -680,7 +742,7 @@ export default {
         const { data } = await api.get("/motorcycles/catalog", { params: { limit: 9999 } });
         this.catalog = data;
       } catch (err) {
-        console.error("Error loading catalog", err);
+        // silencioso
       }
     },
     async onClientChange() {
@@ -691,7 +753,7 @@ export default {
         const { data } = await api.get(`/users/clients/${this.form.cliente_id}`);
         this.clientMotos = data.motos || [];
       } catch (err) {
-        console.error("Error loading client motos", err);
+        // silencioso
       }
     },
     selectCliente(c) {
@@ -720,8 +782,15 @@ export default {
       }
     },
     filterMonto() {
-      const val = parseFloat(this.form.monto);
-      this.form.monto = isNaN(val) || val < 0 ? "" : val;
+      let val = parseFloat(this.form.monto);
+      if (isNaN(val) || val < 0) {
+        this.form.monto = "";
+        return;
+      }
+      // Limitar al máximo permitido (€1.500 o su equivalente en Bs)
+      const max = this.montoMaximo;
+      if (max !== null && val > max) val = max;
+      this.form.monto = val;
     },
     formatBs(val) {
       return Number(val).toLocaleString("es-VE", { maximumFractionDigits: 2 });
@@ -782,7 +851,14 @@ export default {
       this.showCreateModal = true;
     },
     async handleCreate() {
+      if (this.creating) return;               // ya hay una orden en curso
+      if (!this.canCreate) return;
       if (!window.confirm("¿Está seguro de crear esta orden de servicio?")) return;
+
+      // Se cierra el modal de inmediato para que la respuesta sea instantánea
+      this.creating = true;
+      this.showCreateModal = false;
+
       try {
         const payload = {
           descripcion: this.form.descripcion,
@@ -801,11 +877,15 @@ export default {
           payload.color = this.form.color;
         }
         await api.post("/service-orders/", payload);
-        this.showCreateModal = false;
         this.showAlert("Orden de servicio creada correctamente.");
-        await this.fetchOrders();
+        this.fetchOrders();
+        this.fetchCount();
       } catch (err) {
+        // Si falla se reabre el formulario con los datos intactos
+        this.showCreateModal = true;
         this.showAlert(err.response?.data?.detail || "Error al crear la orden.", "error");
+      } finally {
+        this.creating = false;
       }
     },
     capitalize(s) {
@@ -821,20 +901,30 @@ export default {
       }).catch(() => {});
     },
     async changeStatus(newStatus) {
+      if (this.statusLoading) return;          // evita doble clic / doble cambio de estado
       const msgs = {
         en_proceso: "¿Está seguro de iniciar esta orden?",
         completada: "¿Está seguro de marcar esta orden como completada?",
         cancelada: "¿Está seguro de cancelar esta orden?",
       };
       if (!window.confirm(msgs[newStatus] || "¿Está seguro de cambiar el estado?")) return;
+
+      // Se cierra el modal de inmediato para que la respuesta sea instantánea
+      const orderId = this.detail.id;
+      this.statusLoading = true;
+      this.showDetailModal = false;
+
       try {
-        await api.patch(`/service-orders/${this.detail.id}/status`, { estado: newStatus });
+        await api.patch(`/service-orders/${orderId}/status`, { estado: newStatus });
         this.showAlert(`Orden actualizada a "${this.statusLabel(newStatus)}".`, newStatus === "cancelada" ? "error" : undefined);
-        this.showDetailModal = false;
-        await this.fetchOrders();
       } catch (err) {
         this.showAlert(err.response?.data?.detail || "Error al cambiar estado.", "error");
+      } finally {
+        this.statusLoading = false;
       }
+      // Refresca la lista para reflejar el estado real
+      this.fetchOrders();
+      this.fetchCount();
     },
     openChat(order) {
       this.chatOrdenId = order.id;
@@ -875,7 +965,12 @@ export default {
         this.$router.replace({ path: this.$route.path, query: {} });
       }
     },
-    onOrderUpdated() {
+    onOrderUpdated(event) {
+      // SOLO los eventos de orden refrescan la lista. Los mensajes y las
+      // evidencias del chat NO recargan el panel: el ChatModal los recibe
+      // al instante por WebSocket y se actualiza solo.
+      const tipo = event && event.detail ? event.detail.tipo : "";
+      if (tipo && !esEventoDeOrden(tipo)) return;
       this.fetchOrders();
       this.fetchCount();
     },
@@ -890,25 +985,9 @@ export default {
     this.openOrderFromRoute();
     orderSocket.enable();
     window.addEventListener("order-updated", this.onOrderUpdated);
-
-    this._onNotifRefresh = (e) => {
-      const detail = (e && e.detail) || {};
-      const orderTypes = ["orden_creada", "orden_en_proceso", "orden_completada", "orden_cancelada", "orden_actualizada"];
-      if (!detail.tipo || orderTypes.includes(detail.tipo) || detail.orden_servicio_id) {
-        this.fetchOrders();
-        this.fetchCount();
-        if (this.showChatModal && this.chatOrdenId) {
-          this.loadChatMessages(this.chatOrdenId);
-        }
-      }
-    };
-    window.addEventListener("notification-new", this._onNotifRefresh);
   },
   beforeUnmount() {
     window.removeEventListener("order-updated", this.onOrderUpdated);
-    if (this._onNotifRefresh) {
-      window.removeEventListener("notification-new", this._onNotifRefresh);
-    }
   },
   watch: {
     "$route.query": {
@@ -1494,6 +1573,21 @@ html.dark .client-selected-clear:hover { background: var(--color-primary); color
   color: #b45309;
   font-weight: 600;
 }
+.monto-limit {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #64748b;
+}
+.monto-limit strong { color: #1e40af; }
+.monto-limit-error {
+  margin-top: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #b91c1c;
+}
+html.dark .monto-limit { color: var(--text-muted); }
+html.dark .monto-limit strong { color: #93c5fd; }
+html.dark .monto-limit-error { color: #fca5a5; }
 html.dark .monto-toggle { border-color: var(--border-input); }
 html.dark .monto-toggle .toggle-btn { background: var(--bg-muted); color: var(--text-muted); }
 html.dark .monto-toggle .toggle-btn.active { background: var(--color-primary); color: #1a1a1a; }
