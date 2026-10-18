@@ -23,7 +23,15 @@ export const useNotificationsStore = defineStore('notifications', {
     pollTimer: null,
   }),
   actions: {
+    // Sin token no tiene sentido pedir el contador: evita el 401 en rutas públicas
+    _hasToken() {
+      return !!localStorage.getItem('access_token')
+    },
     async fetchUnreadCount() {
+      if (!this._hasToken()) {
+        this.stopPolling()
+        return
+      }
       try {
         const { data } = await api.get('/notifications/unread-count')
         this.unreadCount = data.count || 0
@@ -35,6 +43,7 @@ export const useNotificationsStore = defineStore('notifications', {
       }
     },
     async fetchNotifications(limit = 20) {
+      if (!this._hasToken()) return
       try {
         const { data } = await api.get('/notifications/', { params: { limit } })
         this.notifications = Array.isArray(data) ? data : []
@@ -67,6 +76,7 @@ export const useNotificationsStore = defineStore('notifications', {
       updateNativeAppBadge(0)
     },
     startPolling() {
+      if (!this._hasToken()) return   // no hay sesión: no tiene sentido consultar
       if (this.pollTimer) return
       this.fetchUnreadCount()
       this.pollTimer = setInterval(() => this.fetchUnreadCount(), 5000)

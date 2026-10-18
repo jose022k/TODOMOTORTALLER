@@ -145,23 +145,23 @@
           <div class="detail-actions" v-if="detail.estado !== 'completada' && detail.estado !== 'cancelada'">
             <span class="actions-title">Acciones</span>
             <div class="actions-row" v-if="detail.estado === 'pendiente'">
-              <button class="action-btn action-btn--start" @click="changeStatusFromDetail('en_proceso')">
+              <button class="action-btn action-btn--start" :disabled="statusLoading" @click="changeStatusFromDetail('en_proceso')">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                Iniciar
+                {{ statusLoading ? "Procesando..." : "Iniciar" }}
               </button>
-              <button class="action-btn action-btn--cancel" @click="changeStatusFromDetail('cancelada')">
+              <button class="action-btn action-btn--cancel" :disabled="statusLoading" @click="changeStatusFromDetail('cancelada')">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
-                Cancelar
+                {{ statusLoading ? "Procesando..." : "Cancelar" }}
               </button>
             </div>
             <div class="actions-row" v-else-if="detail.estado === 'en_proceso'">
-              <button class="action-btn action-btn--complete" @click="changeStatusFromDetail('completada')">
+              <button class="action-btn action-btn--complete" :disabled="statusLoading" @click="changeStatusFromDetail('completada')">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                Completar
+                {{ statusLoading ? "Procesando..." : "Completar" }}
               </button>
-              <button class="action-btn action-btn--cancel" @click="changeStatusFromDetail('cancelada')">
+              <button class="action-btn action-btn--cancel" :disabled="statusLoading" @click="changeStatusFromDetail('cancelada')">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
-                Cancelar
+                {{ statusLoading ? "Procesando..." : "Cancelar" }}
               </button>
             </div>
           </div>
@@ -185,7 +185,7 @@
 import api from "@/services/api";
 import { useAuthStore } from "@/stores/auth";
 import ChatModal from "@/components/ChatModal.vue";
-import orderSocket from "@/services/orderSocket";
+import orderSocket, { esEventoDeOrden, ordenIdDe } from "@/services/orderSocket";
 
 export default {
   name: "MecanicoOrders",
@@ -197,6 +197,7 @@ export default {
       orders: [],
       showDetail: false,
       detail: null,
+      statusLoading: false,
       showChatModal: false,
       chatOrdenId: null,
       page: 1,
@@ -230,11 +231,31 @@ export default {
       this.alert = { message, type };
       setTimeout(() => { this.alert.message = ""; }, 4000);
     },
-    async fetchOrders() {
+    fetchOrders() {
+      // Varias fuentes pueden pedir el mismo refresco casi a la vez
+      // (refresco explícito + evento WebSocket "order-updated" + "notification-new").
+      // Si se pide exactamente lo mismo en menos de 1 s, se reutiliza la misma
+      // petición para que la lista se actualice UNA sola vez y rápido.
+      const clave = JSON.stringify({
+        skip: (this.page - 1) * this.pageSize,
+        limit: this.pageSize,
+      });
+      const ahora = Date.now();
+      if (this._fetchClave === clave && this._fetchPromesa && ahora - this._fetchTiempo < 1000) {
+        return this._fetchPromesa;
+      }
+      this._fetchClave = clave;
+      this._fetchTiempo = ahora;
+      this._fetchPromesa = this._loadOrders(clave);
+      return this._fetchPromesa;
+    },
+    async _loadOrders(clave) {
       this.loading = true;
       try {
         const skip = (this.page - 1) * this.pageSize;
         const { data } = await api.get("/service-orders/", { params: { skip, limit: this.pageSize } });
+        // Si mientras viajaba la petición cambió la página, se ignora
+        if (clave !== this._fetchClave) return;
         this.orders = data;
       } catch (err) {
         this.showAlert(err.response?.data?.detail || "Error al cargar órdenes.", "error");
@@ -243,12 +264,22 @@ export default {
       }
     },
     async fetchCount() {
+      // Misma coalescidencia que fetchOrders: evita contar dos veces
+      const ahora = Date.now();
+      if (this._countPromesa && ahora - this._countTiempo < 1000) {
+        return this._countPromesa;
+      }
+      this._countTiempo = ahora;
+      this._countPromesa = this._loadCount();
+      return this._countPromesa;
+    },
+    async _loadCount() {
       try {
         const { data } = await api.get("/service-orders/count");
         this.totalItems = data.total;
         this.totalPages = Math.ceil(this.totalItems / this.pageSize) || 1;
       } catch (e) {
-        console.error("Error fetching count", e);
+        // Silencioso: el contador no debe interrumpir la experiencia
       }
     },
     async goToPage(p) {
@@ -271,24 +302,33 @@ export default {
       }).catch(() => {});
     },
     async changeStatus(orderId, newStatus) {
+      if (this.statusLoading) return false;    // evita doble clic / doble cambio de estado
       const msgs = {
         en_proceso: "¿Está seguro de iniciar esta orden?",
         completada: "¿Está seguro de marcar esta orden como completada?",
         cancelada: "¿Está seguro de cancelar esta orden?",
       };
-      if (!window.confirm(msgs[newStatus] || "¿Está seguro de cambiar el estado?")) return;
+      if (!window.confirm(msgs[newStatus] || "¿Está seguro de cambiar el estado?")) return false;
+
+      // Se cierra el modal de inmediato para que la respuesta sea instantánea
+      this.statusLoading = true;
+      this.showDetail = false;
+
       try {
         await api.patch(`/service-orders/${orderId}/status`, { estado: newStatus });
         this.showAlert(`Orden #${orderId} actualizada a "${this.statusLabel(newStatus)}".`, newStatus === "cancelada" ? "error" : undefined);
-        await this.fetchOrders();
       } catch (err) {
         this.showAlert(err.response?.data?.detail || "Error al cambiar estado.", "error");
+      } finally {
+        this.statusLoading = false;
       }
+      // Refresca la lista para reflejar el estado real
+      this.fetchOrders();
+      this.fetchCount();
     },
     async changeStatusFromDetail(newStatus) {
       if (!this.detail) return;
       await this.changeStatus(this.detail.id, newStatus);
-      this.showDetail = false;
     },
     openOrderFromRoute() {
       const orderId = this.$route.query.order_id;
@@ -311,18 +351,21 @@ export default {
       }
     },
     onOrderUpdated(event) {
+      // SOLO los eventos de orden refrescan la lista. Los mensajes y las
+      // evidencias del chat NO recargan el panel: el ChatModal los recibe
+      // al instante por WebSocket y se actualiza solo.
+      const detail = event && event.detail ? event.detail : {};
+      if (detail.tipo && !esEventoDeOrden(detail.tipo)) return;
       this.fetchOrders();
       this.fetchCount();
-      if (event && event.detail) {
-        const orderId = event.detail.orden_servicio_id;
-        const newStatus = event.detail.estado;
-        if (this.showChatModal && this.chatOrdenId === orderId && newStatus && newStatus !== "en_proceso") {
-          this.showChatModal = false;
-          this.showAlert(`El chat se ha cerrado porque la orden ha sido ${newStatus === "completada" ? "completada" : "cancelada"}.`, "info");
-        }
-        if (this.detail && this.detail.id === orderId && newStatus) {
-          this.detail.estado = newStatus;
-        }
+      const orderId = ordenIdDe(detail);
+      const newStatus = detail.estado;
+      if (this.showChatModal && this.chatOrdenId === orderId && newStatus && newStatus !== "en_proceso") {
+        this.showChatModal = false;
+        this.showAlert(`El chat se ha cerrado porque la orden ha sido ${newStatus === "completada" ? "completada" : "cancelada"}.`, "info");
+      }
+      if (this.detail && this.detail.id === orderId && newStatus) {
+        this.detail.estado = newStatus;
       }
     },
     colorHex(colorName) {
@@ -341,11 +384,9 @@ export default {
     this.openOrderFromRoute();
     orderSocket.enable();
     window.addEventListener("order-updated", this.onOrderUpdated);
-    window.addEventListener("notification-new", this.onOrderUpdated);
   },
   beforeUnmount() {
     window.removeEventListener("order-updated", this.onOrderUpdated);
-    window.removeEventListener("notification-new", this.onOrderUpdated);
   },
   watch: {
     "$route.query": {

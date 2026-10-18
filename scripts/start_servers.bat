@@ -30,7 +30,17 @@ echo.
 echo ============================================
 echo   Servidores iniciados correctamente
 echo   Backend:  http://localhost:8000
-echo   Frontend: http://localhost:8080
+echo.
+echo   Frontend (con candado, necesario para
+echo   las notificaciones y el PWA):
+echo     PC:      https://localhost:8080
+echo     Otros:   https://192.168.0.194:8080
+echo.
+echo   IMPORTANTE: el certificado es autofirmado.
+echo   La PRIMERA vez que abras la pagina en cada
+echo   dispositivo saldra un aviso. Pulsa:
+echo       Avanzado  ->  Continuar
+echo   Despues ya no vuelve a molestar.
 echo ============================================
 echo.
 echo  Presiona cualquier tecla para cerrar esta ventana...

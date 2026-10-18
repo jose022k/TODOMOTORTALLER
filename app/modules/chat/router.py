@@ -28,6 +28,16 @@ def send_message(
     return service.send_message(db, orden_id, data.contenido, current_user)
 
 
+@router.get("/{orden_id}/presencia")
+def presencia_orden(
+    orden_id: int,
+    db: Session = Depends(get_db),
+    current_user: AnyUser = Depends(get_current_user),
+):
+    """Participantes de la orden y quién está conectado ahora mismo."""
+    return service.get_presencia(db, orden_id, current_user)
+
+
 @router.get("/{orden_id}/evidencias")
 def list_evidencias(
     orden_id: int,

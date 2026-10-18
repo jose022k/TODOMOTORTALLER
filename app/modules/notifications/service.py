@@ -1,12 +1,39 @@
 from datetime import datetime
 from typing import List, Optional
+import threading
 from sqlalchemy.orm import Session
 from app.modules.notifications.dao import NotificacionDAO
+from app.modules.notifications.models import Notificacion
 from app.modules.notifications.schemas import NotificacionResponse
 from app.modules.notifications.push_service import notify_user
 from app.modules.preferences.service import should_notify, allowed_tipos
 
 notificacion_dao = NotificacionDAO()
+
+
+def create_notifications_in_background(specs: List[dict]):
+    """Crea varias notificaciones en un hilo con su propia sesión de BD.
+
+    Permite que la petición HTTP responda de inmediato, sin esperar a escribir
+    cada notificación (varias idas y vueltas a la base de datos) ni a enviar
+    los pushes. Si algo falla, las notificaciones se descartan en silencio.
+    """
+    if not specs:
+        return
+
+    def _run():
+        try:
+            from app.core.database import SessionLocal
+            db = SessionLocal()
+            try:
+                for spec in specs:
+                    create_notification(db, commit=True, **spec)
+            finally:
+                db.close()
+        except Exception:
+            pass
+
+    threading.Thread(target=_run, daemon=True).start()
 
 
 def _build_response(n) -> NotificacionResponse:
@@ -59,7 +86,26 @@ def create_notification(
     cliente_id: Optional[int] = None,
     mecanico_id: Optional[int] = None,
     open_chat: bool = False,
+    commit: bool = True,
 ):
+    """Crea una notificación.
+
+    commit=False deja el registro en la transacción actual (flush sin commit)
+    para que el llamador pueda agrupar varias notificaciones en un solo commit.
+    """
+    # Preferencias de CADA destinatario por separado.
+    # Antes, si el cliente tenía apagado un tipo de aviso, se descartaba la
+    # notificación entera y el admin y el mecánico tampoco se enteraban.
+    if admin_id and not should_notify(db, "admin", admin_id, tipo):
+        admin_id = None
+    if cliente_id and not should_notify(db, "cliente", cliente_id, tipo):
+        cliente_id = None
+    if mecanico_id and not should_notify(db, "mecanico", mecanico_id, tipo):
+        mecanico_id = None
+
+    if not (admin_id or cliente_id or mecanico_id):
+        return None
+
     data = {
         "tipo": tipo,
         "mensaje": mensaje,
@@ -72,15 +118,13 @@ def create_notification(
     }
     extra = "&open_chat=1" if open_chat else ""
 
-    # Verificar preferencias antes de notificar
-    if admin_id and not should_notify(db, "admin", admin_id, tipo):
-        return None
-    if cliente_id and not should_notify(db, "cliente", cliente_id, tipo):
-        return None
-    if mecanico_id and not should_notify(db, "mecanico", mecanico_id, tipo):
-        return None
-
-    result = notificacion_dao.create(db, data)
+    if commit:
+        result = notificacion_dao.create(db, data)
+    else:
+        # Deja el registro en la transacción abierta sin confirmar.
+        result = Notificacion(**data)
+        db.add(result)
+        db.flush()
 
     # WebSocket: notificación instantánea
     try:

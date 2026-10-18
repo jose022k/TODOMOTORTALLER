@@ -21,6 +21,7 @@ from app.modules.auth.service import (
     update_user,
     authenticate_google_cliente,
     complete_google_cliente_profile,
+    check_disponibilidad,
 )
 from app.modules.auth.dependencies import get_current_user, get_current_admin, AnyUser
 
@@ -42,6 +43,16 @@ def complete_profile_google_cliente(
 ):
     return complete_google_cliente_profile(db, data)
 
+
+
+@router.get("/disponibilidad")
+def consultar_disponibilidad(
+    campo: str,
+    valor: str = "",
+    db: Session = Depends(get_db),
+):
+    """Avisa en vivo si un correo, cédula o teléfono ya está registrado."""
+    return check_disponibilidad(db, campo, valor)
 
 
 @router.post("/register/cliente", response_model=UserResponse, status_code=201)

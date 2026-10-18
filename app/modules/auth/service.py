@@ -96,6 +96,46 @@ def find_user_by_nombre(db: Session, nombre: str):
     return None
 
 
+ETIQUETAS_DISPONIBILIDAD = {
+    "email": ("Este correo", "registrado"),
+    "cedula": ("Esta cédula", "registrada"),
+    "telefono": ("Este teléfono", "registrado"),
+}
+
+
+def check_disponibilidad(db: Session, campo: str, valor: str) -> dict:
+    """Indica si un correo / cédula / teléfono está libre, para avisar al
+    usuario mientras escribe (sin necesidad de pulsar el botón de registro)."""
+    campo = (campo or "").strip().lower()
+    valor = (valor or "").strip()
+
+    if campo not in ETIQUETAS_DISPONIBILIDAD:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Campo no válido. Use email, cedula o telefono.",
+        )
+
+    if not valor:
+        return {"campo": campo, "valor": valor, "disponible": True, "detalle": ""}
+
+    if campo == "email":
+        encontrado, _, _ = find_user_by_email(db, valor.lower())
+        ocupado = encontrado is not None
+    else:
+        columna = (
+            cliente_dao.model.cedula if campo == "cedula" else cliente_dao.model.telefono
+        )
+        ocupado = db.query(cliente_dao.model).filter(columna == valor).first() is not None
+
+    etiqueta, participio = ETIQUETAS_DISPONIBILIDAD[campo]
+    return {
+        "campo": campo,
+        "valor": valor,
+        "disponible": not ocupado,
+        "detalle": "" if not ocupado else f"{etiqueta} ya está {participio}.",
+    }
+
+
 def get_user_by_id_and_role(db: Session, user_id, role: str):
     try:
         uid = int(user_id)
@@ -123,16 +163,32 @@ def register_cliente(db: Session, data: ClienteCreate):
     existing, _, _ = find_user_by_email(db, data.email)
     if existing:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email already registered",
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Este correo ya está registrado.",
         )
     existing_nombre = find_user_by_nombre(db, data.nombre)
     if existing_nombre:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Nombre already taken",
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Este nombre ya está en uso.",
         )
-    
+    existing_cedula = db.query(cliente_dao.model).filter(
+        cliente_dao.model.cedula == data.cedula
+    ).first()
+    if existing_cedula:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Esta cédula ya está registrada.",
+        )
+    existing_telefono = db.query(cliente_dao.model).filter(
+        cliente_dao.model.telefono == data.telefono
+    ).first()
+    if existing_telefono:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Este teléfono ya está registrado.",
+        )
+
     user_data = data.model_dump(exclude={"rol"})
     user_data["contraseña"] = hash_password(user_data.pop("password"))
     
@@ -329,8 +385,18 @@ def complete_google_cliente_profile(db: Session, data) -> dict:
     ).first()
     if existing_cedula:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="La cédula ingresada ya se encuentra registrada por otro usuario.",
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Esta cédula ya está registrada.",
+        )
+
+    existing_telefono = db.query(cliente_dao.model).filter(
+        cliente_dao.model.telefono == data.telefono,
+        cliente_dao.model.email != email
+    ).first()
+    if existing_telefono:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Este teléfono ya está registrado.",
         )
 
     cliente = cliente_dao.get_by_email(db, email)

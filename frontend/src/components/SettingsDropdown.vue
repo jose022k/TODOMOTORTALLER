@@ -1,6 +1,6 @@
 <template>
   <div class="settings-wrap" ref="wrap">
-    <button class="settings-trigger" :class="{ open: open }" title="Ajustes" @click.stop="open = !open">
+    <button class="settings-trigger" :class="{ open: open }" data-tooltip="Ajustes" @click.stop="open = !open">
       <svg class="settings-chevron" :class="{ rotated: open }" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
     </button>
     <div v-if="open" :class="['settings-panel', { 'settings-above': above }]" @click.stop>
@@ -113,6 +113,27 @@ export default {
 .settings-trigger.open {
   color: #ffaa00;
   background: rgba(255,170,0,0.1);
+}
+.settings-trigger::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1a1a1a;
+  color: #fff;
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 300;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+.settings-trigger:hover::after {
+  opacity: 1;
 }
 .settings-chevron {
   transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);

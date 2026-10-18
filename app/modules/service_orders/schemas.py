@@ -1,6 +1,10 @@
 from datetime import datetime
 from typing import Optional
-from pydantic import BaseModel, field_serializer
+from pydantic import BaseModel, field_serializer, field_validator
+
+MONEDAS_VALIDAS = ("USD", "BS")
+# Tope de una orden expresado en euros (se convierte a Bs con la tasa BCV)
+MAX_MONTO_EUR = 1500.0
 
 
 class OrdenServicioBase(BaseModel):
@@ -9,6 +13,29 @@ class OrdenServicioBase(BaseModel):
     mecanico_id: int
     monto: float
     moneda: str
+
+    @field_validator("monto")
+    @classmethod
+    def validar_monto(cls, v: float) -> float:
+        if v is None or v <= 0:
+            raise ValueError("El monto debe ser un valor mayor que cero")
+        return round(float(v), 2)
+
+    @field_validator("moneda")
+    @classmethod
+    def validar_moneda(cls, v: str) -> str:
+        moneda = (v or "").strip().upper()
+        if moneda not in MONEDAS_VALIDAS:
+            raise ValueError("La moneda debe ser 'USD' (€) o 'BS' (Bs)")
+        return moneda
+
+    @field_validator("descripcion")
+    @classmethod
+    def validar_descripcion(cls, v: str) -> str:
+        texto = (v or "").strip()
+        if not texto:
+            raise ValueError("La descripción del servicio no puede estar vacía")
+        return texto
 
 
 class OrdenServicioCreate(OrdenServicioBase):

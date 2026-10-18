@@ -207,7 +207,7 @@ export default {
         const res = await api.get("/faq/admin/all");
         this.faqs = res.data;
       } catch (err) {
-        console.error("Error al cargar FAQs admin:", err);
+        // silencioso
       } finally {
         this.loading = false;
       }
