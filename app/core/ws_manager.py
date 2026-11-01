@@ -139,6 +139,16 @@ class ConnectionManager:
             targets,
         ))
 
+    def schedule_broadcast_sesion_cerrada(self, user_id: int, role: str, motivo: str = ""):
+        """Avisa al usuario que su sesión fue cerrada por el administrador.
+
+        El front cierra la sesión al instante (sin recargar la página).
+        """
+        _run_async(self.broadcast_to_users(
+            {"tipo": "sesion_cerrada", "motivo": motivo},
+            [(user_id, role)],
+        ))
+
     def schedule_broadcast_typing(self, orden_id: int, targets: List[tuple], user_id: int, role: str, escribiendo: bool):
         """Avisa a los demás participantes de la orden que alguien está escribiendo."""
         if not targets:

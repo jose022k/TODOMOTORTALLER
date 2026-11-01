@@ -1,7 +1,9 @@
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
+from app.core.ws_manager import manager
 from app.modules.auth.dao import ClienteDAO, MecanicoDAO
 from app.modules.auth.schemas import UserUpdate
+from app.modules.auth.service import remove_active_session
 from app.modules.auth.utils import hash_password
 from app.modules.users.schemas import ClienteDetailResponse, ClienteResponse, ClienteSummary, MotoAsociada
 from app.modules.notifications.service import create_notification
@@ -100,7 +102,15 @@ def deactivate_client(db: Session, client_id: int):
             detail="Cliente no encontrado",
         )
     nuevo_estado = not cliente.activo
-    return cliente_dao.update(db, cliente, {"activo": nuevo_estado})
+    actualizado = cliente_dao.update(db, cliente, {"activo": nuevo_estado})
+    if not nuevo_estado:
+        # Desactivado: se corta su sesión activa al instante y se le avisa
+        # por WebSocket para que salga del sistema sin recargar la página.
+        remove_active_session(db, client_id, "cliente")
+        manager.schedule_broadcast_sesion_cerrada(
+            client_id, "cliente", "Tu cuenta fue desactivada por el administrador."
+        )
+    return actualizado
 
 
 def count_clients(db: Session):
@@ -152,7 +162,15 @@ def deactivate_mechanic(db: Session, mechanic_id: int):
             detail="Mecánico no encontrado",
         )
     nuevo_estado = not mecanico.activo
-    return mecanico_dao.update(db, mecanico, {"activo": nuevo_estado})
+    actualizado = mecanico_dao.update(db, mecanico, {"activo": nuevo_estado})
+    if not nuevo_estado:
+        # Desactivado: se corta su sesión activa al instante y se le avisa
+        # por WebSocket para que salga del sistema sin recargar la página.
+        remove_active_session(db, mechanic_id, "mecanico")
+        manager.schedule_broadcast_sesion_cerrada(
+            mechanic_id, "mecanico", "Tu cuenta fue desactivada por el administrador."
+        )
+    return actualizado
 
 
 def get_my_motos(db: Session, current_user):
