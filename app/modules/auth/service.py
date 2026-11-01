@@ -249,6 +249,12 @@ def refresh_token(db: Session, token: str) -> dict:
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="User not found",
         )
+    # Cuenta desactivada: no se puede refrescar el token
+    if hasattr(user, "activo") and not user.activo:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Usuario desactivado. Contacte al administrador.",
+        )
 
     # Extender la expiración de la sesión activa en DB por 30 minutos más
     now = datetime.utcnow()

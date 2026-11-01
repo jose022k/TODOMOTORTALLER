@@ -36,6 +36,12 @@ def get_current_user(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="User not found",
         )
+    # Cuenta desactivada por el administrador: el token deja de servir al instante
+    if hasattr(user, "activo") and not user.activo:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Usuario desactivado. Contacte al administrador.",
+        )
     if not validate_active_session(db, user.id, role):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

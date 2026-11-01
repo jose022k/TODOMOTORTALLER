@@ -95,6 +95,10 @@ async def websocket_orders(
             if not user:
                 await websocket.close(code=4001)
                 return
+            # Cuenta desactivada: no se le permite mantener el socket abierto
+            if hasattr(user, "activo") and not user.activo:
+                await websocket.close(code=4001)
+                return
             if jti and not validate_active_session(db, user.id, rol, jti):
                 await websocket.close(code=4001)
                 return

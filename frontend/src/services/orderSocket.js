@@ -94,6 +94,18 @@ function onMessage(event) {
       return
     }
 
+    // El administrador desactivó la cuenta: se corta el socket y se cierra
+    // la sesión en la app (sin recargar la página).
+    if (data.tipo === 'sesion_cerrada') {
+      disable()
+      window.dispatchEvent(
+        new CustomEvent('session-force-logout', {
+          detail: { motivo: data.motivo || '' },
+        })
+      )
+      return
+    }
+
     // Eventos de orden: orden_creada, orden_en_proceso, orden_completada, ...
     // A diferencia del resto, éstos SÍ refrescan la lista de órdenes.
     window.dispatchEvent(new CustomEvent('order-updated', { detail: data }))

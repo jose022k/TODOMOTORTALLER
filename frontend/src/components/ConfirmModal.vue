@@ -7,8 +7,8 @@
         </div>
         <h3 class="modal-title">{{ title }}</h3>
         <p class="modal-message">{{ message }}</p>
-        <div class="modal-actions">
-          <button class="modal-btn cancel" @click="$emit('cancel')">{{ cancelText }}</button>
+        <div class="modal-actions" :class="{ 'single-action': !cancelText }">
+          <button v-if="cancelText" class="modal-btn cancel" @click="$emit('cancel')">{{ cancelText }}</button>
           <button class="modal-btn confirm" @click="$emit('confirm')">{{ confirmText }}</button>
         </div>
       </div>
@@ -94,6 +94,9 @@ export default {
   background: #f5a000;
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(255,170,0,0.3);
+}
+.modal-actions.single-action .modal-btn.confirm {
+  min-width: 160px;
 }
 .modal-enter-active,
 .modal-leave-active {
