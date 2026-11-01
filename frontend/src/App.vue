@@ -194,6 +194,15 @@
       @confirm="confirmLogout"
       @cancel="showLogoutModal = false"
     />
+    <ConfirmModal
+      :visible="showForcedLogoutModal"
+      title="Sesión cerrada"
+      :message="forcedLogoutMotivo || 'Tu sesión ha terminado. Inicia sesión de nuevo.'"
+      confirmText="Entendido"
+      cancelText=""
+      @confirm="showForcedLogoutModal = false"
+      @cancel="showForcedLogoutModal = false"
+    />
     <AdminFaqModal
       :visible="showAdminFaqModal"
       @close="showAdminFaqModal = false"
@@ -297,6 +306,12 @@ export default {
       this.showAdminFaqModal = true;
     };
     window.addEventListener("open-admin-faq", this._onOpenAdminFaq);
+
+    // Cierre de sesión forzado (desactivado por admin o sesión caducada)
+    this._onForceLogout = (e) => {
+      this.onForceLogout(e);
+    };
+    window.addEventListener("session-force-logout", this._onForceLogout);
   },
   beforeUnmount() {
     orderSocket.disable();
@@ -308,6 +323,9 @@ export default {
     }
     if (this._onOpenAdminFaq) {
       window.removeEventListener("open-admin-faq", this._onOpenAdminFaq);
+    }
+    if (this._onForceLogout) {
+      window.removeEventListener("session-force-logout", this._onForceLogout);
     }
     if (this._swMsgHandler && "serviceWorker" in navigator) {
       navigator.serviceWorker.removeEventListener("message", this._swMsgHandler);
@@ -357,6 +375,8 @@ export default {
   data() {
     return {
       showLogoutModal: false,
+      showForcedLogoutModal: false,
+      forcedLogoutMotivo: "",
       showAdminFaqModal: false,
       loggingOut: false,
       isDark: document.documentElement.classList.contains("dark"),
@@ -411,6 +431,42 @@ export default {
     },
     handleLogout() {
       this.showLogoutModal = true;
+    },
+    /**
+     * Cierre de sesión forzado (desactivación por el administrador o sesión
+     * caducada). Se activa con el evento "session-force-logout" que disparan
+     * orderSocket.js (evento del servidor) y api.js (401/403).
+     * limpia todo y navega al login SIN recargar la página.
+     */
+    async onForceLogout(e) {
+      const motivo = (e && e.detail && e.detail.motivo) || "";
+      // Idempotente: si la sesión ya no existe, no hacer nada más
+      if (!this.authStore.isAuthenticated && !localStorage.getItem("access_token")) {
+        return;
+      }
+      try {
+        orderSocket.disable();
+      } catch (err) {
+        /* silent */
+      }
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("refresh_token");
+      localStorage.removeItem("user_data");
+      this.authStore.user = null;
+      this.authStore.accessToken = null;
+      this.authStore.refreshToken = null;
+      this.showLogoutModal = false;
+      try {
+        // Limpia el historial para que "Atrás" no recupere pantallas con datos privados.
+        if (window.history && window.history.replaceState) {
+          window.history.replaceState(null, "", "/login");
+        }
+        await this.$router.replace("/login");
+      } catch (err) {
+        /* silent */
+      }
+      this.forcedLogoutMotivo = motivo;
+      this.showForcedLogoutModal = true;
     },
     async confirmLogout() {
       this.showLogoutModal = false;
