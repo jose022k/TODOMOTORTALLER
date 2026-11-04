@@ -5,8 +5,15 @@ load_dotenv()
 
 SECRET_KEY = os.getenv("SECRET_KEY", "todomotortaller_production_jwt_secret_key_2026_secure_fix")
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 525600
-REFRESH_TOKEN_EXPIRE_MINUTES = 525600
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "15"))
+REFRESH_TOKEN_EXPIRE_MINUTES = int(os.getenv("REFRESH_TOKEN_EXPIRE_MINUTES", "10080"))  # 7 días
+
+# SMTP (recuperación de contraseña)
+SMTP_HOST = os.getenv("SMTP_HOST", "smtp.gmail.com")
+SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
+SMTP_USER = os.getenv("SMTP_USER", "")
+SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "")
+SMTP_FROM = os.getenv("SMTP_FROM", "noreply@todomotortaller.com")
 
 # Cloudinary
 CLOUDINARY_CLOUD_NAME = os.getenv("CLOUDINARY_CLOUD_NAME")

@@ -1,9 +1,11 @@
 import uuid
+import random
+import time
 from datetime import datetime, timedelta
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 from app.modules.auth.dao import AdminDAO, ClienteDAO, MecanicoDAO
-from app.modules.auth.models import ActiveSession
+from app.modules.auth.models import ActiveSession, PasswordResetCode
 from app.modules.auth.schemas import UserCreate, UserLogin, UserUpdate, ClienteCreate
 from app.modules.auth.utils import (
     hash_password,
@@ -12,6 +14,20 @@ from app.modules.auth.utils import (
     create_refresh_token,
     decode_token,
 )
+from app.core.email_service import send_email, build_reset_password_html
+
+# Rate limiting por IP para recuperación de contraseña (60 segundos entre solicitudes)
+_ultimo_envio_por_ip: dict[str, float] = {}
+
+
+def _puede_enviar_reset(ip: str) -> bool:
+    """Verifica si han pasado 60 segundos desde el último envío desde esta IP."""
+    ahora = time.time()
+    ultimo = _ultimo_envio_por_ip.get(ip, 0)
+    if ahora - ultimo < 60:
+        return False
+    _ultimo_envio_por_ip[ip] = ahora
+    return True
 
 admin_dao = AdminDAO()
 cliente_dao = ClienteDAO()
@@ -286,11 +302,24 @@ def update_user(db: Session, user_id: str, role: str, data: UserUpdate):
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found",
         )
-        
+
     update_data = data.model_dump(exclude_unset=True)
     if "password" in update_data:
+        if not data.current_password:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Se requiere la contraseña actual para cambiar la contraseña.",
+            )
+        if not verify_password(data.current_password, user.contraseña):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="La contraseña actual no es correcta.",
+            )
         update_data["contraseña"] = hash_password(update_data.pop("password"))
-        
+        update_data.pop("current_password", None)
+        # Invalidar todas las sesiones activas del usuario tras cambio de contraseña
+        remove_active_session(db, user.id, role)
+
     updated_user = dao.update(db, user, update_data)
     setattr(updated_user, "rol", role)
     return updated_user
@@ -441,4 +470,161 @@ def complete_google_cliente_profile(db: Session, data) -> dict:
         "refresh_token": refresh_token,
         "token_type": "bearer",
     }
+
+
+# ============================================================
+# RECUPERACIÓN DE CONTRASEÑA
+# ============================================================
+def _resolve_user_by_email(db: Session, email: str):
+    """Devuelve (user, role, dao) o (None, None, None) si no existe.
+    Siempre responde igual para evitar enumerar correos."""
+    admin = admin_dao.get_by_email(db, email)
+    if admin:
+        return admin, "admin", admin_dao
+    mecanico = mecanico_dao.get_by_email(db, email)
+    if mecanico:
+        return mecanico, "mecanico", mecanico_dao
+    cliente = cliente_dao.get_by_email(db, email)
+    if cliente:
+        return cliente, "cliente", cliente_dao
+    return None, None, None
+
+
+def forgot_password(db: Session, data, ip: str = "unknown") -> dict:
+    """Solicita restablecimiento de contraseña. Responde siempre igual
+    (éxito genérico) para no revelar qué correos están registrados."""
+    # Rate limiting: 60 segundos entre solicitudes desde la misma IP
+    if not _puede_enviar_reset(ip):
+        return {
+            "message": "Demasiadas solicitudes. Espera 60 segundos antes de intentar nuevamente.",
+            "error": "rate_limit",
+            "email_enviado": False,
+        }
+
+    user, role, _ = _resolve_user_by_email(db, data.email)
+
+    # Si el usuario no existe o es admin, no enviamos nada (admin no se recupera por correo)
+    if not user or role == "admin":
+        return {"message": "Si el correo existe y no es de administrador, recibirás un código de recuperación."}
+
+    # Generar código de 6 dígitos
+    code = f"{random.randint(100000, 999999):06d}"
+    expires_at = datetime.utcnow() + timedelta(minutes=10)
+
+    # Invalidar códigos previos para este email+rol
+    db.query(PasswordResetCode).filter(
+        PasswordResetCode.email == data.email,
+        PasswordResetCode.role == role,
+    ).delete()
+    db.commit()
+
+    # Guardar código hasheado
+    reset_code = PasswordResetCode(
+        email=data.email,
+        code_hash=hash_password(code),
+        role=role,
+        attempts=0,
+        expires_at=expires_at,
+    )
+    db.add(reset_code)
+    db.commit()
+
+    # Enviar correo
+    html = build_reset_password_html(code, data.email)
+    resultado = send_email(
+        to_email=data.email,
+        subject="Código de recuperación de contraseña — Todomotortaller",
+        body_html=html,
+    )
+
+    if not resultado["ok"]:
+        return {
+            "message": "Error al enviar el código.",
+            "error": resultado["error"],
+            "email_enviado": False,
+        }
+
+    return {
+        "message": "Si el correo existe y no es de administrador, recibirás un código de recuperación.",
+        "email_enviado": True,
+    }
+
+
+def reset_password(db: Session, data) -> dict:
+    """Valida el código y actualiza la contraseña. Cierra todas las sesiones activas."""
+    user, role, _ = _resolve_user_by_email(db, data.email)
+    if not user or role == "admin":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Código inválido o expirado.",
+        )
+
+    # Buscar código válido (no expirado, intentos < 3)
+    reset_code = db.query(PasswordResetCode).filter(
+        PasswordResetCode.email == data.email,
+        PasswordResetCode.role == role,
+        PasswordResetCode.expires_at > datetime.utcnow(),
+        PasswordResetCode.attempts < 3,
+    ).order_by(PasswordResetCode.created_at.desc()).first()
+
+    if not reset_code:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Código inválido o expirado.",
+        )
+
+    # Verificar código
+    if not verify_password(data.code, reset_code.code_hash):
+        reset_code.attempts += 1
+        db.commit()
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Código incorrecto.",
+        )
+
+    # Código válido: actualizar contraseña y eliminar el código usado
+    user.contraseña = hash_password(data.new_password)
+    db.delete(reset_code)
+    db.commit()
+
+    # Invalidar todas las sesiones activas del usuario
+    remove_active_session(db, user.id, role)
+
+    return {"message": "Contraseña actualizada exitosamente. Inicia sesión con tu nueva contraseña."}
+
+
+def admin_reset_password(db: Session, data) -> dict:
+    """El admin resetea la contraseña de un mecánico desde la vista de usuarios."""
+    if data.role not in ("mecanico",):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Solo se puede restablecer contraseña de mecánicos desde esta función.",
+        )
+
+    user, role, _ = get_user_by_id_and_role(db, data.user_id, data.role)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Usuario no encontrado.",
+        )
+
+    user.contraseña = hash_password(data.new_password)
+    db.commit()
+
+    # Invalidar todas las sesiones activas del usuario
+    remove_active_session(db, user.id, data.role)
+
+    return {"message": "Contraseña restablecida correctamente."}
+
+
+def verify_email_for_reset(db: Session, email: str) -> dict:
+    """Verifica si un email pertenece a un cliente o mecánico registrado
+    (no admin) y si puede recuperar contraseña."""
+    user, role, _ = _resolve_user_by_email(db, email)
+    if not user:
+        return {"existe": False, "rol": None, "puede_recuperar": False}
+    if role == "admin":
+        return {"existe": True, "rol": "admin", "puede_recuperar": False}
+    # cliente o mecanico
+    return {"existe": True, "rol": role, "puede_recuperar": True}
 

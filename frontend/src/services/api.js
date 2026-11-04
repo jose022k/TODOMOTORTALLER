@@ -65,9 +65,8 @@ api.interceptors.response.use(
     }
     const originalRequest = error.config
     if (error.response.status === 403) {
-      forzarCierreSesion(
-        error.response?.data?.detail || 'No tienes permisos para realizar esta acción.'
-      )
+      // 403 es un error de autorización (no de autenticación), no cerrar sesión.
+      // Solo rechazar con el mensaje para que la vista lo muestre.
       return Promise.reject(error)
     }
     if (error.response.status === 401 && !originalRequest._retry) {

@@ -53,7 +53,12 @@
         </div>
       </form>
       <div class="auth-footer">
-        ¿Eres cliente? <router-link to="/register/cliente">Regístrate aquí</router-link>
+        <div class="footer-line">
+          ¿Eres cliente? <router-link to="/register/cliente">Regístrate aquí</router-link>
+        </div>
+        <div class="footer-line">
+          <router-link to="/forgot-password">¿Olvidaste tu contraseña?</router-link>
+        </div>
       </div>
     </div>
 
@@ -513,7 +518,10 @@ html:not(.dark) .auth-card {
   text-decoration: underline;
 }
 
-/* ===== MOBILE / PWA native feel ===== */
+.footer-line {
+  margin-bottom: 6px;
+}
+
 @media (max-width: 768px) {
   .auth-container {
     align-items: center;
