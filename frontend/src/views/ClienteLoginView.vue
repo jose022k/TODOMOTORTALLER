@@ -18,6 +18,7 @@
       </form>
       <div class="auth-link">
         ¿No tienes cuenta? <router-link to="/register/cliente">Regístrate aquí</router-link>
+        | <router-link to="/forgot-password">¿Olvidaste tu contraseña?</router-link>
       </div>
     </div>
   </div>

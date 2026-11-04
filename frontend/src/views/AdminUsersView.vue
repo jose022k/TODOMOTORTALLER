@@ -53,10 +53,16 @@
               </span>
             </td>
             <td class="actions-cell">
-              <button class="btn-sm btn-edit" @click="openEditMechModal(m)">Editar</button>
-              <button :class="['btn-sm', m.activo ? 'btn-deactivate' : 'btn-activate']" @click="toggleMechActive(m)">
-                {{ m.activo ? 'Desactivar' : 'Activar' }}
-              </button>
+              <div class="actions-wrapper">
+                <button class="btn-actions-toggle" @click="openActionsMenu(m.id, $event)">{{ openActionsRow === m.id ? 'Cerrar' : 'Ver' }}</button>
+                <div v-show="openActionsRow === m.id" class="actions-menu actions-menu-horizontal" :style="actionsMenuStyle">
+                  <button class="btn-sm btn-edit" @click="openEditMechModal(m); closeActions()">Editar</button>
+                  <button class="btn-sm btn-reset" @click="openResetPasswordModal(m); closeActions()">Resetear contraseña</button>
+                  <button :class="['btn-sm', m.activo ? 'btn-deactivate' : 'btn-activate']" @click="toggleMechActive(m); closeActions()">
+                    {{ m.activo ? 'Desactivar' : 'Activar' }}
+                  </button>
+                </div>
+              </div>
             </td>
           </tr>
         </tbody>
@@ -102,11 +108,16 @@
               </span>
             </td>
             <td class="actions-cell">
-              <button class="btn-sm btn-view" @click="openDetailClientModal(c)">Ver</button>
-              <button class="btn-sm btn-edit" @click="openEditClientModal(c)">Editar</button>
-              <button :class="['btn-sm', c.activo ? 'btn-deactivate' : 'btn-activate']" @click="toggleClientActive(c)">
-                {{ c.activo ? 'Desactivar' : 'Activar' }}
-              </button>
+              <div class="actions-wrapper">
+                <button class="btn-actions-toggle" @click="openActionsMenu(c.id, $event)">{{ openActionsRow === c.id ? 'Cerrar' : 'Ver' }}</button>
+                <div v-show="openActionsRow === c.id" class="actions-menu actions-menu-horizontal" :style="actionsMenuStyle">
+                  <button class="btn-sm btn-view" @click="openDetailClientModal(c); closeActions()">Ver</button>
+                  <button class="btn-sm btn-edit" @click="openEditClientModal(c); closeActions()">Editar</button>
+                  <button :class="['btn-sm', c.activo ? 'btn-deactivate' : 'btn-activate']" @click="toggleClientActive(c); closeActions()">
+                    {{ c.activo ? 'Desactivar' : 'Activar' }}
+                  </button>
+                </div>
+              </div>
             </td>
           </tr>
         </tbody>
@@ -164,6 +175,60 @@
           </div>
           <div class="modal-footer">
             <button type="button" class="btn-secondary" @click="showEditMech = false">Cancelar</button>
+            <button type="submit" class="btn-primary" :disabled="saving">{{ saving ? 'Guardando...' : 'Guardar' }}</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal Resetear Contraseña Mecánico -->
+    <div v-if="showResetPassword" class="modal-backdrop" @click.self="showResetPassword = false">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h2>Resetear Contraseña</h2>
+          <button class="btn-close" @click="showResetPassword = false">×</button>
+        </div>
+        <form @submit.prevent="resetMechanicPassword">
+          <div class="form-group">
+            <label>Mecánico</label>
+            <input v-model="resetForm.nombre" type="text" disabled class="input-disabled" />
+          </div>
+          <div class="form-group">
+            <label>Nueva contraseña</label>
+            <input v-model="resetForm.password" type="password" required placeholder="Mínimo 6 caracteres" />
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn-secondary" @click="showResetPassword = false">Cancelar</button>
+            <button type="submit" class="btn-primary" :disabled="resetting">{{ resetting ? 'Restableciendo...' : 'Restablecer contraseña' }}</button>
+          </div>
+        </form>
+      </div>
+    </div>
+    <div v-if="showEditClient" class="modal-backdrop" @click.self="showEditClient = false">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h2>Editar Cliente</h2>
+          <button class="btn-close" @click="showEditClient = false">×</button>
+        </div>
+        <form @submit.prevent="editClient">
+          <div class="form-group">
+            <label>Nombre</label>
+            <input v-model="clientEditForm.nombre" type="text" required />
+          </div>
+          <div class="form-group">
+            <label>Email (No editable)</label>
+            <input v-model="clientEditForm.email" type="email" disabled class="input-disabled" />
+          </div>
+          <div class="form-group">
+            <label>Teléfono</label>
+            <input v-model="clientEditForm.telefono" type="text" />
+          </div>
+          <div class="form-group">
+            <label>Dirección</label>
+            <input v-model="clientEditForm.direccion" type="text" />
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn-secondary" @click="showEditClient = false">Cancelar</button>
             <button type="submit" class="btn-primary" :disabled="saving">{{ saving ? 'Guardando...' : 'Guardar' }}</button>
           </div>
         </form>
@@ -269,6 +334,7 @@ export default {
       activeTab: "mechanics",
       loading: false,
       saving: false,
+      resetting: false,
       alert: { message: "", type: "" },
       // Mechanics
       mechanics: [],
@@ -278,8 +344,11 @@ export default {
       mechSearchTimer: null,
       showCreateMech: false,
       showEditMech: false,
+      showResetPassword: false,
+      openActionsRow: null,
       mechForm: { nombre: "", email: "", password: "" },
       mechEditForm: { id: null, nombre: "", email: "" },
+      resetForm: { id: null, nombre: "", password: "" },
       // Clients
       clients: [],
       clientSearch: "",
@@ -328,6 +397,7 @@ export default {
   mounted() {
     this.fetchMechanics();
     this.fetchClients();
+    document.addEventListener('mousedown', this.closeActionsOnOutsideClick);
   },
   methods: {
     showAlert(msg, type = "success") {
@@ -391,6 +461,30 @@ export default {
         this.showAlert(err.response?.data?.detail || "Error al actualizar mecánico.", "error");
       } finally {
         this.saving = false;
+      }
+    },
+    openResetPasswordModal(m) {
+      this.resetForm = { id: m.id, nombre: m.nombre, password: "" };
+      this.showResetPassword = true;
+    },
+    async resetMechanicPassword() {
+      if (!this.resetForm.password || this.resetForm.password.length < 6) {
+        this.showAlert("La contraseña debe tener al menos 6 caracteres.", "error");
+        return;
+      }
+      this.resetting = true;
+      try {
+        await api.post("/auth/admin/reset-password", {
+          user_id: this.resetForm.id,
+          role: "mecanico",
+          new_password: this.resetForm.password,
+        });
+        this.showResetPassword = false;
+        this.showAlert(`Contraseña de "${this.resetForm.nombre}" restablecida correctamente.`);
+      } catch (err) {
+        this.showAlert(err.response?.data?.detail || "Error al restablecer contraseña.", "error");
+      } finally {
+        this.resetting = false;
       }
     },
     async toggleMechActive(m) {
@@ -479,10 +573,37 @@ export default {
       this.clientDetail = c;
       this.showDetailClient = true;
     },
+    toggleActions(id) {
+      this.openActionsRow = this.openActionsRow === id ? null : id;
+    },
+    openActionsMenu(id, event) {
+      if (this.openActionsRow === id) {
+        this.closeActions();
+        return;
+      }
+      this.openActionsRow = id;
+      const btn = event.currentTarget;
+      const rect = btn.getBoundingClientRect();
+      this.actionsMenuStyle = {
+        top: rect.bottom + 8 + 'px',
+        left: (rect.left + rect.width / 2 - 110) + 'px',
+        display: 'block',
+      };
+    },
+    closeActions() {
+      this.openActionsRow = null;
+      this.actionsMenuStyle = { top: 0, left: 0, display: 'none' };
+    },
+    closeActionsOnOutsideClick(event) {
+      if (this.openActionsRow === null) return;
+      const clickedInside = event.target.closest('.actions-wrapper');
+      if (!clickedInside) this.closeActions();
+    },
   },
   beforeUnmount() {
     if (this.mechSearchTimer) clearTimeout(this.mechSearchTimer);
     if (this.clientSearchTimer) clearTimeout(this.clientSearchTimer);
+    document.removeEventListener('mousedown', this.closeActionsOnOutsideClick);
   },
 };
 </script>
@@ -663,12 +784,158 @@ export default {
 .btn-activate:hover {
   background: #bbf7d0;
 }
+.btn-reset {
+  background: #fffbeb;
+  color: #b45309;
+}
+.btn-reset:hover {
+  background: #fef3c7;
+}
 
 .actions-cell {
   white-space: nowrap;
 }
 
-/* Modals */
+/* Botón "Acciones" */
+.actions-wrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.btn-actions-toggle {
+  background: #f8fafc;
+  border: 1.5px solid #cbd5e1;
+  color: #475569;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 6px;
+  min-height: 34px;
+  transition: all 0.15s;
+}
+
+.btn-actions-toggle:hover {
+  background: #fff;
+  border-color: #ffaa00;
+  color: #1a1a1a;
+}
+
+/* Menú desplegable de acciones - posición fixed para no cortarse con la tabla */
+.actions-menu {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 50;
+  display: flex;
+  gap: 6px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px -5px rgba(0,0,0,0.15);
+  padding: 8px;
+  min-width: 240px;
+}
+
+.actions-menu-horizontal {
+  flex-direction: row;
+  flex-wrap: nowrap;
+}
+
+.actions-menu button {
+  flex: 1;
+  text-align: center;
+  white-space: nowrap;
+  justify-content: center;
+}
+
+html.dark .actions-menu {
+  background: #1a1f2e;
+  border-color: #1e293b;
+  box-shadow: 0 10px 25px -5px rgba(0,0,0,0.4);
+}
+html.dark .actions-menu button {
+  color: #cbd5e1;
+}
+html.dark .actions-menu button:hover {
+  background: #334155;
+  color: #e2e8f0;
+}
+
+html.dark .actions-menu .btn-sm {
+  background: #1e293b;
+  color: #e2e8f0;
+}
+html.dark .actions-menu .btn-sm:hover {
+  background: #334155;
+  color: #e2e8f0;
+}
+html.dark .actions-menu .btn-view {
+  background: #1e3a5f;
+  color: #60a5fa;
+}
+html.dark .actions-menu .btn-view:hover {
+  background: #1e40af;
+}
+html.dark .actions-menu .btn-edit {
+  background: #422006;
+  color: #fbbf24;
+}
+html.dark .actions-menu .btn-edit:hover {
+  background: #78350f;
+}
+html.dark .actions-menu .btn-reset {
+  background: #422006;
+  color: #fbbf24;
+}
+html.dark .actions-menu .btn-reset:hover {
+  background: #78350f;
+}
+html.dark .actions-menu .btn-deactivate {
+  background: #450a0a;
+  color: #f87171;
+}
+html.dark .actions-menu .btn-deactivate:hover {
+  background: #7f1d1d;
+}
+html.dark .actions-menu .btn-activate {
+  background: #052e16;
+  color: #4ade80;
+}
+html.dark .actions-menu .btn-activate:hover {
+  background: #14532d;
+}
+
+/* Mobile: menú desplegable vertical centrado inferior */
+@media (max-width: 768px) {
+  .actions-menu {
+    position: fixed;
+    top: auto;
+    bottom: 90px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 88%;
+    max-width: 320px;
+    flex-direction: column;
+    padding: 10px;
+    border-radius: 12px;
+  }
+  .actions-menu-horizontal {
+    flex-direction: column;
+  }
+  .actions-menu button {
+    padding: 12px 16px;
+    font-size: 14px;
+    text-align: center;
+    justify-content: center;
+  }
+  .btn-actions-toggle {
+    padding: 8px 14px;
+    font-size: 14px;
+    min-height: 40px;
+  }
+}
 .modal-backdrop {
   position: fixed;
   top: 0; left: 0;

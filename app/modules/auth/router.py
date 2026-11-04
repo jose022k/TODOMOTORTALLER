@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.modules.auth.schemas import (
@@ -11,6 +11,10 @@ from app.modules.auth.schemas import (
     GoogleAuthRequest,
     GoogleCompleteProfileRequest,
     GoogleAuthResponse,
+    ForgotPasswordRequest,
+    ResetPasswordRequest,
+    AdminResetPasswordRequest,
+    EmailVerifyResponse,
 )
 from app.modules.auth.service import (
     register_cliente,
@@ -22,6 +26,10 @@ from app.modules.auth.service import (
     authenticate_google_cliente,
     complete_google_cliente_profile,
     check_disponibilidad,
+    forgot_password,
+    reset_password,
+    admin_reset_password,
+    verify_email_for_reset,
 )
 from app.modules.auth.dependencies import get_current_user, get_current_admin, AnyUser
 
@@ -93,3 +101,29 @@ def update_me(
     db: Session = Depends(get_db),
 ):
     return update_user(db, current_user.id, current_user.rol, data)
+
+
+@router.post("/forgot-password")
+def forgot_password_endpoint(request: Request, data: ForgotPasswordRequest, db: Session = Depends(get_db)):
+    ip = request.client.host if request.client else "unknown"
+    return forgot_password(db, data, ip=ip)
+
+
+@router.get("/verificar-email")
+def verificar_email(email: str, db: Session = Depends(get_db)):
+    """Verifica si un email pertenece a cliente o mecánico registrado (puede recuperar contraseña)."""
+    return verify_email_for_reset(db, email)
+
+
+@router.post("/reset-password")
+def reset_password_endpoint(data: ResetPasswordRequest, db: Session = Depends(get_db)):
+    return reset_password(db, data)
+
+
+@router.post("/admin/reset-password")
+def admin_reset_password_endpoint(
+    data: AdminResetPasswordRequest,
+    current_user: AnyUser = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+    return admin_reset_password(db, data)

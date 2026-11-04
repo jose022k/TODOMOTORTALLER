@@ -1,13 +1,14 @@
 import asyncio
 import os
 from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from app.core.database import engine, Base, ensure_schema_updates
 
 # Import models so SQLAlchemy discovers them for create_all
-from app.modules.auth.models import Admin, Cliente, Mecanico
+from app.modules.auth.models import Admin, Cliente, Mecanico, ActiveSession, PasswordResetCode
 from app.modules.motorcycles.models import CatalogoMoto, MotoCliente, HistorialMantenimiento, Marca
 from app.modules.service_orders.models import OrdenServicio, Evidencia
 from app.modules.notifications.models import Notificacion, PushSubscription
@@ -45,8 +46,10 @@ FRONTEND_URL = os.getenv("FRONTEND_URL", "https://todomotortaller2026-ozk4.onren
 ALLOWED_ORIGINS = [
     FRONTEND_URL,
     "http://localhost:8080",
+    "https://localhost:8080",
     "http://localhost:8000",
     "http://192.168.0.194:8080",
+    "https://192.168.0.193:8080",
     "https://todomotortaller-ozk4.onrender.com",
     "https://todomotortaller.onrender.com",
     "https://todomotortaller2026-ozk4.onrender.com",
@@ -93,7 +96,11 @@ if os.path.isdir(SOUNDS_DIR):
 
 @app.get("/{full_path:path}")
 async def serve_spa(full_path: str):
-    file_path = os.path.join(DIST_DIR, full_path)
+    file_path = os.path.realpath(os.path.join(DIST_DIR, full_path))
+    dist_real = os.path.realpath(DIST_DIR)
+    # Prevenir path traversal: la ruta resuelta debe quedar dentro de dist/
+    if not file_path.startswith(dist_real + os.sep) and file_path != dist_real:
+        return JSONResponse({"error": "not found"}, status_code=404)
     if full_path == "service-worker.js" and os.path.isfile(file_path):
         response = FileResponse(file_path, media_type="application/javascript")
         response.headers["Service-Worker-Allowed"] = "/"
@@ -106,5 +113,4 @@ async def serve_spa(full_path: str):
         response = FileResponse(index_path)
         response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
         return response
-    from fastapi.responses import JSONResponse
     return JSONResponse({"error": "not found"}, status_code=404)
