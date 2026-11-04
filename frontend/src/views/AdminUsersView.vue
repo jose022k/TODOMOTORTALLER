@@ -6,7 +6,7 @@
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px; vertical-align: middle;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
           Gestión de Usuarios
         </h1>
-        <p class="page-subtitle">Administra los clientes y mecánicos registrados</p>
+        <p class="page-subtitle">Administra los clientes y mecánicos del taller</p>
       </div>
     </div>
 
@@ -54,6 +54,13 @@
             </td>
             <td class="actions-cell">
               <div class="actions-wrapper">
+                <div class="actions-direct-buttons">
+                  <button class="btn-sm btn-edit" @click="openEditMechModal(m); closeActions()">Editar</button>
+                  <button class="btn-sm btn-reset" @click="openResetPasswordModal(m); closeActions()">Resetear contraseña</button>
+                  <button :class="['btn-sm', m.activo ? 'btn-deactivate' : 'btn-activate']" @click="toggleMechActive(m); closeActions()">
+                    {{ m.activo ? 'Desactivar' : 'Activar' }}
+                  </button>
+                </div>
                 <button class="btn-actions-toggle" @click="openActionsMenu(m.id, $event)">{{ openActionsRow === m.id ? 'Cerrar' : 'Ver' }}</button>
                 <div v-show="openActionsRow === m.id" class="actions-menu actions-menu-horizontal" :style="actionsMenuStyle">
                   <button class="btn-sm btn-edit" @click="openEditMechModal(m); closeActions()">Editar</button>
@@ -109,6 +116,13 @@
             </td>
             <td class="actions-cell">
               <div class="actions-wrapper">
+                <div class="actions-direct-buttons">
+                  <button class="btn-sm btn-view" @click="openDetailClientModal(c); closeActions()">Ver</button>
+                  <button class="btn-sm btn-edit" @click="openEditClientModal(c); closeActions()">Editar</button>
+                  <button :class="['btn-sm', c.activo ? 'btn-deactivate' : 'btn-activate']" @click="toggleClientActive(c); closeActions()">
+                    {{ c.activo ? 'Desactivar' : 'Activar' }}
+                  </button>
+                </div>
                 <button class="btn-actions-toggle" @click="openActionsMenu(c.id, $event)">{{ openActionsRow === c.id ? 'Cerrar' : 'Ver' }}</button>
                 <div v-show="openActionsRow === c.id" class="actions-menu actions-menu-horizontal" :style="actionsMenuStyle">
                   <button class="btn-sm btn-view" @click="openDetailClientModal(c); closeActions()">Ver</button>
@@ -830,7 +844,7 @@ export default {
   z-index: 50;
   display: flex;
   gap: 6px;
-  background: #fff;
+  background: #f8fafc;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
   box-shadow: 0 10px 25px -5px rgba(0,0,0,0.15);
@@ -907,11 +921,51 @@ html.dark .actions-menu .btn-activate:hover {
   background: #14532d;
 }
 
+/* Botones dentro del menú en modo CLARO (sobre fondo gris) */
+.actions-menu .btn-sm {
+  color: #fff;
+}
+.actions-menu .btn-view {
+  background: #2563eb;
+  color: #fff;
+}
+.actions-menu .btn-view:hover {
+  background: #1d4ed8;
+}
+.actions-menu .btn-edit {
+  background: #d97706;
+  color: #fff;
+}
+.actions-menu .btn-edit:hover {
+  background: #b45309;
+}
+.actions-menu .btn-reset {
+  background: #d97706;
+  color: #fff;
+}
+.actions-menu .btn-reset:hover {
+  background: #b45309;
+}
+.actions-menu .btn-deactivate {
+  background: #dc2626;
+  color: #fff;
+}
+.actions-menu .btn-deactivate:hover {
+  background: #b91c1c;
+}
+.actions-menu .btn-activate {
+  background: #16a34a;
+  color: #fff;
+}
+.actions-menu .btn-activate:hover {
+  background: #15803d;
+}
+
 /* Mobile: menú desplegable vertical centrado inferior */
 @media (max-width: 768px) {
   .actions-menu {
     position: fixed;
-    top: auto;
+    top: auto !important;
     bottom: 90px;
     left: 50%;
     transform: translateX(-50%);
@@ -920,6 +974,7 @@ html.dark .actions-menu .btn-activate:hover {
     flex-direction: column;
     padding: 10px;
     border-radius: 12px;
+    background: #f8fafc;
   }
   .actions-menu-horizontal {
     flex-direction: column;
@@ -929,11 +984,38 @@ html.dark .actions-menu .btn-activate:hover {
     font-size: 14px;
     text-align: center;
     justify-content: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
   }
   .btn-actions-toggle {
     padding: 8px 14px;
     font-size: 14px;
     min-height: 40px;
+  }
+}
+
+/* Botones directos (móvil) */
+.actions-direct-buttons {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .actions-direct-buttons {
+    display: inline-flex;
+    flex-direction: row;
+    gap: 8px;
+  }
+  .actions-direct-buttons .btn-sm {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+  .actions-wrapper > .btn-actions-toggle {
+    display: none;
+  }
+  .actions-wrapper > .actions-menu {
+    display: none;
   }
 }
 .modal-backdrop {
@@ -1128,7 +1210,7 @@ html.dark .actions-menu .btn-activate:hover {
     padding: 12px 12px 80px;
   }
   .users-header {
-    margin-bottom: 0;
+    margin-bottom: 20px;
   }
   .users-header h1 {
     font-size: 1.3rem;
