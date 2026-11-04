@@ -132,6 +132,29 @@ class UserUpdate(BaseModel):
     email: Optional[EmailStr] = None
     nombre: Optional[str] = None
     password: Optional[str] = None
+    current_password: Optional[str] = None
+
+
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+
+class ResetPasswordRequest(BaseModel):
+    email: EmailStr
+    code: str
+    new_password: str
+
+
+class AdminResetPasswordRequest(BaseModel):
+    user_id: int
+    role: str
+    new_password: str
+
+
+class EmailVerifyResponse(BaseModel):
+    existe: bool
+    rol: Optional[str] = None
+    puede_recuperar: bool
 
 
 class TokenResponse(BaseModel):

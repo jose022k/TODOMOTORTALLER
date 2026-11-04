@@ -40,6 +40,12 @@ const routes = [
     path: "/loginCliente",
     redirect: "/login",
   },
+  // Recuperación de contraseña
+  {
+    path: "/forgot-password",
+    name: "forgot-password",
+    component: () => import(/* webpackChunkName: "forgot-password" */ "../views/ForgotPasswordView.vue"),
+  },
   // Registro público de clientes
   {
     path: "/register/cliente",
@@ -146,6 +152,18 @@ router.beforeEach((to, from, next) => {
   // Rutas que requieren autenticación
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
     return next("/login");
+  }
+
+  // Proteger rutas por rol: solo el rol correcto puede acceder
+  if (to.meta.rol && authStore.isAuthenticated) {
+    const rolUsuario = authStore.user?.rol || authStore.user_data?.rol;
+    if (rolUsuario && rolUsuario !== to.meta.rol) {
+      // Redirigir al panel correspondiente al rol real del usuario
+      if (rolUsuario === "admin") return next("/admin");
+      if (rolUsuario === "mecanico") return next("/mecanico/orders");
+      if (rolUsuario === "cliente") return next("/cliente/orders");
+      return next("/");
+    }
   }
 
   // Si ya tiene sesión activa, no debe volver al login ni al registro:
