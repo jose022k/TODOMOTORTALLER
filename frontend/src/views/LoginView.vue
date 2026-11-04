@@ -8,24 +8,6 @@
         <h1 class="auth-title">Inicio de Sesión</h1>
         <p class="auth-desc">Accede al sistema del taller</p>
       </div>
-      <!-- Botón de Google exclusivo para clientes -->
-      <div class="google-auth-box">
-        <button type="button" class="btn-google" @click="triggerGoogleLogin" :disabled="loading || googleLoading">
-          <span v-if="googleLoading" class="btn-spinner-google"></span>
-          <svg v-else width="20" height="20" viewBox="0 0 24 24">
-            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
-            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
-          </svg>
-          <span>{{ googleLoading ? 'Conectando...' : 'Acceso Clientes con Google' }}</span>
-        </button>
-      </div>
-
-      <div class="divider">
-        <span>o ingresa con tu correo</span>
-      </div>
-
       <form @submit.prevent="handleLogin">
         <div class="input-group">
           <label for="email">Correo electrónico</label>
@@ -40,19 +22,43 @@
             <svg class="input-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
             <input id="password" v-model="password" :type="showPassword ? 'text' : 'password'" placeholder="••••••••" required />
             <button type="button" class="toggle-pw" @click="showPassword = !showPassword" :title="showPassword ? 'Ocultar' : 'Mostrar'">
-              <svg v-if="showPassword" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffaa00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
-              <svg v-else width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ffaa00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              <svg v-if="showPassword" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7fa7d4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+              <svg v-else width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7fa7d4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
             </button>
           </div>
         </div>
         <p v-if="error" class="error-msg">{{ error }}</p>
-        <button type="submit" class="btn-submit" :disabled="loading">
-          <span v-if="loading" class="btn-spinner"></span>
-          <span>{{ loading ? "Entrando..." : "Iniciar Sesión" }}</span>
-        </button>
+        <div class="form-actions">
+          <button type="submit" class="btn-submit" :disabled="loading">
+            <span v-if="loading" class="btn-spinner"></span>
+            <span>{{ loading ? "Entrando..." : "Iniciar Sesión" }}</span>
+          </button>
+          <span class="actions-divider" aria-hidden="true"></span>
+          <button
+            type="button"
+            class="btn-google-icon"
+            data-tooltip="Iniciar sesión con Google"
+            aria-label="Iniciar sesión con Google"
+            @click="triggerGoogleLogin"
+            :disabled="loading || googleLoading"
+          >
+            <span v-if="googleLoading" class="btn-spinner-google"></span>
+            <svg v-else width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
+              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+            </svg>
+          </button>
+        </div>
       </form>
       <div class="auth-footer">
-        ¿Eres cliente? <router-link to="/register/cliente">Regístrate aquí</router-link>
+        <div class="footer-line">
+          ¿Eres cliente? <router-link to="/register/cliente">Regístrate aquí</router-link>
+        </div>
+        <div class="footer-line">
+          <router-link to="/forgot-password">¿Olvidaste tu contraseña?</router-link>
+        </div>
       </div>
     </div>
 
@@ -76,7 +82,7 @@
           </div>
           <div class="form-group-modal">
             <label>Cédula *</label>
-            <input v-model="googleForm.cedula" type="text" maxlength="11" placeholder="10345876" required @input="onCedulaInputGoogle" @blur="validarCampoGoogle('cedula')" />
+            <input v-model="googleForm.cedula" type="text" maxlength="8" placeholder="10345876" required @input="onCedulaInputGoogle" @blur="validarCampoGoogle('cedula')" />
             <p v-if="erroresGoogle.cedula" class="field-error">{{ erroresGoogle.cedula }}</p>
           </div>
           <div class="form-group-modal">
@@ -230,7 +236,7 @@ export default {
       this.programarValidacionGoogle("nombre", this.googleForm.nombre);
     },
     onCedulaInputGoogle(e) {
-      this.googleForm.cedula = e.target.value.replace(/\D/g, "").slice(0, 11);
+      this.googleForm.cedula = e.target.value.replace(/\D/g, "").slice(0, 8);
       this.programarValidacionGoogle("cedula", this.googleForm.cedula);
     },
     onTelefonoInputGoogle(e) {
@@ -306,6 +312,8 @@ export default {
           direccion: this.googleForm.direccion,
         });
         const authStore = useAuthStore();
+        // Aviso de éxito y entrada directa al sistema (PC, móvil y PWA)
+        alert("Cuenta creada exitosamente. Iniciando sesión...");
         await authStore.setTokens(data.access_token, data.refresh_token);
         this.$router.replace("/cliente/orders");
       } catch (err) {
@@ -345,18 +353,19 @@ export default {
 }
 .auth-card {
   background: #fff;
+  border: 1px solid rgba(173, 201, 233, 0.5);
   border-radius: 20px;
-  padding: 24px 32px 24px;
+  padding: 26px 32px 24px;
   width: 100%;
   max-width: 400px;
   box-sizing: border-box;
 }
 html:not(.dark) .auth-card {
-  box-shadow: 0 10px 40px rgba(0,0,0,0.18), 0 4px 12px rgba(0,0,0,0.08);
+  box-shadow: 0 14px 36px rgba(22, 56, 95, 0.13), 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 .auth-header {
   text-align: center;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
 }
 .auth-logo {
   display: flex;
@@ -370,15 +379,16 @@ html:not(.dark) .auth-card {
   display: block;
 }
 .auth-title {
-  font-size: 20px;
+  font-size: 21px;
   font-weight: 800;
-  color: #1a1a1a;
-  letter-spacing: -0.3px;
-  margin-bottom: 2px;
+  color: #16385f;
+  letter-spacing: -0.4px;
+  line-height: 1.25;
+  margin: 6px 0 3px;
 }
 .auth-desc {
   font-size: 13px;
-  color: #94a3b8;
+  color: #6b8299;
   margin: 0;
 }
 .input-group {
@@ -389,7 +399,7 @@ html:not(.dark) .auth-card {
   margin-bottom: 6px;
   font-size: 13px;
   font-weight: 700;
-  color: #1a1a1a;
+  color: #1e3a5f;
   letter-spacing: 0.2px;
 }
 .input-wrapper {
@@ -400,25 +410,25 @@ html:not(.dark) .auth-card {
 .input-icon {
   position: absolute;
   left: 14px;
-  color: #94a3b8;
+  color: #7fa7d4;
   pointer-events: none;
   flex-shrink: 0;
 }
 .input-wrapper input {
   width: 100%;
   padding: 12px 14px 12px 42px;
-  border: 1.5px solid #e2e8f0;
-  border-radius: 10px;
+  border: 1.5px solid #cfe0f3;
+  border-radius: 12px;
   font-size: 14px;
   color: #1a1a1a;
   background: #f8fafc;
-  transition: all 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
   outline: none;
 }
 .input-wrapper input:focus {
-  border-color: #ffaa00;
+  border-color: #3b6fb0;
   background: #fff;
-  box-shadow: 0 0 0 3px rgba(255, 170, 0, 0.1);
+  box-shadow: 0 0 0 3px rgba(59, 111, 176, 0.15);
 }
 .toggle-pw {
   position: absolute;
@@ -434,11 +444,11 @@ html:not(.dark) .auth-card {
   transition: background 0.2s;
 }
 .toggle-pw:hover {
-  background: rgba(255, 170, 0, 0.1);
+  background: rgba(59, 111, 176, 0.12);
 }
 
 .input-wrapper input::placeholder {
-  color: #cbd5e1;
+  color: #b9cbe0;
 }
 .error-msg {
   color: #e74c3c;
@@ -459,8 +469,8 @@ html:not(.dark) .auth-card {
   width: 100%;
   padding: 12px;
   border: none;
-  border-radius: 10px;
-  background: #ffaa00;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #ffbe2e 0%, #ffaa00 55%, #f29800 100%);
   color: #1a1a1a;
   font-size: 15px;
   font-weight: 800;
@@ -470,11 +480,12 @@ html:not(.dark) .auth-card {
   align-items: center;
   justify-content: center;
   gap: 8px;
+  box-shadow: 0 3px 10px rgba(255, 170, 0, 0.25);
 }
 .btn-submit:hover:not(:disabled) {
-  background: #f5a000;
+  background: linear-gradient(135deg, #ffc94d 0%, #ffb614 55%, #ff9f00 100%);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(255, 170, 0, 0.3);
+  box-shadow: 0 6px 16px rgba(255, 170, 0, 0.38);
 }
 .btn-submit:disabled {
   opacity: 0.6;
@@ -507,7 +518,10 @@ html:not(.dark) .auth-card {
   text-decoration: underline;
 }
 
-/* ===== MOBILE / PWA native feel ===== */
+.footer-line {
+  margin-bottom: 6px;
+}
+
 @media (max-width: 768px) {
   .auth-container {
     align-items: center;
@@ -546,10 +560,20 @@ html:not(.dark) .auth-card {
   }
   .btn-submit {
     padding: 12px;
-    border-radius: 10px;
+    border-radius: 12px;
     font-size: 15px;
     font-weight: 800;
     margin-top: 4px;
+  }
+  .form-actions {
+    gap: 10px;
+  }
+  .actions-divider {
+    height: 26px;
+  }
+  .btn-google-icon {
+    width: 44px;
+    border-radius: 12px;
   }
   .toggle-pw {
     right: 8px;
@@ -562,6 +586,7 @@ html:not(.dark) .auth-card {
 }
 html.dark .auth-card {
   background: #1a1f2e;
+  border-color: #263449;
 }
 html.dark .auth-title {
   color: #e2e8f0;
@@ -578,8 +603,9 @@ html.dark .input-wrapper input {
   color: #e2e8f0;
 }
 html.dark .input-wrapper input:focus {
-  border-color: #ffaa00;
+  border-color: #5b8fd0;
   background: #1e293b;
+  box-shadow: 0 0 0 3px rgba(91, 143, 208, 0.18);
 }
 html.dark .input-wrapper input::placeholder {
   color: #475569;
@@ -592,55 +618,111 @@ html.dark .field-error {
   color: #fca5a5;
 }
 
-/* Google Button & Divider */
-.google-auth-box {
-  margin-bottom: 8px;
-  width: 100%;
-  box-sizing: border-box;
+/* ===== Fila de acciones: botón principal + botón cuadrado de Google ===== */
+.form-actions {
+  display: flex;
+  align-items: stretch;
+  gap: 14px;
 }
-.btn-google {
-  width: 100%;
-  max-width: 100%;
-  box-sizing: border-box;
-  padding: 9px 12px;
-  height: 38px;
-  background: #ffffff;
-  border: 1.5px solid #cbd5e1;
-  border-radius: 8px;
-  color: #334155;
-  font-size: 13px;
-  font-weight: 700;
+.form-actions .btn-submit {
+  width: auto;
+  flex: 1;
+  min-width: 0;
+}
+.actions-divider {
+  width: 1px;
+  height: 30px;
+  background: #cfe0f3;
+  border-radius: 1px;
+  flex-shrink: 0;
+}
+html.dark .actions-divider {
+  background: #334155;
+}
+.btn-google-icon {
+  position: relative;
+  width: 46px;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  background: #ffffff;
+  border: 1.5px solid #d7e5f7;
+  border-radius: 12px;
   cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  white-space: nowrap;
-  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(22, 56, 95, 0.12);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease;
 }
-.btn-google:hover:not(:disabled) {
-  background: #f8fafc;
-  border-color: #94a3b8;
+.btn-google-icon:hover:not(:disabled) {
   transform: translateY(-1px);
+  border-color: #bcd3ee;
+  box-shadow: 0 6px 14px rgba(22, 56, 95, 0.18);
 }
-.btn-google:disabled {
+.btn-google-icon:active:not(:disabled) {
+  transform: translateY(0);
+}
+.btn-google-icon:disabled {
   opacity: 0.65;
   cursor: not-allowed;
   transform: none;
 }
-html.dark .btn-google {
+html.dark .btn-google-icon {
   background: #0f172a;
   border-color: #334155;
-  color: #f8fafc;
 }
-html.dark .btn-google:hover:not(:disabled) {
+html.dark .btn-google-icon:hover:not(:disabled) {
   background: #1e293b;
 }
+/* Tooltip del botón de Google: se muestra al pasar el cursor (solo en
+   dispositivos con puntero fino, para que en táctil no quede "pegado")
+   y al enfocarlo con teclado. */
+.btn-google-icon::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 9px);
+  right: -4px;
+  background: #16385f;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 10px;
+  border-radius: 6px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.18s ease, transform 0.18s ease;
+  z-index: 30;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+}
+.btn-google-icon::before {
+  content: '';
+  position: absolute;
+  bottom: calc(100% + 4px);
+  right: 12px;
+  border: 5px solid transparent;
+  border-top-color: #16385f;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.18s ease, transform 0.18s ease;
+  pointer-events: none;
+  z-index: 30;
+}
+@media (hover: hover) and (pointer: fine) {
+  .btn-google-icon:hover::after,
+  .btn-google-icon:hover::before {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.btn-google-icon:focus-visible::after,
+.btn-google-icon:focus-visible::before {
+  opacity: 1;
+  transform: translateY(0);
+}
 .btn-spinner-google {
-  width: 16px;
-  height: 16px;
+  width: 20px;
+  height: 20px;
   flex-shrink: 0;
   display: inline-block;
   border-radius: 50%;
@@ -649,28 +731,8 @@ html.dark .btn-google:hover:not(:disabled) {
   animation: spin 0.7s linear infinite;
 }
 
-.divider {
-  display: flex;
-  align-items: center;
-  text-align: center;
-  margin: 10px 0 12px;
-  color: #94a3b8;
-  font-size: 11.5px;
-  font-weight: 600;
-}
-.divider::before,
-.divider::after {
-  content: '';
-  flex: 1;
-  border-bottom: 1px solid #e2e8f0;
-}
-html.dark .divider::before,
-html.dark .divider::after {
-  border-bottom-color: #334155;
-}
-.divider span {
-  padding: 0 8px;
-}
+/* El divisor "o ingresa con tu correo" se retiró: el acceso con Google
+   ahora vive al lado del botón principal, al final del formulario. */
 
 /* Modal Google Completa Perfil */
 .google-modal-backdrop {

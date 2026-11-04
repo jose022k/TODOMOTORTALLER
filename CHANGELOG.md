@@ -6,6 +6,29 @@ Todas las modificaciones siguen el estándar de versión semántica (https://sem
 
 ---
 
+## [2.1.0] - 2026-11-01
+
+### Added
+
+- Inicio de sesión automático tras el registro de cliente: se muestra la alerta de éxito ("Cuenta creada exitosamente. Iniciando sesión...") y el usuario entra directo al panel (`/cliente/orders`) sin volver a escribir la contraseña; si el auto-login falla, aviso de respaldo y envío al login
+- Botón cuadrado de Google con el logotipo multicolor al final del formulario, a la derecha del botón principal (separado por una línea vertical azul clara), con tooltip "Iniciar sesión con Google" / "Crear cuenta con Google" (solo en dispositivos con puntero fino o al enfocar con teclado; sin tooltips pegados en táctil)
+- Cierre de sesión automático y sin recargar la página al desactivar un cliente o mecánico con sesión activa (evento WebSocket `sesion_cerrada` + modal "Sesión cerrada" con botón único "Entendido")
+
+### Changed
+
+- Rediseño visual de `LoginView.vue` y `ClienteRegisterView.vue`: títulos en azul oscuro, tarjeta blanca con borde azul claro y sombra elegante, campos con bordes e iconos en azul claro con foco suave, botón principal con degradado dorado sutil y efecto hover, mejor espaciado y jerarquía visual; responsive para PC, móvil y PWA
+- Eliminados los botones superiores "Acceso Clientes con Google" y "Registrarse con Google", junto con el divisor "o ingresa con tu correo" / "o completa el formulario"
+- `ConfirmModal.vue` oculta el botón de cancelar cuando no se recibe texto, permitiendo modales de acción única
+
+### Fixed
+
+- Cédula de cliente limitada a 6–8 dígitos (antes se aceptaban hasta 11) en el formulario de registro y en el modal de Google, con `maxlength` y recorte en vivo
+- Rechazo de cédulas con patrones falsos (consecutivas como 12345678/87654321 o todas repetidas como 11111111): "No estás introduciendo un número de cédula real" en frontend y backend
+- El backend devuelve HTTP 401 "Usuario desactivado..." al iniciar sesión y al refrescar el token, y cierra el WebSocket con código 4001 cuando la cuenta está inactiva; al desactivar se borra la sesión activa registrada
+- Todos los cierres de sesión (401/403/refresh) ocurren sin recargar la página (sin `window.location.replace`)
+
+---
+
 ## [2.0.0] - 2026-09-06
 
 ### Added

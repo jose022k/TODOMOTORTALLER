@@ -43,6 +43,20 @@ function processQueue(error, token) {
   failedQueue = []
 }
 
+/**
+ * Cierra la sesión en el navegador SIN recargar la página.
+ * Limpia el storage y avisa a la app (App.vue escucha este evento) para que
+ * redirija al login con router.replace.
+ */
+function forzarCierreSesion(motivo) {
+  localStorage.removeItem('access_token')
+  localStorage.removeItem('refresh_token')
+  localStorage.removeItem('user_data')
+  window.dispatchEvent(
+    new CustomEvent('session-force-logout', { detail: { motivo: motivo || '' } })
+  )
+}
+
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -51,12 +65,8 @@ api.interceptors.response.use(
     }
     const originalRequest = error.config
     if (error.response.status === 403) {
-      localStorage.removeItem('access_token')
-      localStorage.removeItem('refresh_token')
-      localStorage.removeItem('user_data')
-      if (window.location.pathname !== '/login') {
-        window.location.replace('/login')
-      }
+      // 403 es un error de autorización (no de autenticación), no cerrar sesión.
+      // Solo rechazar con el mensaje para que la vista lo muestre.
       return Promise.reject(error)
     }
     if (error.response.status === 401 && !originalRequest._retry) {
@@ -85,22 +95,14 @@ api.interceptors.response.use(
           return api(originalRequest)
         } catch (e) {
           processQueue(e, null)
-          localStorage.removeItem('access_token')
-          localStorage.removeItem('refresh_token')
-          localStorage.removeItem('user_data')
-          if (window.location.pathname !== '/login') {
-            window.location.replace('/login')
-          }
+          forzarCierreSesion(
+            e.response?.data?.detail || 'Tu sesión ha terminado. Inicia sesión de nuevo.'
+          )
         } finally {
           isRefreshing = false
         }
       } else {
-        localStorage.removeItem('access_token')
-        localStorage.removeItem('refresh_token')
-        localStorage.removeItem('user_data')
-        if (window.location.pathname !== '/login') {
-          window.location.replace('/login')
-        }
+        forzarCierreSesion('Tu sesión ha terminado. Inicia sesión de nuevo.')
       }
       isRefreshing = false
     }

@@ -4,13 +4,37 @@
  *
  * Reglas:
  *  - nombre   → mínimo dos palabras (nombre y apellido)
- *  - cedula   → solo números, entre 6 y 11 dígitos
+ *  - cedula   → solo números, entre 6 y 8 dígitos, y sin patrones falsos
+ *               (consecutivos 12345678 / 87654321 o todos iguales 11111111)
  *  - telefono → solo números, exactamente 11 dígitos (04121234567)
  *  - email    → solo gmail / outlook / icloud
  *  - direccion → obligatoria
  *
  * Devuelve "" cuando el valor es válido o el mensaje de error cuando no.
  */
+
+/**
+ * Detecta cédulas que parecen inventadas:
+ *  - todos los dígitos iguales: 11111111, 22222222, 33333333…
+ *  - consecutivos ascendentes:  12345678
+ *  - consecutivos descendentes: 87654321
+ * Solo se evalúa a partir de 6 dígitos (la longitud mínima de una cédula),
+ * para no molestar mientras se escribe.
+ */
+function esPatronFalsoCedula(v) {
+  if (v.length < 6) return false;
+  if (/^(\d)\1+$/.test(v)) return true;
+  let ascendente = true;
+  let descendente = true;
+  for (let i = 1; i < v.length; i++) {
+    const anterior = v.charCodeAt(i - 1) - 48;
+    const actual = v.charCodeAt(i) - 48;
+    if (actual !== anterior + 1) ascendente = false;
+    if (actual !== anterior - 1) descendente = false;
+  }
+  return ascendente || descendente;
+}
+
 export function validarCampoRegistro(campo, valor) {
   const v = (valor || "").trim();
 
@@ -23,7 +47,8 @@ export function validarCampoRegistro(campo, valor) {
   if (campo === "cedula") {
     if (!v) return "La cédula es obligatoria";
     if (!/^\d+$/.test(v)) return "La cédula debe contener solo números";
-    if (v.length < 6 || v.length > 11) return "La cédula debe tener entre 6 y 11 dígitos";
+    if (v.length < 6 || v.length > 8) return "La cédula debe tener entre 6 y 8 dígitos";
+    if (esPatronFalsoCedula(v)) return "No estás introduciendo un número de cédula real";
     return "";
   }
 

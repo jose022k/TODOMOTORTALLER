@@ -4,8 +4,8 @@ from typing import Optional
 from uuid import UUID
 from pydantic import BaseModel, EmailStr, field_validator
 
-# Solo números: cédula venezolana de 6 a 11 dígitos, teléfono con 11 dígitos (04121234567)
-RE_CEDULA = re.compile(r"^\d{6,11}$")
+# Solo números: cédula venezolana de 6 a 8 dígitos, teléfono con 11 dígitos (04121234567)
+RE_CEDULA = re.compile(r"^\d{6,8}$")
 RE_TELEFONO = re.compile(r"^\d{11}$")
 RE_SOLO_NUMEROS = re.compile(r"^\d+$")
 
@@ -20,6 +20,26 @@ def _validar_nombre_completo(valor: str) -> str:
     return valor
 
 
+def _es_patron_falso_cedula(valor: str) -> bool:
+    """Detecta cédulas que parecen inventadas.
+
+    · todos los dígitos iguales: 11111111, 22222222, 33333333…
+    · consecutivos ascendentes:  12345678
+    · consecutivos descendentes: 87654321
+    Solo se evalúa a partir de 6 dígitos (longitud mínima de una cédula).
+    """
+    if len(valor) < 6:
+        return False
+    if len(set(valor)) == 1:
+        return True
+    digitos = [int(c) for c in valor]
+    pares = zip(digitos, digitos[1:])
+    ascendente = all(b == a + 1 for a, b in pares)
+    pares = zip(digitos, digitos[1:])
+    descendente = all(b == a - 1 for a, b in pares)
+    return ascendente or descendente
+
+
 def _validar_cedula(valor: str) -> str:
     valor = (valor or "").strip()
     if not valor:
@@ -27,7 +47,9 @@ def _validar_cedula(valor: str) -> str:
     if not RE_SOLO_NUMEROS.match(valor):
         raise ValueError("La cédula debe contener solo números.")
     if not RE_CEDULA.match(valor):
-        raise ValueError("La cédula debe tener entre 6 y 11 dígitos.")
+        raise ValueError("La cédula debe tener entre 6 y 8 dígitos.")
+    if _es_patron_falso_cedula(valor):
+        raise ValueError("No estás introduciendo un número de cédula real.")
     return valor
 
 
@@ -110,6 +132,29 @@ class UserUpdate(BaseModel):
     email: Optional[EmailStr] = None
     nombre: Optional[str] = None
     password: Optional[str] = None
+    current_password: Optional[str] = None
+
+
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+
+class ResetPasswordRequest(BaseModel):
+    email: EmailStr
+    code: str
+    new_password: str
+
+
+class AdminResetPasswordRequest(BaseModel):
+    user_id: int
+    role: str
+    new_password: str
+
+
+class EmailVerifyResponse(BaseModel):
+    existe: bool
+    rol: Optional[str] = None
+    puede_recuperar: bool
 
 
 class TokenResponse(BaseModel):
