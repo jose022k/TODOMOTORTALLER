@@ -514,6 +514,7 @@ export default {
   align-items: center;
   justify-content: flex-end;
   flex-wrap: nowrap;
+  gap: 16px;
   margin-left: auto;
 }
 .reports-toolbar {
