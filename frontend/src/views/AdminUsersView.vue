@@ -366,7 +366,7 @@ export default {
       mechanics: [],
       mechSearch: "",
       mechPage: 1,
-      mechPageSize: 15,
+      mechPageSize: 10,
       mechSearchTimer: null,
       showCreateMech: false,
       showEditMech: false,
@@ -381,7 +381,7 @@ export default {
       clients: [],
       clientSearch: "",
       clientPage: 1,
-      clientPageSize: 15,
+      clientPageSize: 10,
       clientSearchTimer: null,
       showEditClient: false,
       showDetailClient: false,
@@ -420,6 +420,16 @@ export default {
     paginatedClients() {
       const start = (this.clientPage - 1) * this.clientPageSize;
       return this.filteredClients.slice(start, start + this.clientPageSize);
+    },
+  },
+  watch: {
+    // Si la lista se reduce (búsqueda, desactivación, etc.) y la página actual
+    // queda fuera de rango, regresamos a la última página válida.
+    mechTotalPages(nuevo) {
+      if (this.mechPage > nuevo) this.mechPage = nuevo;
+    },
+    clientTotalPages(nuevo) {
+      if (this.clientPage > nuevo) this.clientPage = nuevo;
     },
   },
   mounted() {
@@ -464,6 +474,10 @@ export default {
         const { data } = await api.post("/users/mechanics", this.mechForm);
         this.mechanics.push(data);
         this.showCreateMech = false;
+        // Ir a la última página para que el mecánico recién creado quede visible.
+        this.$nextTick(() => {
+          this.mechPage = this.mechTotalPages;
+        });
         this.showAlert(`Mecánico "${data.nombre}" creado exitosamente.`);
       } catch (err) {
         this.showAlert(err.response?.data?.detail || "Error al crear mecánico.", "error");
