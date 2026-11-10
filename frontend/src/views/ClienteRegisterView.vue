@@ -176,6 +176,7 @@
 import api from "@/services/api";
 import { useAuthStore } from "@/stores/auth";
 import { validarCampoRegistro, esErrorDuplicado, CAMPOS_DISPONIBLES } from "@/services/validacionRegistro";
+import { capitalizarNombre } from "@/services/formatoTexto";
 import LoadingOverlay from "@/components/LoadingOverlay.vue";
 
 export default {
@@ -328,7 +329,7 @@ export default {
     },
     onNombreInputGoogle(e) {
       let val = e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]/g, "");
-      this.googleForm.nombre = val.replace(/\b[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ]/g, (char) => char.toUpperCase());
+      this.googleForm.nombre = capitalizarNombre(val);
       this.programarValidacion("nombre", this.googleForm.nombre, true);
     },
     onCedulaInputGoogle(e) {
@@ -385,7 +386,7 @@ export default {
     },
     onNombreInput(e) {
       let val = e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]/g, "");
-      this.form.nombre = val.replace(/\b[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ]/g, (char) => char.toUpperCase());
+      this.form.nombre = capitalizarNombre(val);
       this.programarValidacion("nombre", this.form.nombre);
     },
     onCedulaInput(e) {

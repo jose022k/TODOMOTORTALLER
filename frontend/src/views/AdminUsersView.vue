@@ -161,7 +161,13 @@
           </div>
           <div class="form-group">
             <label>Contraseña</label>
-            <input v-model="mechForm.password" type="password" required placeholder="Contraseña" />
+            <div class="input-wrapper">
+              <input v-model="mechForm.password" :type="showMechPassword ? 'text' : 'password'" required placeholder="Contraseña" />
+              <button type="button" class="toggle-pw" @click="showMechPassword = !showMechPassword" :title="showMechPassword ? 'Ocultar' : 'Mostrar'">
+                <svg v-if="showMechPassword" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                <svg v-else width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
           </div>
           <div class="modal-footer">
             <button type="button" class="btn-secondary" @click="showCreateMech = false">Cancelar</button>
@@ -209,7 +215,13 @@
           </div>
           <div class="form-group">
             <label>Nueva contraseña</label>
-            <input v-model="resetForm.password" type="password" required placeholder="Mínimo 6 caracteres" />
+            <div class="input-wrapper">
+              <input v-model="resetForm.password" :type="showResetPasswordPw ? 'text' : 'password'" required placeholder="Mínimo 6 caracteres" />
+              <button type="button" class="toggle-pw" @click="showResetPasswordPw = !showResetPasswordPw" :title="showResetPasswordPw ? 'Ocultar' : 'Mostrar'">
+                <svg v-if="showResetPasswordPw" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                <svg v-else width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
           </div>
           <div class="modal-footer">
             <button type="button" class="btn-secondary" @click="showResetPassword = false">Cancelar</button>
@@ -359,6 +371,8 @@ export default {
       showCreateMech: false,
       showEditMech: false,
       showResetPassword: false,
+      showMechPassword: false,
+      showResetPasswordPw: false,
       openActionsRow: null,
       mechForm: { nombre: "", email: "", password: "" },
       mechEditForm: { id: null, nombre: "", email: "" },
@@ -441,6 +455,7 @@ export default {
     },
     openCreateMechModal() {
       this.mechForm = { nombre: "", email: "", password: "" };
+      this.showMechPassword = false;
       this.showCreateMech = true;
     },
     async createMechanic() {
@@ -479,6 +494,7 @@ export default {
     },
     openResetPasswordModal(m) {
       this.resetForm = { id: m.id, nombre: m.nombre, password: "" };
+      this.showResetPasswordPw = false;
       this.showResetPassword = true;
     },
     async resetMechanicPassword() {
@@ -1095,6 +1111,40 @@ html.dark .actions-menu .btn-activate:hover {
   border-color: #ffaa00;
   outline: none;
   box-shadow: 0 0 0 3px rgba(255,170,0,0.15);
+}
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.input-wrapper input {
+  padding-right: 42px;
+}
+.toggle-pw {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  color: #64748b;
+  transition: background 0.2s, color 0.2s;
+}
+.toggle-pw:hover {
+  background: rgba(255, 170, 0, 0.15);
+  color: #1a1a1a;
+}
+html.dark .toggle-pw {
+  color: #94a3b8;
+}
+html.dark .toggle-pw:hover {
+  color: #ffaa00;
 }
 .modal-footer {
   display: flex;

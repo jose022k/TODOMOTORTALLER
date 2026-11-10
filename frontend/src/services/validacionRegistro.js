@@ -7,7 +7,7 @@
  *  - cedula   → solo números, entre 6 y 8 dígitos, y sin patrones falsos
  *               (consecutivos 12345678 / 87654321 o todos iguales 11111111)
  *  - telefono → solo números, exactamente 11 dígitos (04121234567)
- *  - email    → solo gmail / outlook / icloud
+ *  - email    → solo gmail / outlook / icloud / hotmail
  *  - direccion → obligatoria
  *
  * Devuelve "" cuando el valor es válido o el mensaje de error cuando no.
@@ -61,8 +61,8 @@ export function validarCampoRegistro(campo, valor) {
 
   if (campo === "email") {
     if (!v) return "El correo es obligatorio";
-    if (!/^[^\s@]+@(gmail\.com|outlook\.com|icloud\.com)$/i.test(v)) {
-      return "El correo debe terminar en @gmail.com, @outlook.com o @icloud.com";
+    if (!/^[^\s@]+@(gmail\.com|outlook\.com|icloud\.com|hotmail\.com|hotmail\.es)$/i.test(v)) {
+      return "El correo debe terminar en @gmail.com, @outlook.com, @icloud.com o @hotmail.com";
     }
     return "";
   }

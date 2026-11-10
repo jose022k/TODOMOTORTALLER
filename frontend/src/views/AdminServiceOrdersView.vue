@@ -444,6 +444,14 @@ import { useAuthStore } from "@/stores/auth";
 import ChatModal from "@/components/ChatModal.vue";
 import orderSocket, { esEventoDeOrden } from "@/services/orderSocket";
 
+// Colores estándar del taller. Se usan como respaldo cuando el modelo del
+// catálogo no tiene una gama de color definida (p. ej. modelos recién creados),
+// para que siempre se pueda elegir el color al registrar una moto nueva.
+const COLORES_ESTANDAR = [
+  "Negro", "Azul", "Rojo", "Amarillo", "Morado", "Rosa", "Gris",
+  "Vinotinto", "Blanco", "Verde", "Naranja", "Marrón", "Plateado", "Dorado",
+];
+
 export default {
   name: "AdminServiceOrders",
   components: { ChatModal },
@@ -571,7 +579,9 @@ export default {
       });
     },
     coloresDisponibles() {
-      return this.coloresPorModelo;
+      // Si el modelo no tiene gama de color en el catálogo, ofrecemos la lista
+      // estándar para no bloquear la selección de color al crear la orden.
+      return this.coloresPorModelo.length ? this.coloresPorModelo : COLORES_ESTANDAR;
     },
     canCreate() {
       if (!this.form.cliente_id || !this.form.mecanico_id || !this.form.descripcion.trim()) return false;
